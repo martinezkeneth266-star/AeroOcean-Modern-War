@@ -1,89 +1,1495 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Guerra Sobre el Agua</title>
-    <style>
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: #000000; color: #00FF00;
-            font-family: monospace; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; overflow: hidden;
-        }
-        #pantalla { text-align: center; padding: 20px; font-size: 1.2rem; }
-        .subtexto { color: #888888; font-size: 0.9rem; margin-top: 15px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Guerra Sobre el Agua</title>
+
+<style>
+*{
+box-sizing:border-box;
+user-select:none;
+-webkit-user-select:none;
+}
+
+html,body{
+margin:0;
+width:100%;
+height:100%;
+background:#050505;
+color:#fff;
+font-family:monospace;
+overflow:hidden;
+}
+
+body{
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+#app{
+width:100%;
+height:100%;
+max-width:900px;
+padding:18px;
+display:flex;
+flex-direction:column;
+}
+
+h1{
+text-align:center;
+font-size:clamp(22px,6vw,42px);
+margin:8px 0 14px;
+}
+
+#status{
+border:1px solid #777;
+padding:12px;
+min-height:76px;
+font-size:18px;
+}
+
+#menu{
+display:flex;
+flex-direction:column;
+gap:10px;
+margin-top:14px;
+overflow:auto;
+}
+
+button{
+background:#111;
+color:#fff;
+border:2px solid #aaa;
+border-radius:10px;
+padding:15px;
+font:inherit;
+font-size:18px;
+}
+
+button:focus{
+outline:3px solid #fff;
+}
+
+.hidden{
+display:none!important;
+}
+
+#battleInfo{
+line-height:1.7;
+font-size:17px;
+}
+
+#menuBattle{
+display:flex;
+flex-direction:column;
+gap:10px;
+margin-top:14px;
+overflow:auto;
+}
+</style>
 </head>
+
 <body>
 
-    <div id="pantalla" aria-hidden="true">
-        <h1>GUERRA SOBRE EL AGUA</h1>
-        <p id="estado-texto">Toca la pantalla para activar sistemas.</p>
-        <p class="subtexto">Navegación: Desliza Arriba/Abajo.<br>Seleccionar: Toca la pantalla.<br>Estado rápido: Desliza Horizontalmente.</p>
-    </div>
+<div id="app">
 
-    <script>
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        let ctx = null;
-        
-        function initAudio() {
-            if (!ctx) ctx = new AudioCtx();
-            if (ctx.state === 'suspended') ctx.resume();
-        }
+<h1>GUERRA SOBRE EL AGUA</h1>
 
-        function reproducirEfecto(tipo, pan = 0) {
-            if (!ctx) return;
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            const panner = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-            osc.connect(gain);
-            if (panner) { panner.pan.value = pan; gain.connect(panner); panner.connect(ctx.destination); } 
-            else { gain.connect(ctx.destination); }
-            const ahora = ctx.currentTime;
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(440, ahora);
-            osc.frequency.exponentialRampToValueAtTime(880, ahora + 0.05);
-            gain.gain.setValueAtTime(0.1, ahora);
-            gain.gain.exponentialRampToValueAtTime(0.01, ahora + 0.05);
-            osc.start(ahora); osc.stop(ahora + 0.05);
-        }
+<div id="status" tabindex="0">
+Toca la pantalla para iniciar.
+</div>
 
-        function hablar(texto) {
-            document.getElementById('estado-texto').innerText = texto;
-            const mensaje = new SpeechSynthesisUtterance(texto);
-            mensaje.lang = 'es-ES';
-            window.speechSynthesis.speak(mensaje);
-        }
+<div id="main" class="hidden">
+<div id="menu"></div>
+</div>
 
-        let juegoIniciado = false;
-        let startY = 0, startX = 0;
+<div id="battle" class="hidden">
 
-        document.addEventListener('touchstart', (e) => {
-            startY = e.touches[0].clientY;
-            startX = e.touches[0].clientX;
+<div id="battleInfo"></div>
 
-            // BLOQUEO DE ORIENTACIÓN Y FULLSCREEN
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(e => console.log(e));
-            }
+<div id="menuBattle"></div>
 
-            if (!juegoIniciado) {
-                juegoIniciado = true;
-                initAudio();
-                hablar("Bienvenido a Guerra Sobre el Agua. Sistema activado.");
-            }
-        }, false);
+</div>
 
-        document.addEventListener('touchend', (e) => {
-            let endY = e.changedTouches[0].clientY;
-            let diffY = endY - startY;
-            if (Math.abs(diffY) > 50) {
-                reproducirEfecto('menu');
-                hablar(diffY > 0 ? "Navegando hacia abajo" : "Navegando hacia arriba");
-            }
-        }, false);
-    </script>
+</div>
+
+<script>
+
+"use strict";
+
+
+/* =====================================================
+   ESTADO DEL JUEGO
+===================================================== */
+
+const G={
+
+started:false,
+
+screen:"main",
+
+index:0,
+
+resources:1000,
+
+fuel:100,
+
+ammo:100,
+
+hull:100,
+
+aircraft:12,
+
+destroyers:3,
+
+enemy:0,
+
+enemyMax:0,
+
+target:"",
+
+victories:0,
+
+turn:0,
+
+countryIndex:0
+
+};
+
+
+/* =====================================================
+   TERRITORIOS
+===================================================== */
+
+const countries=[
+
+"Nicaragua",
+"Honduras",
+"Costa Rica",
+"Panamá",
+"Colombia",
+"México",
+"Estados Unidos",
+"Cuba",
+"España",
+"Brasil",
+"Reino Unido",
+"Francia",
+"Italia",
+"Japón",
+"Australia",
+"India",
+"Indonesia",
+"Filipinas",
+"Sudáfrica",
+"Egipto"
+
+];
+
+
+/* =====================================================
+   REGIONES
+===================================================== */
+
+const regions=[
+
+"Centroamérica",
+"Caribe",
+"Norteamérica",
+"Sudamérica",
+"Europa",
+"Asia",
+"Oceanía",
+"África"
+
+];
+
+
+let audio=null;
+
+
+/* =====================================================
+   AUDIO
+===================================================== */
+
+function audioInit(){
+
+try{
+
+const C=
+window.AudioContext ||
+window.webkitAudioContext;
+
+if(!audio){
+
+audio=new C();
+
+}
+
+if(audio.state==="suspended"){
+
+audio.resume();
+
+}
+
+}catch(e){}
+
+}
+
+
+/* =====================================================
+   GENERADOR DE SONIDOS
+===================================================== */
+
+function tone(
+freq=440,
+dur=.12,
+type="sine",
+vol=.12
+){
+
+if(!audio)return;
+
+try{
+
+const o=
+audio.createOscillator();
+
+const g=
+audio.createGain();
+
+o.type=type;
+
+o.frequency.value=freq;
+
+g.gain.setValueAtTime(
+vol,
+audio.currentTime
+);
+
+g.gain.exponentialRampToValueAtTime(
+.001,
+audio.currentTime+dur
+);
+
+o.connect(g);
+
+g.connect(audio.destination);
+
+o.start();
+
+o.stop(
+audio.currentTime+dur
+);
+
+}catch(e){}
+
+}
+
+
+/* =====================================================
+   EFECTOS
+===================================================== */
+
+function sound(name){
+
+if(name==="select"){
+
+tone(660,.08);
+
+setTimeout(
+()=>tone(880,.08),
+70
+);
+
+}
+
+if(name==="hit"){
+
+tone(
+90,
+.35,
+"sawtooth",
+.18
+);
+
+}
+
+if(name==="miss"){
+
+tone(
+180,
+.15,
+"square",
+.08
+);
+
+}
+
+if(name==="win"){
+
+tone(523,.12);
+
+setTimeout(
+()=>tone(659,.12),
+120
+);
+
+setTimeout(
+()=>tone(784,.22),
+240
+);
+
+}
+
+if(name==="lose"){
+
+tone(330,.15);
+
+setTimeout(
+()=>tone(220,.25),
+150
+);
+
+}
+
+}
+
+
+/* =====================================================
+   VOZ
+===================================================== */
+
+function speak(text){
+
+document.getElementById(
+"status"
+).textContent=text;
+
+if("speechSynthesis" in window){
+
+speechSynthesis.cancel();
+
+const u=
+new SpeechSynthesisUtterance(text);
+
+u.lang="es-ES";
+
+u.rate=1;
+
+u.pitch=1;
+
+u.volume=1;
+
+speechSynthesis.speak(u);
+
+}
+
+}
+
+
+/* =====================================================
+   RETROALIMENTACIÓN
+===================================================== */
+
+function feedback(
+text,
+effect="select"
+){
+
+sound(effect);
+
+if(navigator.vibrate){
+
+navigator.vibrate(
+effect==="hit"
+?180
+:60
+);
+
+}
+
+speak(text);
+
+}
+
+
+/* =====================================================
+   ACCESO A ELEMENTOS
+===================================================== */
+
+function $(id){
+
+return document.getElementById(id);
+
+}
+
+
+/* =====================================================
+   MENÚ PRINCIPAL
+===================================================== */
+
+const mainOptions=[
+
+[
+"Iniciar campaña",
+startCampaign
+],
+
+[
+"Explorar territorios",
+explore
+],
+
+[
+"Estado de la flota",
+fleet
+],
+
+[
+"Recursos y suministros",
+resources
+],
+
+[
+"Ayuda y controles",
+help
+]
+
+];
+
+
+/* =====================================================
+   MOSTRAR MENÚ PRINCIPAL
+===================================================== */
+
+function showMain(){
+
+G.screen="main";
+
+$("battle")
+.classList.add("hidden");
+
+$("main")
+.classList.remove("hidden");
+
+renderMenu(mainOptions);
+
+}
+
+
+/* =====================================================
+   CREAR MENÚ
+===================================================== */
+
+function renderMenu(options){
+
+const box=$("menu");
+
+box.innerHTML="";
+
+options.forEach(
+(item,i)=>{
+
+const b=
+document.createElement("button");
+
+b.textContent=
+(i+1)+". "+item[0];
+
+b.onclick=()=>{
+
+audioInit();
+
+feedback(
+"Seleccionado: "+item[0]
+);
+
+item[1]();
+
+};
+
+box.appendChild(b);
+
+});
+
+}
+
+
+/* =====================================================
+   INICIAR CAMPAÑA
+===================================================== */
+
+function startCampaign(){
+
+G.screen="countries";
+
+G.countryIndex=0;
+
+speak(
+"Campaña iniciada. Selecciona el territorio objetivo."
+);
+
+renderCountries();
+
+}
+
+
+/* =====================================================
+   SELECCIÓN DE TERRITORIOS
+===================================================== */
+
+function renderCountries(){
+
+const options=[
+
+[
+"Territorio anterior",
+()=>moveCountry(-1)
+],
+
+[
+"Territorio actual: "+
+countries[G.countryIndex],
+selectCountry
+],
+
+[
+"Territorio siguiente",
+()=>moveCountry(1)
+],
+
+[
+"Volver al menú",
+showMain
+]
+
+];
+
+renderMenu(options);
+
+}
+
+
+/* =====================================================
+   CAMBIAR TERRITORIO
+===================================================== */
+
+function moveCountry(n){
+
+G.countryIndex=
+(
+G.countryIndex+n+
+countries.length
+)
+%
+countries.length;
+
+feedback(
+"Territorio seleccionado: "+
+countries[G.countryIndex]
+);
+
+renderCountries();
+
+}
+
+
+/* =====================================================
+   SELECCIONAR TERRITORIO
+===================================================== */
+
+function selectCountry(){
+
+G.target=
+countries[G.countryIndex];
+
+G.enemyMax=
+35+
+Math.floor(
+Math.random()*46
+);
+
+G.enemy=
+G.enemyMax;
+
+G.turn=0;
+
+G.screen="battle";
+
+speak(
+"Objetivo confirmado: "+
+G.target+
+". Fuerza enemiga estimada: "+
+G.enemyMax+
+"."
+);
+
+renderBattle();
+
+}
+
+
+/* =====================================================
+   EXPLORACIÓN
+===================================================== */
+
+function explore(){
+
+G.screen="explore";
+
+renderMenu([
+
+[
+"Región anterior",
+()=>{
+G.index=
+(G.index-1+regions.length)
+%regions.length;
+
+explore();
+}
+],
+
+[
+"Región actual: "+
+regions[G.index],
+()=>{
+feedback(
+"Región actual: "+
+regions[G.index]
+);
+}
+],
+
+[
+"Región siguiente",
+()=>{
+G.index=
+(G.index+1)
+%regions.length;
+
+explore();
+}
+],
+
+[
+"Volver al menú",
+showMain
+]
+
+]);
+
+speak(
+"Exploración mundial. Región actual: "+
+regions[G.index]
+);
+
+}
+
+
+/* =====================================================
+   ESTADO DE LA FLOTA
+===================================================== */
+
+function fleet(){
+
+renderMenu([
+
+[
+"Portaaviones: casco "+
+G.hull+
+" por ciento",
+()=>{
+feedback(
+"Portaaviones con "+
+G.hull+
+" por ciento de casco"
+);
+}
+],
+
+[
+"Aviones disponibles: "+
+G.aircraft,
+()=>{
+feedback(
+"Hay "+
+G.aircraft+
+" aviones disponibles"
+);
+}
+],
+
+[
+"Destructores: "+
+G.destroyers,
+()=>{
+feedback(
+"Hay "+
+G.destroyers+
+" destructores"
+);
+}
+],
+
+[
+"Volver al menú",
+showMain
+]
+
+]);
+
+speak(
+"Estado de la flota."
+);
+
+}
+
+
+/* =====================================================
+   RECURSOS
+===================================================== */
+
+function resources(){
+
+renderMenu([
+
+[
+"Recursos: "+
+G.resources,
+()=>{
+feedback(
+"Recursos disponibles: "+
+G.resources
+);
+}
+],
+
+[
+"Combustible: "+
+G.fuel+
+" por ciento",
+()=>{
+feedback(
+"Combustible: "+
+G.fuel+
+" por ciento"
+);
+}
+],
+
+[
+"Munición: "+
+G.ammo,
+()=>{
+feedback(
+"Munición disponible: "+
+G.ammo
+);
+}
+],
+
+[
+"Reparar portaaviones: 200 recursos",
+repair
+],
+
+[
+"Comprar munición: 100 recursos",
+buyAmmo
+],
+
+[
+"Volver al menú",
+showMain
+]
+
+]);
+
+speak(
+"Recursos y suministros."
+);
+
+}
+
+
+/* =====================================================
+   REPARAR
+===================================================== */
+
+function repair(){
+
+if(
+G.resources>=200 &&
+G.hull<100
+){
+
+G.resources-=200;
+
+G.hull=
+Math.min(
+100,
+G.hull+30
+);
+
+feedback(
+"Portaaviones reparado. Casco al "+
+G.hull+
+" por ciento"
+);
+
+}else{
+
+feedback(
+"No es posible reparar ahora"
+);
+
+}
+
+resources();
+
+}
+
+
+/* =====================================================
+   COMPRAR MUNICIÓN
+===================================================== */
+
+function buyAmmo(){
+
+if(G.resources>=100){
+
+G.resources-=100;
+
+G.ammo+=35;
+
+feedback(
+"Munición comprada. Munición total: "+
+G.ammo
+);
+
+}else{
+
+feedback(
+"Recursos insuficientes"
+);
+
+}
+
+resources();
+
+}
+
+
+/* =====================================================
+   AYUDA
+===================================================== */
+
+function help(){
+
+renderMenu([
+
+[
+"Arriba: opción anterior",
+()=>{
+feedback(
+"Desliza hacia arriba para ir a la opción anterior"
+);
+}
+],
+
+[
+"Abajo: opción siguiente",
+()=>{
+feedback(
+"Desliza hacia abajo para ir a la opción siguiente"
+);
+}
+],
+
+[
+"Toque: seleccionar",
+()=>{
+feedback(
+"Toca para seleccionar"
+);
+}
+],
+
+[
+"Volver al menú",
+showMain
+]
+
+]);
+
+speak(
+"Controles. Desliza arriba o abajo para navegar y toca para seleccionar."
+);
+
+}
+
+
+/* =====================================================
+   BATALLA
+===================================================== */
+
+function renderBattle(){
+
+$("main")
+.classList.add("hidden");
+
+$("battle")
+.classList.remove("hidden");
+
+$("battleInfo").innerHTML=
+
+"Objetivo: "+
+G.target+
+"<br>"+
+"Enemigo: "+
+G.enemy+
+" unidades"+
+"<br>"+
+"Portaaviones: "+
+G.hull+
+" por ciento"+
+"<br>"+
+"Aviones: "+
+G.aircraft+
+"<br>"+
+"Destructores: "+
+G.destroyers+
+"<br>"+
+"Munición: "+
+G.ammo+
+"<br>"+
+"Combustible: "+
+G.fuel+
+" por ciento"+
+"<br>"+
+"Recursos: "+
+G.resources;
+
+
+const box=
+$("menuBattle");
+
+box.innerHTML="";
+
+
+const actions=[
+
+[
+"Ataque aéreo",
+airAttack
+],
+
+[
+"Cañones del portaaviones",
+cannonAttack
+],
+
+[
+"Ataque de destructores",
+destroyerAttack
+],
+
+[
+"Defensa antiaérea",
+defend
+],
+
+[
+"Retirarse",
+retreat
+]
+
+];
+
+
+actions.forEach(
+(x,i)=>{
+
+const b=
+document.createElement("button");
+
+b.textContent=
+(i+1)+". "+x[0];
+
+b.onclick=()=>{
+audioInit();
+x[1]();
+};
+
+box.appendChild(b);
+
+});
+
+}
+
+
+/* =====================================================
+   TURNO ENEMIGO
+===================================================== */
+
+function enemyTurn(){
+
+if(G.enemy<=0)return;
+
+G.turn++;
+
+const damage=
+Math.floor(
+Math.random()*13
+)+4;
+
+G.hull=
+Math.max(
+0,
+G.hull-damage
+);
+
+G.fuel=
+Math.max(
+0,
+G.fuel-
+Math.floor(
+Math.random()*5
+)
+);
+
+
+if(G.hull<=0){
+
+sound("lose");
+
+if(navigator.vibrate){
+
+navigator.vibrate(400);
+
+}
+
+speak(
+"El portaaviones ha sido destruido. Campaña terminada."
+);
+
+setTimeout(
+showMain,
+1800
+);
+
+return true;
+
+}
+
+
+speak(
+"Contraataque enemigo. Has perdido "+
+damage+
+" puntos de casco."
+);
+
+return false;
+
+}
+
+
+/* =====================================================
+   ATAQUE AÉREO
+===================================================== */
+
+function airAttack(){
+
+if(G.aircraft<=0){
+
+feedback(
+"No quedan aviones"
+);
+
+return;
+
+}
+
+if(G.fuel<8){
+
+feedback(
+"Combustible insuficiente"
+);
+
+return;
+
+}
+
+G.aircraft--;
+
+G.fuel-=8;
+
+G.ammo=
+Math.max(
+0,
+G.ammo-3
+);
+
+const damage=
+Math.floor(
+Math.random()*16
+)+8;
+
+G.enemy=
+Math.max(
+0,
+G.enemy-damage
+);
+
+feedback(
+"Ataque aéreo ejecutado. Daño enemigo: "+
+damage,
+"hit"
+);
+
+if(checkWin())return;
+
+setTimeout(
+()=>{
+if(!enemyTurn())
+renderBattle();
+},
+700
+);
+
+}
+
+
+/* =====================================================
+   ATAQUE DE CAÑONES
+===================================================== */
+
+function cannonAttack(){
+
+if(G.ammo<8){
+
+feedback(
+"Munición insuficiente"
+);
+
+return;
+
+}
+
+G.ammo-=8;
+
+const damage=
+Math.floor(
+Math.random()*12
+)+6;
+
+G.enemy=
+Math.max(
+0,
+G.enemy-damage
+);
+
+feedback(
+"Cañones disparados. Daño enemigo: "+
+damage,
+"hit"
+);
+
+if(checkWin())return;
+
+setTimeout(
+()=>{
+if(!enemyTurn())
+renderBattle();
+},
+700
+);
+
+}
+
+
+/* =====================================================
+   ATAQUE DE DESTRUCTORES
+===================================================== */
+
+function destroyerAttack(){
+
+if(G.destroyers<=0){
+
+feedback(
+"No quedan destructores"
+);
+
+return;
+
+}
+
+const damage=
+Math.floor(
+Math.random()*10
+)+5;
+
+G.enemy=
+Math.max(
+0,
+G.enemy-damage
+);
+
+feedback(
+"Los destructores atacaron. Daño enemigo: "+
+damage,
+"hit"
+);
+
+if(checkWin())return;
+
+setTimeout(
+()=>{
+if(!enemyTurn())
+renderBattle();
+},
+700
+);
+
+}
+
+
+/* =====================================================
+   DEFENSA
+===================================================== */
+
+function defend(){
+
+G.hull=
+Math.min(
+100,
+G.hull+8
+);
+
+feedback(
+"Defensa activada. El portaaviones recupera 8 puntos de casco."
+);
+
+setTimeout(
+()=>{
+if(!enemyTurn())
+renderBattle();
+},
+700
+);
+
+}
+
+
+/* =====================================================
+   RETIRADA
+===================================================== */
+
+function retreat(){
+
+feedback(
+"Retirada ordenada. La misión no cuenta como victoria."
+);
+
+setTimeout(
+showMain,
+1200
+);
+
+}
+
+
+/* =====================================================
+   VICTORIA
+===================================================== */
+
+function checkWin(){
+
+if(G.enemy>0)return false;
+
+G.victories++;
+
+G.resources+=300;
+
+G.ammo+=15;
+
+G.hull=
+Math.min(
+100,
+G.hull+10
+);
+
+sound("win");
+
+if(navigator.vibrate){
+
+navigator.vibrate([
+100,
+80,
+100,
+80,
+250
+]);
+
+}
+
+speak(
+"Victoria. Has conquistado "+
+G.target+
+". Obtienes 300 recursos."
+);
+
+setTimeout(
+showMain,
+2200
+);
+
+return true;
+
+}
+
+
+/* =====================================================
+   GESTOS
+===================================================== */
+
+let sx=0;
+
+let sy=0;
+
+
+document.addEventListener(
+"touchstart",
+e=>{
+
+audioInit();
+
+sx=
+e.touches[0].clientX;
+
+sy=
+e.touches[0].clientY;
+
+
+if(!G.started){
+
+G.started=true;
+
+$("status").textContent=
+"Sistema activado.";
+
+$("main")
+.classList.remove("hidden");
+
+speak(
+"Bienvenido a Guerra Sobre el Agua. Campaña, exploración, flota y combate disponibles."
+);
+
+showMain();
+
+}
+
+},
+{
+passive:true
+}
+);
+
+
+document.addEventListener(
+"touchend",
+e=>{
+
+if(!G.started)return;
+
+const ex=
+e.changedTouches[0].clientX;
+
+const ey=
+e.changedTouches[0].clientY;
+
+const dy=
+ey-sy;
+
+const dx=
+ex-sx;
+
+
+if(
+Math.abs(dy)>50 &&
+Math.abs(dy)>Math.abs(dx)
+){
+
+const buttons=
+G.screen==="battle"
+?
+[
+...document.querySelectorAll(
+"#menuBattle button"
+)
+]
+:
+[
+...document.querySelectorAll(
+"#menu button"
+)
+];
+
+if(!buttons.length)return;
+
+
+let current=
+document.activeElement;
+
+let idx=
+buttons.indexOf(current);
+
+if(idx<0)idx=0;
+
+
+idx+=
+dy<0
+?
+-1
+:
+1;
+
+
+if(idx<0)
+idx=buttons.length-1;
+
+if(idx>=buttons.length)
+idx=0;
+
+
+buttons[idx].focus();
+
+feedback(
+buttons[idx].textContent
+);
+
+}
+
+},
+{
+passive:true
+}
+);
+
+
+/* =====================================================
+   INICIO
+===================================================== */
+
+speak(
+"Guerra Sobre el Agua. Toca la pantalla para comenzar."
+);
+
+</script>
+
 </body>
 </html>
