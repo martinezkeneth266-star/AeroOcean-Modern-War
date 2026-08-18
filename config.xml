@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.guerra.sobreelagua" version="1.0.0" xmlns="http://www.cordova.io/ns/1.0">
+    <name>Guerra Sobre el Agua</name>
+    <preference name="Orientation" value="landscape" />
+    <content src="index.html" />
+</widget>
