@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guerra Sobre el Agua - Juego Accesible</title>
+<style>
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+}
+body {
+background-color: #0b131e;
+color: #e0e6ed;
+font-family: Arial, sans-serif;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+min-height: 100vh;
+padding: 20px;
+}
+h1 {
+color: #4da6ff;
+margin-bottom: 10px;
+text-align: center;
+}
+p {
+margin-bottom: 20px;
+text-align: center;
+max-width: 600px;
+}
+.container {
+width: 100%;
+max-width: 800px;
+background: #152238;
+border: 2px solid #2c3e50;
+border-radius: 12px;
+padding: 25px;
+box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.status-bar {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+gap: 15px;
+background: #1c2d42;
+padding: 15px;
+border-radius: 8px;
+margin-bottom: 20px;
+}
+.stat {
+font-size: 1.1rem;
+font-weight: bold;
+}
+.stat span {
+color: #00ffcc;
+}
+.menu-grid {
+display: grid;
+grid-template-columns: 1fr;
+gap: 12px;
+}
+button {
+background-color: #1a5276;
+color: white;
+border: 2px solid #2980b9;
+padding: 18px;
+font-size: 1.2rem;
+font-weight: bold;
+border-radius: 8px;
+cursor: pointer;
+transition: all 0.2s ease;
+text-align: left;
+}
+button:focus, button:hover {
+background-color: #2980b9;
+border-color: #00ffcc;
+outline: 3px solid #00ffcc;
+transform: scale(1.01);
+}
+.log-box {
+margin-top: 20px;
+background: #000;
+color: #00ff66;
+padding: 15px;
+border-radius: 8px;
+height: 120px;
+overflow-y: auto;
+font-family: monospace;
+}
+</style>
+</head>
+<body>
+
+<h1>Guerra Sobre el Agua</h1>
+<p>Usa Tab, Flechas y Enter para navegar. Audio base de mar constante con efectos 3D y voz integrada.</p>
+
+<div class="container">
+<!-- Barra de Estado del Jugador -->
+<div class="status-bar" id="statusBar">
+<div class="stat">Salud: <span id="hp">100%</span></div>
+<div class="stat">Recursos: <span id="resources">500</span></div>
+<div class="stat">Etapa: <span id="stage">1/7</span></div>
+<div class="stat">Territorios: <span id="territories">0</span></div>
+</div>
+
+<!-- Menú Dinámico de Controles -->
+<div class="menu-grid" id="menuButtons">
+<button onclick="startGame()">Iniciar Juego / Reanudar Base de Audio</button>
+<button onclick="readStatus()">Estado de las Unidades</button>
+<button onclick="selectTarget()">Seleccionar Objetivo / Isla</button>
+<button onclick="executeAttack()">Lanzar Ataque Naval/Aéreo</button>
+<button onclick="manageResources()">Administrar y Reparar</button>
+<button onclick="repeatLastVoice()">Repetir último mensaje</button>
+</div>
+
+<!-- Consola de registro visual de apoyo -->
+<div class="log-box" id="logBox" aria-live="polite">
+Esperando inicio de operación...
+</div>
+</div>
+
+<script>
+/* ===================================================
+1. MAPA DE AUDIOS Y CONFIGURACIÓN DE RUTAS
+=================================================== */
+const soundFiles = {
+alarmaEmergencia: "./Alarma de emergencia.mp3",
+alarmaNuclear: "./Alarma nuclear.mp3",
+alerta: "./alerta.mp3",
+ametralladora: "./Ametralladora.mp3",
+aterrizajeMp3: "./aterrizaje.mp3",
+aterrizajeWav: "./aterrizaje.wav",
+defensaAntiaerea: "./Defensa antiaérea.mp3",
+disparo: "./Disparo.mp3",
+emergencia: "./emergencia.wav",
+mar: "./mar.mp3", // SONIDO BASE DEL JUEGO
+misilCrucero: "./misil de crucero.mp3",
+misil: "./misil.mp3",
+mp40: "./mp40.mp3",
+sonidoAvion: "./Sonido De Avion.mp3",
+bombardeo: "./Sonido de Bombardeo aéreo - Blitz - efecto de sonido sound effect(MP3_160K).mp3",
+torreta: "./Torreta.mp3",
+trazadoras: "./trazadoras.mp3"
+};
+
+const audioBuffers = {};
+let audioCtx = null;
+let marBaseSource = null;
+let lastSpokenText = "";
+
+/* ===================================================
+2. ESTADO DEL JUEGO Y CAMPAÑA (7 ETAPAS)
+=================================================== */
+const gameState = {
+started: false,
+stage: 1,
+hp: 100,
+resources: 500,
+territoriesConquered: 0,
+currentTarget: null,
+targets: [
+{ name: "Isla de Entrenamiento Alfa", distance: "15 millas", difficulty: 1, reward: 200 },
+{ name: "Archipiélago del Sur", distance: "45 millas", difficulty: 2, reward: 400 },
+{ name: "Base Naval Enemiga Bravo", distance: "80 millas", difficulty: 3, reward: 800 },
+{ name: "Potencia Marítima Oriental", distance: "120 millas", difficulty: 4, reward: 1500 }
+ ]
+};
+
+/* ===================================================
+3. MOTOR DE SÍNTESIS DE VOZ
+=================================================== */
+function speak(text, interrupt = true) {
+if ('speechSynthesis' in window) {
+if (interrupt) {
+window.speechSynthesis.cancel();
+}
+lastSpokenText = text;
+const utterance = new SpeechSynthesisUtterance(text);
+utterance.lang = 'es-ES';
+utterance.rate = 1.0;
+window.speechSynthesis.speak(utterance);
+}
+logMessage(text);
+}
+
+function repeatLastVoice() {
+if (lastSpokenText) {
+speak(lastSpokenText, true);
+} else {
+speak("No hay mensajes previos.", true);
+}
+}
+
+function logMessage(msg) {
+const box = document.getElementById("logBox");
+box.innerHTML += <div&gt;&gt; ${msg}</div>`;
+box.scrollTop = box.scrollHeight;
+}
+
+/* ===================================================
+4. MOTOR DE AUDIO Y SONIDO BASE CONTINUO
+=================================================== */
+function initAudioContext() {
+if (!audioCtx) {
+audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+loadAllSounds();
+}
+}
+
+async function loadAllSounds() {
+for (const [key, path] of Object.entries(soundFiles)) {
+try {
+const response = await fetch(path);
+const arrayBuffer = await response.arrayBuffer();
+audioBuffers[key] = await audioCtx.decodeAudioData(arrayBuffer);
+} catch (e) {
+console.warn(Error al cargar el sonido:${path}`, e);
+}
+}
+// Inicia el sonido base de mar en loop automáticamente al cargar
+startBaseSounds();
+}
+
+function playSound(key, x = 0, y = 0, z = 0, loop = false, volume = 1.0) {
+if (!audioCtx || !audioBuffers[key]) return null;
+
+const source = audioCtx.createBufferSource();
+source.buffer = audioBuffers[key];
+source.loop = loop;
+
+const gainNode = audioCtx.createGain();
+gainNode.gain.value = volume;
+
+if (audioCtx.createPanner) {
+const panner = audioCtx.createPanner();
+panner.panningModel = 'HRTF';
+panner.setPosition(x, y, z);
+source.connect(gainNode);
+gainNode.connect(panner);
+panner.connect(audioCtx.destination);
+} else {
+source.connect(gainNode);
+gainNode.connect(audioCtx.destination);
+}
+
+source.start(0);
+return source;
+}
+
+// Función encargada de mantener el sonido del mar como base permanente durante todo el juego
+function startBaseSounds() {
+if (!marBaseSource && audioBuffers['mar']) {
+// Se reproduce con volumen moderado (0.4) para no tapar la voz ni los disparos
+marBaseSource = playSound('mar', 0, 0, 0, true, 0.4);
+}
+}
+
+/* ===================================================
+5. CONTROLES Y EVENTOS DE JUEGO
+=================================================== */
+function startGame() {
+initAudioContext();
+if (audioCtx.state === 'suspended') {
+audioCtx.resume();
+}
+startBaseSounds();
+
+if (!gameState.started) {
+gameState.started = true;
+playSound('alerta', 0, 0, 0);
+speak("Guerra Sobre el Agua iniciada. Sonido de mar configurado como ambiente base. Flota lista.", true);
+} else {
+speak("El juego ya está en curso y la base de sonido se encuentra activa.", true);
+}
+updateUI();
+}
+
+function readStatus() {
+initAudioContext();
+startBaseSounds();
+const msg = Estado del portaaviones: Salud al ${gameState.hp} por ciento. Recursos: ${gameState.resources} unidades. Territorios conquistados: ${gameState.territoriesConquered}. Etapa actual: ${gameState.stage} de 7.;
+playSound('sonidoAvion', -0.5, 0, 0);
+speak(msg, true);
+}
+
+function selectTarget() {
+initAudioContext();
+startBaseSounds();
+const targetIndex = (gameState.territoriesConquered) % gameState.targets.length;
+gameState.currentTarget = gameState.targets[targetIndex];
+
+playSound('misilCrucero', 0.8, 0, 0);
+const msg = Objetivo localizado: ${gameState.currentTarget.name}. Distancia: ${gameState.currentTarget.distance}. Nivel de dificultad: ${gameState.currentTarget.difficulty}.`;
+speak(msg, true);
+}
+
+function executeAttack() {
+initAudioContext();
+startBaseSounds();
+if (!gameState.currentTarget) {
+selectTarget();
+return;
+}
+
+speak(Iniciando maniobra de combate sobre${gameState.currentTarget.name}`, true);
+
+// Los efectos de combate suenan sobre el ambiente de mar
+setTimeout(() => {
+playSound('sonidoAvion', -0.8, 0.2, 0);
+}, 500);
+
+setTimeout(() => {
+playSound('torreta', 0.5, 0, 0);
+}, 2000);
+
+setTimeout(() => {
+playSound('trazadoras', 0.2, 0, 0);
+playSound('disparo', -0.3, 0, 0);
+}, 3500);
+
+setTimeout(() => {
+playSound('bombardeo', 0, 0, 0);
+}, 5500);
+
+setTimeout(() => {
+const success = Math.random() > 0.2;
+if (success) {
+gameState.territoriesConquered++;
+gameState.resources += gameState.currentTarget.reward;
+if (gameState.territoriesConquered % 2 === 0 && gameState.stage < 7) {
+gameState.stage++;
+}
+playSound('aterrizajeMp3', 0, 0, 0);
+speak(¡Ataque exitoso! ${gameState.currentTarget.name} capturada. Has ganado ${gameState.currentTarget.reward} recursos., true);
+} else {
+gameState.hp = Math.max(0, gameState.hp - 20);
+playSound('alarmaEmergencia', 0, 0, 0);
+speak(Contraataque enemigo recibido. Salud del portaaviones reducida al ${gameState.hp} por ciento.`, true);
+}
+updateUI();
+}, 7500);
+}
+
+function manageResources() {
+initAudioContext();
+startBaseSounds();
+if (gameState.resources >= 150 && gameState.hp < 100) {
+gameState.resources -= 150;
+gameState.hp = Math.min(100, gameState.hp + 30);
+playSound('emergencia', 0, 0, 0);
+speak(Reparaciones finalizadas. Salud del portaaviones al${gameState.hp} por ciento. Recursos restantes: ${gameState.resources}, true);
+} else if (gameState.hp >= 100) {
+speak(El portaaviones ya se encuentra totalmente reparado., true);
+} else {
+playSound('alerta', 0, 0, 0);
+speak(Recursos insuficientes. Se requieren 150 recursos para reparar., true);
+}
+updateUI();
+}
+
+function updateUI() {
+document.getElementById('hp').innerText = ``${gameState.hp}%; document.getElementById('resources').innerText = gameState.resources; document.getElementById('stage').innerText =${gameState.stage}/7`;
+document.getElementById('territories').innerText = gameState.territoriesConquered;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+const buttons = document.querySelectorAll('button');
+buttons.forEach(btn => {
+btn.addEventListener('focus', () => {
+speak(btn.innerText, true);
+});
+});
+});
+</script>
+</body>
+</html>
