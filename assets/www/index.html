@@ -2,320 +2,141 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guerra Sobre el Agua</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Guerra Aérea Accesible</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
             color: #ffffff;
-            padding: 20px;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .stats {
-            background-color: #1e1e1e;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .controls {
+        #pantalla-juego {
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        button {
-            padding: 12px;
-            font-size: 16px;
-            background-color: #0056b3;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:focus, button:hover {
-            background-color: #007bff;
-            outline: 2px solid #ffffff;
-        }
-        #logBox {
-            background-color: #000;
-            border: 1px solid #333;
-            height: 150px;
-            overflow-y: auto;
-            padding: 10px;
-            font-family: monospace;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Guerra Sobre el Agua</h1>
-        
-        <div class="stats">
-            <p>Salud: <span id="hp">100%</span></p>
-            <p>Recursos: <span id="resources">500</span></p>
-            <p>Etapa: <span id="stage">1/7</span></p>
-            <p>Territorios conquistados: <span id="territories">0</span></p>
-        </div>
 
-        <div class="controls">
-            <button onclick="startGame()">Iniciar Juego</button>
-            <button onclick="readStatus()">Estado de la Flota</button>
-            <button onclick="selectTarget()">Seleccionar Objetivo</button>
-            <button onclick="executeAttack()">Ejecutar Ataque</button>
-            <button onclick="manageResources()">Reparar / Gestión</button>
-            <button onclick="repeatLastVoice()">Repetir Último Mensaje</button>
-        </div>
-
-        <h3>Registro de combate:</h3>
-        <div id="logBox"></div>
+    <div id="pantalla-juego" aria-hidden="true">
+        <h1>Guerra Aérea Accesible</h1>
+        <p>Toca la pantalla para comenzar</p>
     </div>
 
     <script>
-        /* ===================================================
-           1. MAPA DE AUDIOS (RUTAS ADAPTADAS PARA ANDROID/ASSETS)
-           =================================================== */
-        const soundFiles = {
-            alarmaEmergencia: "sonidos/Alarma de emergencia.mp3",
-            alarmaNuclear: "sonidos/Alarma nuclear.mp3",
-            alerta: "sonidos/alerta.mp3",
-            ametralladora: "sonidos/Ametralladora.mp3",
-            aterrizajeMp3: "sonidos/aterrizaje.mp3",
-            aterrizajeWav: "sonidos/aterrizaje.wav",
-            defensaAntiaerea: "sonidos/Defensa antiaérea.mp3",
-            disparo: "sonidos/Disparo.mp3",
-            emergencia: "sonidos/emergencia.wav",
-            mar: "sonidos/mar.mp3",
-            misilCrucero: "sonidos/misil de crucero.mp3",
-            misil: "sonidos/misil.mp3",
-            mp40: "sonidos/mp40.mp3",
-            sonidoAvion: "sonidos/Sonido De Avion.mp3",
-            bombardeo: "sonidos/Sonido de Bombardeo aéreo - Blitz - efecto de sonido sound effect(MP3_160K).mp3",
-            torreta: "sonidos/Torreta.mp3",
-            trazadoras: "sonidos/trazadoras.mp3"
+        // Sistema de Voz Propio (TTS Nativo del juego)
+        const voz = window.speechSynthesis;
+
+        function hablar(texto) {
+            if (voz.speaking) voz.cancel();
+            const mensaje = new SpeechSynthesisUtterance(texto);
+            mensaje.lang = 'es-ES';
+            mensaje.rate = 1.0;
+            voz.speak(mensaje);
+        }
+
+        // Sistema de Audios del Juego
+        const sonidos = {
+            alarma: new Audio('alarma.mp3'),
+            disparo: new Audio('disparo.mp3')
         };
 
-        const audioBuffers = {};
-        let audioCtx = null;
-        let marBaseSource = null;
-        let lastSpokenText = "";
-
-        /* ===================================================
-           2. ESTADO DEL JUEGO Y CAMPAÑA
-           =================================================== */
-        const gameState = {
-            started: false,
-            stage: 1,
-            hp: 100,
-            resources: 500,
-            territoriesConquered: 0,
-            currentTarget: null,
-            targets: [
-                { name: "Isla de Entrenamiento Alfa", distance: "15 millas", difficulty: 1, reward: 200 },
-                { name: "Archipiélago del Sur", distance: "45 millas", difficulty: 2, reward: 400 },
-                { name: "Base Naval Enemiga Bravo", distance: "80 millas", difficulty: 3, reward: 800 },
-                { name: "Potencia Marítima Oriental", distance: "120 millas", difficulty: 4, reward: 1500 }
-            ]
-        };
-
-        /* ===================================================
-           3. MOTOR DE SÍNTESIS DE VOZ Y LOGS
-           =================================================== */
-        function speak(text, interrupt = true) {
-            if ('speechSynthesis' in window) {
-                if (interrupt) {
-                    window.speechSynthesis.cancel();
-                }
-                lastSpokenText = text;
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'es-ES';
-                utterance.rate = 1.0;
-                window.speechSynthesis.speak(utterance);
-            }
-            logMessage(text);
-        }
-
-        function repeatLastVoice() {
-            if (lastSpokenText) {
-                speak(lastSpokenText, true);
-            } else {
-                speak("No hay mensajes previos.", true);
+        function reproducirSonido(nombre) {
+            if (sonidos[nombre]) {
+                sonidos[nombre].currentTime = 0;
+                sonidos[nombre].play().catch(() => {});
             }
         }
 
-        function logMessage(msg) {
-            const box = document.getElementById("logBox");
-            if (box) {
-                box.innerHTML += `<div>> ${msg}</div>`;
-                box.scrollTop = box.scrollHeight;
-            }
-        }
+        // Estructura del Menú Principal
+        const menu = [
+            "Iniciar Batalla Aérea",
+            "Estado de la Flota",
+            "Seleccionar Objetivo",
+            "Lanzar Ataque",
+            "Reparar Base"
+        ];
 
-        /* ===================================================
-           4. MOTOR DE AUDIO Y CÁLCULO DE POSICIÓN 3D
-           =================================================== */
-        async function initAudioContext() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                await loadAllSounds();
-            }
-            if (audioCtx.state === 'suspended') {
-                await audioCtx.resume();
-            }
-        }
+        let opcionActual = 0;
+        let juegoIniciado = false;
 
-        async function loadAllSounds() {
-            for (const [key, path] of Object.entries(soundFiles)) {
-                try {
-                    const response = await fetch(path);
-                    const arrayBuffer = await response.arrayBuffer();
-                    audioBuffers[key] = await audioCtx.decodeAudioData(arrayBuffer);
-                } catch (e) {
-                    console.warn(`Error al cargar el sonido: ${path}`, e);
-                }
-            }
-        }
+        // Navegación por Gestos Nativa
+        let touchStartY = 0;
 
-        function playSound(key, x = 0, y = 0, z = 0, loop = false, volume = 1.0) {
-            if (!audioCtx || !audioBuffers[key]) return null;
-
-            const source = audioCtx.createBufferSource();
-            source.buffer = audioBuffers[key];
-            source.loop = loop;
-
-            const gainNode = audioCtx.createGain();
-            gainNode.gain.value = volume;
-
-            if (audioCtx.createPanner) {
-                const panner = audioCtx.createPanner();
-                panner.panningModel = 'HRTF';
-                panner.setPosition(x, y, z);
-                source.connect(gainNode);
-                gainNode.connect(panner);
-                panner.connect(audioCtx.destination);
-            } else {
-                source.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-            }
-
-            source.start(0);
-            return source;
-        }
-
-        function startBaseSounds() {
-            if (!marBaseSource && audioBuffers['mar']) {
-                marBaseSource = playSound('mar', 0, 0, 0, true, 0.3);
-            }
-        }
-
-        /* ===================================================
-           5. ACCIONES Y EVENTOS DEL JUEGO
-           =================================================== */
-        async function startGame() {
-            await initAudioContext();
-            startBaseSounds();
-
-            if (!gameState.started) {
-                gameState.started = true;
-                playSound('alerta', 0, 0, 0);
-                speak("Guerra Sobre el Agua iniciada. Sonido de mar activo. Flota lista.", true);
-            } else {
-                speak("El juego ya está en curso.", true);
-            }
-            updateUI();
-        }
-
-        async function readStatus() {
-            await initAudioContext();
-            startBaseSounds();
-            const msg = `Estado del portaaviones: Salud al ${gameState.hp} por ciento. Recursos: ${gameState.resources} unidades. Territorios conquistados: ${gameState.territoriesConquered}. Etapa actual: ${gameState.stage} de 7.`;
-            playSound('sonidoAvion', -0.5, 0, 0);
-            speak(msg, true);
-        }
-
-        async function selectTarget() {
-            await initAudioContext();
-            startBaseSounds();
-            const targetIndex = (gameState.territoriesConquered) % gameState.targets.length;
-            gameState.currentTarget = gameState.targets[targetIndex];
+        document.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
             
-            playSound('misilCrucero', 0.8, 0, 0);
-            const msg = `Objetivo localizado: ${gameState.currentTarget.name}. Distancia: ${gameState.currentTarget.distance}. Dificultad: ${gameState.currentTarget.difficulty}.`;
-            speak(msg, true);
-        }
-
-        async function executeAttack() {
-            await initAudioContext();
-            startBaseSounds();
-            if (!gameState.currentTarget) {
-                selectTarget();
-                return;
+            // Primer toque para iniciar el motor de audio
+            if (!juegoIniciado) {
+                juegoIniciado = true;
+                reproducirSonido('alarma');
+                hablar("Bienvenido a Guerra Aérea Accesible. Desliza hacia abajo o arriba para navegar. Toca dos veces para seleccionar.");
             }
+        }, false);
 
-            speak(`Iniciando ataque sobre ${gameState.currentTarget.name}`, true);
+        document.addEventListener('touchend', (e) => {
+            if (!juegoIniciado) return;
 
-            setTimeout(() => { playSound('sonidoAvion', -0.8, 0.2, 0); }, 500);
-            setTimeout(() => { playSound('torreta', 0.5, 0, 0); }, 2000);
-            setTimeout(() => {
-                playSound('trazadoras', 0.2, 0, 0);
-                playSound('disparo', -0.3, 0, 0);
-            }, 3500);
-            setTimeout(() => { playSound('bombardeo', 0, 0, 0); }, 5500);
+            let touchEndY = e.changedTouches[0].clientY;
+            let diferenciaY = touchEndY - touchStartY;
 
-            setTimeout(() => {
-                const success = Math.random() > 0.2;
-                if (success) {
-                    gameState.territoriesConquered++;
-                    gameState.resources += gameState.currentTarget.reward;
-                    if (gameState.territoriesConquered % 2 === 0 && gameState.stage < 7) {
-                        gameState.stage++;
-                    }
-                    playSound('aterrizajeMp3', 0, 0, 0);
-                    speak(`¡Ataque exitoso! ${gameState.currentTarget.name} capturada. Ganaste ${gameState.currentTarget.reward} recursos.`, true);
-                } else {
-                    gameState.hp = Math.max(0, gameState.hp - 20);
-                    playSound('alarmaEmergencia', 0, 0, 0);
-                    speak(`Contraataque enemigo. Salud reducida al ${gameState.hp} por ciento.`, true);
-                }
-                updateUI();
-            }, 7500);
-        }
-
-        async function manageResources() {
-            await initAudioContext();
-            startBaseSounds();
-            if (gameState.resources >= 150 && gameState.hp < 100) {
-                gameState.resources -= 150;
-                gameState.hp = Math.min(100, gameState.hp + 30);
-                playSound('emergencia', 0, 0, 0);
-                speak(`Reparación completada. Salud al ${gameState.hp} por ciento. Recursos restantes: ${gameState.resources}`, true);
-            } else if (gameState.hp >= 100) {
-                speak(`El portaaviones ya está completamente reparado.`, true);
-            } else {
-                playSound('alerta', 0, 0, 0);
-                speak(`Recursos insuficientes. Necesitas 150 recursos.`, true);
+            // Deslizar hacia abajo -> Siguiente opción
+            if (diferenciaY > 40) {
+                opcionActual = (opcionActual + 1) % menu.length;
+                hablar(menu[opcionActual]);
+            } 
+            // Deslizar hacia arriba -> Opción anterior
+            else if (diferenciaY < -40) {
+                opcionActual = (opcionActual - 1 + menu.length) % menu.length;
+                hablar(menu[opcionActual]);
+            } 
+            // Tocar en pantalla -> Ejecutar opción
+            else if (Math.abs(diferenciaY) < 10) {
+                ejecutarAccion(opcionActual);
             }
-            updateUI();
-        }
+        }, false);
 
-        function updateUI() {
-            document.getElementById('hp').innerText = `${gameState.hp}%`;
-            document.getElementById('resources').innerText = gameState.resources;
-            document.getElementById('stage').innerText = `${gameState.stage}/7`;
-            document.getElementById('territories').innerText = gameState.territoriesConquered;
+        // Lógica de Acciones del Juego
+        function ejecutarAccion(opcion) {
+            switch(opcion) {
+                case 0:
+                    hablar("Iniciando Batalla Aérea. Radares activados.");
+                    reproducirSonido('alarma');
+                    break;
+                case 1:
+                    hablar("Estado de la flota: Salud al 100 por ciento. Todos los aviones listos.");
+                    break;
+                case 2:
+                    hablar("Objetivo detectado: Caza enemigo a 2000 metros.");
+                    break;
+                case 3:
+                    hablar("Fuego cruzado iniciado.");
+                    reproducirSonido('disparo');
+                    break;
+                case 4:
+                    hablar("Reparando aeronaves en el hangar.");
+                    break;
+            }
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const buttons = document.querySelectorAll('button');
-            buttons.forEach(btn => {
-                btn.addEventListener('focus', () => {
-                    speak(btn.innerText, true);
-                });
-            });
-        });
     </script>
 </body>
 </html>
