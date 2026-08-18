@@ -1,0 +1,45 @@
+name: Compilar APK del Juego
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Configurar Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Configurar Cordova
+        run: |
+          npm install -g cordova
+
+      - name: Crear proyecto Cordova y compilar APK
+        run: |
+          cordova create temp_app com.juego.accesible "GuerraAccesible"
+          cd temp_app
+          rm -rf www/*
+          cp -r ../assets/www/* www/
+          cordova platform add android
+          cordova build android --no-telemetry
+
+      - name: Subir archivo APK listo
+        uses: actions/upload-artifact@v4
+        with:
+          name: Juego-Guerra-APK
+          path: temp_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
