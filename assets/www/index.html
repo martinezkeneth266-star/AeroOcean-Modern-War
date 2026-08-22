@@ -2,141 +2,332 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guerra Aérea Accesible - AeroOcean</title>
+    <!-- Paso 1: Meta Tag para evitar zoom y ajustar pantalla -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AeroOcean: Modern War</title>
+    
     <style>
         :root {
-            --bg-color: #0d1b2a;
-            --panel-bg: #1b263b;
-            --accent-color: #00b4d8;
-            --text-color: #e0e1dd;
+            --bg-color: #0b132b;
+            --panel-bg: #1c2541;
+            --card-bg: #3a506b;
+            --accent-color: #48cae4;
+            --text-color: #edf2f4;
             --danger-color: #e63946;
+            --success-color: #2a9d8f;
+            --warning-color: #e9c46a;
+        }
+
+        /* Paso 2: CSS para forzar rotación a Horizontal si el teléfono está en Vertical */
+        @media screen and (orientation: portrait) {
+            body {
+                transform: rotate(-90deg);
+                transform-origin: left top;
+                width: 100vh;
+                height: 100vw;
+                overflow-x: hidden;
+                position: absolute;
+                top: 100%;
+                left: 0;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        h1 { color: var(--accent-color); }
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            margin: 0;
+            font-size: 1.6rem;
+            text-transform: uppercase;
+        }
+
+        .resource-bar {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 1000px;
+            background: var(--panel-bg);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
 
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+            gap: 12px;
             width: 100%;
-            max-width: 900px;
-            margin-top: 20px;
+            max-width: 1000px;
         }
 
         .module {
             background-color: var(--panel-bg);
-            border: 2px solid var(--accent-color);
+            border-left: 5px solid var(--accent-color);
             border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .module h2 {
-            margin-top: 0;
-            font-size: 1.2rem;
-            border-bottom: 1px solid var(--accent-color);
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
             padding-bottom: 5px;
         }
 
-        button {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-            border: none;
-            padding: 10px 15px;
-            margin: 5px 2px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
-        button:hover, button:focus {
-            background-color: #90e0ef;
-            outline: 3px solid #fff;
+        button {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 15px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        button:active, button:focus {
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            outline: 2px solid #fff;
         }
 
         button.danger {
-            background-color: var(--danger-color);
-            color: #fff;
+            border-left: 4px solid var(--danger-color);
+        }
+
+        button.success {
+            border-left: 4px solid var(--success-color);
         }
 
         .status-box {
             background-color: #000;
-            color: #0f0;
-            font-family: monospace;
+            color: #00ff66;
+            font-family: 'Courier New', Courier, monospace;
             padding: 10px;
-            height: 120px;
+            height: 100px;
             overflow-y: auto;
-            border-radius: 4px;
-            margin-top: 10px;
+            border-radius: 6px;
+            margin-top: 12px;
+            width: 100%;
+            max-width: 1000px;
+            border: 1px solid var(--accent-color);
+            font-size: 0.85rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .modal-content {
+            background: var(--panel-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 10px;
+            padding: 15px;
+            width: 100%;
+            max-width: 600px;
         }
     </style>
 </head>
 <body>
 
-    <h1>AeroOcean: Modern War</h1>
-    <p>Centro de Mando Aeronaval Accesible</p>
+    <header>
+        <h1>AeroOcean: Modern War</h1>
+        <small>Centro de Mando Aeronaval Táctico</small>
+    </header>
 
-    <div class="dashboard">
-        <!-- Módulo 1: Ambientación y Navegación -->
-        <section class="module" aria-labelledby="mod-ambient">
-            <h2 id="mod-ambient">1. Ambiente y Propulsión</h2>
-            <button onclick="SoundEngine.toggleSea()" aria-label="Iniciar o detener ambiente de mar">Ambiente: Mar</button>
-            <button onclick="SoundEngine.toggleBattleMusic()" aria-label="Iniciar o detener música de batalla">Música de Batalla</button>
-            <button onclick="SoundEngine.playFX('sonidodeportaaviones.mp3', 'Portaaviones activo')">Activar Portaaviones</button>
-            <button onclick="SoundEngine.playFX('Sonido De Avion.mp3', 'Avión en vuelo')">Sonido de Avión</button>
-            <button onclick="SoundEngine.playFX('sonidode-f-35.mp3', 'F-35 desplegado')">Desplegar F-35</button>
-            <button onclick="SoundEngine.playFX('aterrizaje.mp3', 'Maniobra de aterrizaje')">Aterrizaje</button>
-        </section>
-
-        <!-- Módulo 2: Detección y Alarmas -->
-        <section class="module" aria-labelledby="mod-radar">
-            <h2 id="mod-radar">2. Radar y Alarmas</h2>
-            <button onclick="SoundEngine.playFX('contactoderadar.mp3', 'Contacto de radar detectado')">Contacto de Radar</button>
-            <button onclick="SoundEngine.playFX('alerta.mp3', 'Alerta en sistema')">Alerta Sonora</button>
-            <button class="danger" onclick="SoundEngine.playFX('Alarma de emergencia.mp3', 'Alarma de emergencia activada')">Alarma de Emergencia</button>
-            <button class="danger" onclick="SoundEngine.playFX('Alarmadeataqueenemigo.mp3', 'Alerta de ataque enemigo')">Alarma Ataque Enemigo</button>
-        </section>
-
-        <!-- Módulo 3: Armamento Táctico -->
-        <section class="module" aria-labelledby="mod-combat">
-            <h2 id="mod-combat">3. Control de Armamento</h2>
-            <button class="danger" onclick="SoundEngine.playFX('Ametralladora.mp3', 'Fuego de ametralladora')">Ametralladora</button>
-            <button class="danger" onclick="SoundEngine.playFX('mp40.mp3', 'Fuego de MP40')">Fuego MP40</button>
-            <button class="danger" onclick="SoundEngine.playFX('misil.mp3', 'Lanzamiento de misil')">Lanzar Misil</button>
-            <button class="danger" onclick="SoundEngine.playFX('misil de crucero.mp3', 'Misil de crucero lanzado')">Misil de Crucero</button>
-            <button class="danger" onclick="SoundEngine.playFX('bonba.mp3', 'Bomba desplegada')">Desplegar Bomba</button>
-            <button class="danger" onclick="SoundEngine.playFX('Defensa antiaérea.mp3', 'Defensa antiaérea activa')">Defensa Antiaérea</button>
-        </section>
+    <div class="resource-bar" role="region" aria-label="Recursos Tácticos">
+        <div>💰 Oro: <span id="res-gold">1500</span></div>
+        <div>⛽ Fuel: <span id="res-fuel">100%</span></div>
+        <div>🚀 Misiles: <span id="res-ammo">24</span></div>
+        <div>🛡️ Blindaje: <span id="res-armor">100%</span></div>
     </div>
 
-    <!-- Módulo 4: Consola de Estado -->
-    <div style="width: 100%; max-width: 900px; margin-top: 20px;">
-        <h2>Estado del Sistema</h2>
-        <div id="statusLog" class="status-box" role="log" aria-live="polite">
-            Esperando órdenes del comandante...
+    <div class="dashboard">
+
+        <!-- Módulo 1: Flota -->
+        <section class="module">
+            <h2>1. Control de Flota ⚓</h2>
+            <div class="btn-group">
+                <button onclick="Game.setVehicle('Portaaviones', 'sonidodeportaaviones.mp3', 'Portaaviones activo. Plataforma lista.')">
+                    🚢 Portaaviones Principal <span>[Activo]</span>
+                </button>
+                <button onclick="Game.setVehicle('Submarino', 'emergencia.wav', 'Submarino en inmersión. Sonar activo.')">
+                    🌊 Submarino Nuclear <span>[Inmersión]</span>
+                </button>
+                <button onclick="Game.setVehicle('Caza F-35', 'sonidode-f-35.mp3', 'Caza F-35 interceptor desplegado.')">
+                    🛩️ Caza Interceptor F-35 <span>[Aire]</span>
+                </button>
+                <button onclick="Game.setVehicle('Bombardero', 'borbanderoenelaire.mp3', 'Bombardero pesado en curso.')">
+                    ✈️ Bombardero Estratégico <span>[Aire]</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Módulo 2: Radar -->
+        <section class="module">
+            <h2>2. Radar y Detección 📡</h2>
+            <div class="btn-group">
+                <button onclick="Game.action('contactoderadar.mp3', 'Contacto enemigo detectado.')">
+                    🔍 Escanear Radar <span>[Búsqueda]</span>
+                </button>
+                <button onclick="Game.action('alerta.mp3', 'Ping de sonar. Contacto submarino cercano.')">
+                    🔊 Ping de Sonar Submarino <span>[Sonar]</span>
+                </button>
+                <button class="danger" onclick="Game.action('Alarma de emergencia.mp3', '¡Alarma de emergencia en sistemas!')">
+                    ⚠️ Alarma de Emergencia <span>[Crítico]</span>
+                </button>
+                <button class="danger" onclick="Game.action('Alarmadeataqueenemigo.mp3', '¡Alerta de ataque enemigo!')">
+                    🚨 Alerta de Ataque <span>[Ataque]</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Módulo 3: Armas -->
+        <section class="module">
+            <h2>3. Sistema de Armas 💣</h2>
+            <div class="btn-group">
+                <button class="danger" onclick="Game.fireWeapon('Ametralladora.mp3', 'Fuego de ametralladora.', 1)">
+                    💥 Ametralladora <span>[Calibre 50]</span>
+                </button>
+                <button class="danger" onclick="Game.fireWeapon('misil.mp3', 'Misil guiado lanzado.', 1)">
+                    🚀 Misil Anti-Buque <span>[-1 Misil]</span>
+                </button>
+                <button class="danger" onclick="Game.fireWeapon('misil de crucero.mp3', 'Misil de crucero lanzado.', 2)">
+                    🎯 Misil Crucero Tomahawk <span>[-2 Misiles]</span>
+                </button>
+                <button class="danger" onclick="Game.fireWeapon('Lanzatorpedoycaen.mp3', 'Torpedo pesado lanzado.', 1)">
+                    🦈 Torpedo Pesado <span>[Agua]</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Módulo 4: Estrategia y Mercado -->
+        <section class="module">
+            <h2>4. Estrategia y Comercio 🌍</h2>
+            <div class="btn-group">
+                <button class="success" onclick="Game.openMap()">
+                    🗺️ Mapa de Conquista Mundial <span>[Misiones]</span>
+                </button>
+                <button class="success" onclick="Game.openStore()">
+                    🛒 Tienda de Recursos <span>[Mercado]</span>
+                </button>
+            </div>
+        </section>
+
+    </div>
+
+    <div id="statusLog" class="status-box" role="log" aria-live="polite">
+        Esperando órdenes del comandante...
+    </div>
+
+    <!-- Modales -->
+    <div id="modalMap" class="modal">
+        <div class="modal-content">
+            <h2 style="color: var(--accent-color);">🗺️ Territorios de Conquista</h2>
+            <div class="btn-group">
+                <button onclick="Game.conquerZone('Atlántico Norte', 200)">🌊 Combatir en Atlántico Norte (+200 Oro)</button>
+                <button onclick="Game.conquerZone('Estrecho de Malaca', 350)">⚓ Conquistar Estrecho de Malaca (+350 Oro)</button>
+                <button class="danger" onclick="Game.closeModal('modalMap')">❌ Cerrar Mapa</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalStore" class="modal">
+        <div class="modal-content">
+            <h2 style="color: var(--warning-color);">🛒 Mercado de Suministros</h2>
+            <div class="btn-group">
+                <button onclick="Game.buyResource('ammo', 10, 100)">🚀 Comprar 10 Misiles (100 Oro)</button>
+                <button onclick="Game.buyResource('fuel', 50, 150)">⛽ Repostar Combustible (150 Oro)</button>
+                <button class="danger" onclick="Game.closeModal('modalStore')">❌ Cerrar Tienda</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Los audios están en la misma carpeta que index.html
         const AUDIO_FOLDER = '';
 
-        const SoundEngine = {
+        // Paso 3: JavaScript para solicitar bloqueo de pantalla horizontal
+        function bloquearOrientacion() {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(e => console.log("Bloqueo de pantalla:", e));
+            }
+        }
+
+        const Game = {
+            gold: 1500,
+            ammo: 24,
+            fuel: 100,
+            armor: 100,
+            currentVehicle: 'Portaaviones',
             seaAudio: null,
             battleAudio: null,
+            isAudioInitialized: false,
+
+            initAutoAudio() {
+                // Activa el bloqueo de orientación horizontal con el primer toque
+                bloquearOrientacion();
+
+                if (this.isAudioInitialized) return;
+
+                this.seaAudio = new Audio(AUDIO_FOLDER + 'mar.mp3');
+                this.seaAudio.loop = true;
+                this.seaAudio.volume = 0.35;
+
+                this.battleAudio = new Audio(AUDIO_FOLDER + 'Batalla_Aeronaval.mp3');
+                this.battleAudio.loop = true;
+                this.battleAudio.volume = 0.25;
+
+                this.seaAudio.play().catch(() => {});
+                this.battleAudio.play().catch(() => {});
+
+                this.playFX('mensajedebienvenida.mp3', 'Sistemas listos. Bienvenido Comandante.');
+                this.isAudioInitialized = true;
+            },
 
             speak(text) {
                 if ('speechSynthesis' in window) {
@@ -152,51 +343,80 @@
 
             playFX(fileName, description) {
                 const audio = new Audio(AUDIO_FOLDER + fileName);
-                audio.play().catch(e => {
-                    console.error(`Error al cargar ${fileName}:`, e);
-                    this.speak(`Error cargando archivo ${fileName}`);
-                });
-                if (description) {
-                    this.speak(description);
+                audio.play().catch(e => console.error(e));
+                if (description) this.speak(description);
+            },
+
+            action(soundFile, text) {
+                this.initAutoAudio();
+                this.playFX(soundFile, text);
+            },
+
+            setVehicle(name, soundFile, text) {
+                this.initAutoAudio();
+                this.currentVehicle = name;
+                this.playFX(soundFile, text);
+            },
+
+            fireWeapon(soundFile, text, ammoCost) {
+                this.initAutoAudio();
+                if (this.ammo >= ammoCost) {
+                    this.ammo -= ammoCost;
+                    this.updateUI();
+                    this.playFX(soundFile, text);
+                } else {
+                    this.playFX('alerta.mp3', '¡Sin munición suficiente!');
                 }
             },
 
-            toggleSea() {
-                if (!this.seaAudio) {
-                    this.seaAudio = new Audio(AUDIO_FOLDER + 'mar.mp3');
-                    this.seaAudio.loop = true;
-                }
+            openMap() {
+                this.initAutoAudio();
+                document.getElementById('modalMap').style.display = 'flex';
+                this.speak('Mapa de conquista abierto.');
+            },
 
-                if (this.seaAudio.paused) {
-                    this.seaAudio.play().catch(e => console.error(e));
-                    this.speak("Ambiente de mar activado.");
+            openStore() {
+                this.initAutoAudio();
+                document.getElementById('modalStore').style.display = 'flex';
+                this.speak('Mercado de suministros abierto.');
+            },
+
+            closeModal(id) {
+                document.getElementById(id).style.display = 'none';
+                this.speak('Volviendo al centro de mando.');
+            },
+
+            conquerZone(zoneName, reward) {
+                this.playFX('Batalla_Aeronaval.mp3');
+                this.gold += reward;
+                this.updateUI();
+                this.closeModal('modalMap');
+                this.speak(`¡Victoria en ${zoneName}! Obtienes ${reward} de oro.`);
+            },
+
+            buyResource(type, amount, cost) {
+                if (this.gold >= cost) {
+                    this.gold -= cost;
+                    if (type === 'ammo') this.ammo += amount;
+                    if (type === 'fuel') this.fuel = Math.min(100, this.fuel + amount);
+                    this.updateUI();
+                    this.playFX('contactoderadar.mp3', 'Compra realizada.');
                 } else {
-                    this.seaAudio.pause();
-                    this.speak("Ambiente de mar pausado.");
+                    this.playFX('alerta.mp3', 'Oro insuficiente.');
                 }
             },
 
-            toggleBattleMusic() {
-                if (!this.battleAudio) {
-                    this.battleAudio = new Audio(AUDIO_FOLDER + 'Batalla_Aeronaval.mp3');
-                    this.battleAudio.loop = true;
-                }
-
-                if (this.battleAudio.paused) {
-                    this.battleAudio.play().catch(e => console.error(e));
-                    this.speak("Música de batalla activada.");
-                } else {
-                    this.battleAudio.pause();
-                    this.speak("Música de batalla pausada.");
-                }
+            updateUI() {
+                document.getElementById('res-gold').innerText = this.gold;
+                document.getElementById('res-ammo').innerText = this.ammo;
+                document.getElementById('res-fuel').innerText = this.fuel + '%';
+                document.getElementById('res-armor').innerText = this.armor + '%';
             }
         };
 
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                SoundEngine.playFX('mensajedebienvenida.mp3', 'Sistemas listos. Bienvenido comandante.');
-            }, 500);
-        });
+        // Detectar el primer toque para activar audio y orientar pantalla
+        window.addEventListener('click', () => Game.initAutoAudio(), { once: true });
+        window.addEventListener('touchstart', () => Game.initAutoAudio(), { once: true });
     </script>
 </body>
 </html>
