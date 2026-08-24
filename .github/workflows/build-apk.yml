@@ -26,29 +26,25 @@ jobs:
           java-version: '17'
 
       - name: Instalar Cordova
-        run: |
-          npm install -g cordova
+        run: npm install -g cordova
 
-      - name: Crear y preparar directorio de la app
-        run: |
-          cordova create app_temp com.guerra.sobreelagua "Guerra Sobre el Agua"
+      - name: Crear proyecto
+        run: cordova create app_temp com.guerra.sobreelagua "Guerra Sobre el Agua"
 
-      - name: Copiar archivos del proyecto a Cordova
+      - name: Copiar archivos
         run: |
           rm -rf app_temp/www/*
           find . -maxdepth 1 ! -name '.' ! -name 'app_temp' ! -name '.git' ! -name '.github' -exec cp -r {} app_temp/www/ \;
 
-      - name: Compilar plataforma Android
+      - name: Compilar APK
         run: |
           cd app_temp
-          if [ -f www/config.xml ]; then
-            cp www/config.xml .
-          fi
+          if [ -f www/config.xml ]; then cp www/config.xml .; fi
           cordova platform add android
           cordova plugin add cordova-plugin-screen-orientation
           cordova build android --debug
 
-      - name: Subir APK compilada como Artefacto
+      - name: Subir APK
         uses: actions/upload-artifact@v4
         with:
           name: AeroOcean-ModernWar-APK
