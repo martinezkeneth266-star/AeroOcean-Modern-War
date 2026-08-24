@@ -1,4 +1,4 @@
-name: Compilar APK del Juego
+name: Compilar APK AeroOcean Modern War
 
 on:
   push:
@@ -25,21 +25,48 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Configurar Cordova
+      - name: Instalar Cordova
         run: |
           npm install -g cordova
 
-      - name: Crear proyecto Cordova y compilar APK
+      - name: Crear proyecto Cordova
         run: |
-          cordova create temp_app com.juego.accesible "GuerraAccesible"
-          cd temp_app
-          rm -rf www/*
-          cp -r ../assets/www/* www/
-          cordova platform add android
-          cordova build android --no-telemetry
+          cordova create temp_app com.guerra.sobreelagua "AeroOcean: Modern War"
 
-      - name: Subir archivo APK listo
+      - name: Copiar archivos del juego
+        run: |
+          rm -rf temp_app/www/*
+          cp -r activos/www/* temp_app/www/
+
+      - name: Agregar Android
+        run: |
+          cd temp_app
+          cordova platform add android
+
+      - name: Configurar orientación horizontal
+        run: |
+          cd temp_app
+          python3 - <<'PY'
+          from pathlib import Path
+
+          archivo = Path("config.xml")
+          texto = archivo.read_text()
+
+          texto = texto.replace(
+              "</widget>",
+              '    <preference name="Orientation" value="landscape" />\n</widget>'
+          )
+
+          archivo.write_text(texto)
+          PY
+
+      - name: Compilar APK
+        run: |
+          cd temp_app
+          cordova build android --release
+
+      - name: Guardar APK
         uses: actions/upload-artifact@v4
         with:
-          name: Juego-Guerra-APK
-          path: temp_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          name: AeroOcean-Modern-War
+          path: temp_app/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
