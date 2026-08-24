@@ -12,15 +12,15 @@ jobs:
 
     steps:
       - name: Descargar el código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configurar Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Configurar Java JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
           java-version: '17'
@@ -52,10 +52,11 @@ jobs:
           archivo = Path("config.xml")
           texto = archivo.read_text()
 
-          texto = texto.replace(
-              "</widget>",
-              '    <preference name="Orientation" value="landscape" />\n</widget>'
-          )
+          if 'name="Orientation"' not in texto:
+              texto = texto.replace(
+                  "</widget>",
+                  '    <preference name="Orientation" value="landscape" />\n</widget>'
+              )
 
           archivo.write_text(texto)
           PY
