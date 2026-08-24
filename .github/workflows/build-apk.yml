@@ -28,13 +28,18 @@ jobs:
       - name: Instalar Cordova
         run: npm install -g cordova
 
-      - name: Crear proyecto Cordova
-        run: cordova create app_temp com.guerra.sobreelagua "Guerra Sobre el Agua"
-
-      - name: Copiar archivos al sitio correcto
+      - name: Crear proyecto y copiar juego
         run: |
+          # 1. Crear app Cordova limpia
+          cordova create app_temp com.guerra.sobreelagua "Guerra Sobre el Agua"
+          
+          # 2. Vaciar el www por defecto
           rm -rf app_temp/www/*
-          cp -r index.html js css audio img assets app_temp/www/ 2>/dev/null || cp -r * app_temp/www/ 2>/dev/null || true
+          
+          # 3. Copiar exactamente tus archivos web desde activos/www a app_temp/www
+          cp -r activos/www/* app_temp/www/
+          
+          # 4. Copiar tu config.xml si existe en la raíz
           if [ -f config.xml ]; then cp config.xml app_temp/; fi
 
       - name: Compilar APK
