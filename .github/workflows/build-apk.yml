@@ -1,4 +1,4 @@
-name: Compilar APK del Juego
+Name: Compilar APK del Juego
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Configurar Java JDK
         uses: actions/setup-java@v4
@@ -25,31 +25,37 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Configurar Cordova e instalar plugins de pantalla
+      - name: Instalar Cordova
         run: |
           npm install -g cordova
 
-      - name: Crear proyecto Cordova, configurar orientación y compilar APK
+      - name: Crear y compilar proyecto Cordova
         run: |
+          # 1. Crear el proyecto temporal
           cordova create temp_app com.guerra.sobreelagua "Guerra Sobre el Agua"
-          cd temp_app
-          rm -rf www/*
-          cp -r ../* www/ 2>/dev/null || true
           
-          # Copiar config.xml del repositorio si existe
+          # 2. Limpiar la plantilla www por defecto
+          rm -rf temp_app/www/*
+          
+          # 3. Copiar únicamente los recursos web evitando la carpeta temp_app
+          rsync -av --exclude='temp_app' --exclude='.git' --exclude='.github' ./ temp_app/www/
+          
+          cd temp_app
+
+          # 4. Copiar config.xml personalizado si existe en la raíz
           if [ -f ../config.xml ]; then
             cp ../config.xml .
           fi
 
-          # Añadir plataforma Android y plugin de orientación horizontal
+          # 5. Agregar plataforma y plugins
           cordova platform add android
           cordova plugin add cordova-plugin-screen-orientation
           
-          # Compilar APK
-          cordova build android --release
+          # 6. Compilar APK en modo Debug para asegurar que se cree el archivo sin pedir firma digital
+          cordova build android --debug
 
       - name: Subir APK compilada como Artefacto
         uses: actions/upload-artifact@v4
         with:
           name: AeroOcean-ModernWar-APK
-          path: temp_app/platforms/android/app/build/outputs/apk/release/*.apk
+          path: "**/*.apk"
