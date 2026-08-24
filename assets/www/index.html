@@ -17,20 +17,11 @@
             --success-color: #00ff66;
         }
 
-        @media screen and (orientation: portrait) {
-            body {
-                transform: rotate(-90deg);
-                transform-origin: left top;
-                width: 100vh;
-                height: 100vw;
-                overflow-x: hidden;
-                position: absolute;
-                top: 100%;
-                left: 0;
-            }
+        * { 
+            box-sizing: border-box; 
+            user-select: none; 
+            -webkit-tap-highlight-color: transparent; 
         }
-
-        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Courier New', Courier, monospace;
@@ -41,6 +32,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
         }
 
         header { text-align: center; margin-bottom: 6px; width: 100%; }
@@ -262,8 +254,8 @@
         <div class="module-card" style="margin-bottom: 8px;">
             <h2>🧭 Controles de Orientación y Navegación</h2>
             <div class="btn-grid-2">
-                <button onclick="Game.vehicleSteer('Acelerando maquinas')">⬆️ Acelerar Potencia</button>
-                <button onclick="Game.vehicleSteer('Reduciendo maquina')">⬇️ Desacelerar / Frenar</button>
+                <button onclick="Game.vehicleSteer('Acelerando máquinas')">⬆️ Acelerar Potencia</button>
+                <button onclick="Game.vehicleSteer('Reduciendo máquina')">⬇️ Desacelerar / Frenar</button>
                 <button onclick="Game.steerBearing(-30)">⬅️ Girar a Babor (Izquierda)</button>
                 <button onclick="Game.steerBearing(30)">➡️ Girar a Estribor (Derecha)</button>
             </div>
@@ -307,7 +299,6 @@
     </div>
 
     <script>
-        // BASE GEOGRÁFICA MUNDIAL CON RUTAS TÁCTICAS
         const worldData = {
             "América": {
                 "América del Norte": [
@@ -355,7 +346,7 @@
             fuel: 100,
             armor: 100,
 
-            currentBearing: 0, // Rumbo actual en grados (0° = Norte)
+            currentBearing: 0,
             currentVehicleKey: null,
             targetTerritory: null,
             targetDef: 0,
@@ -366,7 +357,6 @@
             mapSelectedContinent: null,
             mapSelectedRegion: null,
 
-            // ARSENALES EXTENDIDOS
             vehiclesData: {
                 portaaviones: {
                     name: "🚢 Portaaviones Flotante Base",
@@ -383,7 +373,7 @@
                 destructor: {
                     name: "🚢 Destructor de Escolta",
                     tag: "[Escolta Ligera y Anti-Submarina]",
-                    engineSound: "Disparo.mp3",
+                    engineSound: "sonidoportaaviones1.mp3",
                     weapons: [
                         { name: "💣 Carga de Profundidad", sound: "sonidodeborbandeo.mp3", cost: 2, dmg: 45 },
                         { name: "✨ Ráfaga de Cañones Trazadores", sound: "trazadoras.mp3", cost: 1, dmg: 25 },
@@ -441,11 +431,10 @@
             initAudio() {
                 if (!this.hasWelcomed) {
                     this.hasWelcomed = true;
-                    // Sonido de bienvenida ejecutado SOLO UNA VEZ
+                    
                     const welcome = new Audio('./mensajedebienvenida.mp3');
                     welcome.play().catch(() => {});
 
-                    // Motor del Portaaviones activo en segundo plano permanente
                     this.carrierEngine = new Audio('./sonidoportaaviones1.mp3');
                     this.carrierEngine.loop = true;
                     this.carrierEngine.volume = 0.2;
@@ -458,9 +447,11 @@
             speak(text) {
                 if ('speechSynthesis' in window) {
                     window.speechSynthesis.cancel();
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = 'es-ES';
-                    window.speechSynthesis.speak(utterance);
+                    setTimeout(() => {
+                        const utterance = new SpeechSynthesisUtterance(text);
+                        utterance.lang = 'es-ES';
+                        window.speechSynthesis.speak(utterance);
+                    }, 50);
                 }
                 const log = document.getElementById('statusLog');
                 log.innerHTML += `<div>> ${text}</div>`;
@@ -469,7 +460,8 @@
 
             playFX(fileName, text) {
                 this.initAudio();
-                const audio = new Audio('./' + fileName);
+                const safePath = './' + encodeURIComponent(fileName);
+                const audio = new Audio(safePath);
                 audio.play().catch(() => {});
                 if (text) this.speak(text);
             },
