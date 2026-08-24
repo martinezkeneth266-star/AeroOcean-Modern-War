@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AeroOcean: Modern War - Dominación Global</title>
+    <title>AeroOcean: Modern War - Simulación Táctica Global</title>
     
     <style>
         :root {
-            --bg-color: #0b132b;
-            --panel-bg: #1c2541;
-            --card-bg: #3a506b;
-            --accent-color: #48cae4;
+            --bg-color: #050b14;
+            --panel-bg: #0e1a2b;
+            --card-bg: #162840;
+            --accent-color: #00ffcc;
             --text-color: #edf2f4;
-            --danger-color: #e63946;
-            --success-color: #2a9d8f;
-            --warning-color: #e9c46a;
+            --danger-color: #ff3344;
+            --warning-color: #ffaa00;
+            --success-color: #00ff66;
         }
 
         @media screen and (orientation: portrait) {
@@ -37,7 +37,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
@@ -50,29 +50,33 @@
         header {
             text-align: center;
             margin-bottom: 6px;
+            width: 100%;
         }
 
         h1 {
             color: var(--accent-color);
             margin: 0;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
+        /* Barra de Recursos */
         .resource-bar {
             display: flex;
             justify-content: space-around;
             width: 100%;
             max-width: 1000px;
             background: var(--panel-bg);
-            border: 1px solid var(--accent-color);
+            border: 2px solid var(--accent-color);
             border-radius: 6px;
             padding: 6px;
             margin-bottom: 8px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: bold;
         }
 
+        /* Vista Principal / Menú de Selección */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -83,8 +87,7 @@
 
         .module-card {
             background-color: var(--panel-bg);
-            border: 1px solid rgba(72, 202, 228, 0.3);
-            border-left: 5px solid var(--accent-color);
+            border: 1px solid var(--accent-color);
             border-radius: 8px;
             padding: 10px;
             display: flex;
@@ -94,31 +97,32 @@
 
         .module-card h2 {
             margin: 0;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: var(--accent-color);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(0, 255, 204, 0.2);
             padding-bottom: 4px;
         }
 
         .btn-group {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
         }
 
         .btn-grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 5px;
+            gap: 6px;
         }
 
         button {
             background-color: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 8px 10px;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            padding: 10px;
+            font-family: inherit;
             font-size: 0.8rem;
-            font-weight: 600;
+            font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
             width: 100%;
@@ -130,314 +134,367 @@
 
         button:active {
             background-color: var(--accent-color);
-            color: var(--bg-color);
+            color: #000;
         }
 
-        button.danger { border-left: 4px solid var(--danger-color); }
-        button.success { border-left: 4px solid var(--success-color); }
-        button.warning { border-left: 4px solid var(--warning-color); }
+        button.danger { border-color: var(--danger-color); color: var(--danger-color); }
+        button.warning { border-color: var(--warning-color); color: var(--warning-color); }
+        button.success { border-color: var(--success-color); color: var(--success-color); }
 
         .status-box {
             background-color: #000;
-            color: #00ff66;
-            font-family: 'Courier New', Courier, monospace;
-            padding: 6px;
-            height: 65px;
+            color: var(--success-color);
+            padding: 8px;
+            height: 75px;
             overflow-y: auto;
             border-radius: 6px;
             margin-top: 8px;
             width: 100%;
             max-width: 1000px;
-            border: 1px solid var(--accent-color);
+            border: 2px solid var(--accent-color);
             font-size: 0.78rem;
         }
 
-        .modal {
+        /* Modales Tácticos y Vistas */
+        .full-screen-modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
+            background: #040910;
             z-index: 100;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-        }
-
-        .modal-content {
-            background: var(--panel-bg);
-            border: 2px solid var(--accent-color);
-            border-radius: 10px;
-            padding: 15px;
-            width: 100%;
-            max-width: 650px;
-            max-height: 90vh;
+            flex-direction: column;
+            padding: 12px;
             overflow-y: auto;
         }
 
-        .continent-block {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--accent-color);
-            border-radius: 6px;
-            padding: 8px;
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 8px;
             margin-bottom: 10px;
         }
 
-        .continent-block h3 {
-            margin: 0 0 6px 0;
-            color: var(--warning-color);
-            font-size: 0.95rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 3px;
-        }
-
-        .territory-card {
-            background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 8px;
-            margin-bottom: 6px;
-            border-radius: 5px;
-        }
-
-        .territory-card.conquered {
-            border-color: var(--success-color);
-            background: #10382b;
-        }
-
-        .route-select {
-            width: 100%;
-            padding: 6px;
-            background: var(--bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--accent-color);
-            border-radius: 4px;
-            margin-top: 4px;
-            font-family: inherit;
+        .radar-screen {
+            background: #001100;
+            border: 2px solid var(--success-color);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
             font-size: 0.8rem;
+            color: var(--success-color);
+            box-shadow: inset 0 0 10px rgba(0, 255, 102, 0.2);
         }
 
-        .cockpit-title {
-            color: var(--accent-color);
-            border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 5px;
-            margin-top: 0;
+        .breadcrumb {
+            color: var(--warning-color);
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .map-card {
+            background: #0d1b2a;
+            border: 1px solid var(--accent-color);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .control-section {
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 6px;
-            padding: 8px;
-            margin-bottom: 10px;
-        }
-
-        .control-section h3 {
-            margin: 0 0 6px 0;
-            font-size: 0.85rem;
+        .reward-tag {
             color: var(--warning-color);
+            font-size: 0.75rem;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>AeroOcean: Modern War</h1>
+        <h1>AeroOcean: Modern War - Simulación Táctica</h1>
     </header>
 
-    <div class="resource-bar" role="region" aria-label="Estado de Recursos">
+    <div class="resource-bar" role="region" aria-label="Recursos">
         <div>🎖️ Niv: <span id="res-level">1</span></div>
-        <div>💰 Oro: <span id="res-gold">1500</span></div>
+        <div>💰 Oro: <span id="res-gold">2000</span></div>
+        <div>💎 Min: <span id="res-minerals">500</span></div>
         <div>⛽ Fuel: <span id="res-fuel">100%</span></div>
-        <div>🚀 Misiles: <span id="res-ammo">30</span></div>
+        <div>🚀 Misiles: <span id="res-ammo">40</span></div>
         <div>🛡️ Blindaje: <span id="res-armor">100%</span></div>
     </div>
 
-    <!-- Módulos Principales -->
-    <div class="dashboard-grid">
+    <!-- PUESTO DE MANDO GENERAL -->
+    <div id="mainDashboard" class="dashboard-grid">
 
-        <!-- MÓDULO 1: SELECCIÓN DE VEHÍCULO / FLOTA -->
         <section class="module-card">
-            <h2>Módulo 1: Selección de Flota ⚓</h2>
+            <h2>Módulo 1: Selección de Flota y Vehículos ⚓</h2>
             <div class="btn-group">
-                <button onclick="Game.openCockpit('portaaviones')">
-                    🚢 Portaaviones Pesado <span>[Entrar a Cabina]</span>
+                <button onclick="Game.enterCockpit('portaaviones')">
+                    🚢 Portaaviones Base Flotante <span>[Entrar]</span>
                 </button>
-                <button onclick="Game.openCockpit('submarino')">
-                    🌊 Submarino Nuclear <span>[Entrar a Cabina]</span>
+                <button onclick="Game.enterCockpit('submarino')">
+                    🌊 Submarino Nuclear <span>[Entrar]</span>
                 </button>
-                <button onclick="Game.openCockpit('caza')">
-                    ⚡ Caza Interceptor <span>[Entrar a Cabina]</span>
+                <button onclick="Game.enterCockpit('caza')">
+                    ⚡ Caza Interceptor <span>[Entrar]</span>
                 </button>
-                <button onclick="Game.openCockpit('bombardero')">
-                    ✈️ Bombardero Pesado <span>[Entrar a Cabina]</span>
+                <button onclick="Game.enterCockpit('bombardero')">
+                    ✈️ Bombardero Pesado <span>[Entrar]</span>
                 </button>
-                <button onclick="Game.openCockpit('f35')">
-                    🛩️ Caza F-35 Rescate <span>[Entrar a Cabina]</span>
+                <button onclick="Game.enterCockpit('f35')">
+                    🛩️ Caza F-35 Rescate <span>[Entrar]</span>
                 </button>
             </div>
         </section>
 
-        <!-- MÓDULO 2: SENSORES Y ALERTAS DE AMENAZA -->
         <section class="module-card">
-            <h2>Módulo 2: Detección y Alertas 📡</h2>
+            <h2>Módulo 2: Detección, Alertas y Aliados 📡</h2>
             <div class="btn-group">
-                <button onclick="Game.action('contactoderadar.mp3', 'Contacto en radar detectado en la ruta activa.')">
-                    🔍 Contacto Radar <span>[Escanear]</span>
+                <button onclick="Game.scanRadar()">
+                    🔍 Escáner de Sector Radar <span>[Buscar Enemigos]</span>
                 </button>
-                <button class="danger" onclick="Game.action('alerta.mp3', '¡Alerta! Caza enemigo fije y bloquee nuestra posición.')">
-                    🎯 Radar Blanco Enclavado <span>[Enganche]</span>
+                <button class="warning" onclick="Game.checkRadioIntercom()">
+                    📻 Intercomunicador de Red Aliada <span>[Escuchar]</span>
                 </button>
-                <button class="danger" onclick="Game.action('Alarmadeataqueenemigo.mp3', '¡Ataque enemigo inminente! Todos los vehículos a puestos de combate.')">
-                    🚨 Ataque Enemigo <span>[Alerta]</span>
+                <button class="danger" onclick="Game.triggerEnemyAssault()">
+                    🚨 Alerta: Ataque Hostil Activo <span>[Foco de Conflicto]</span>
                 </button>
-                <button class="danger" onclick="Game.action('alarmadeemergencia.mp3', '¡Incendio y daños estructurales en unidades navales!')">
-                    🔥 Emergencia Naval <span>[Fuego]</span>
-                </button>
-                <button class="danger" onclick="Game.action('emergencia.wav', '¡Fallo de controles y daño crítico en aeronave!')">
-                    ⚠️ Emergencia Aérea <span>[Avanzada]</span>
+                <button class="success" onclick="Game.openStore()">
+                    🛒 Suministros y Logística <span>[Mercado]</span>
                 </button>
             </div>
         </section>
 
-        <!-- MÓDULO 3: OPERACIONES Y MERCADO -->
         <section class="module-card" style="grid-column: span 2;">
-            <h2>Módulo 3: Operaciones Globales y Mercado 🌍</h2>
-            <div class="btn-grid-2">
-                <button class="success" onclick="Game.openMap()">
-                    🗺️ Mapa por Continentes <span>[Misiones]</span>
-                </button>
-                <button class="warning" onclick="Game.openStore()">
-                    🛒 Suministros <span>[Mercado]</span>
-                </button>
-            </div>
+            <h2>Módulo 3: Despliegue de Misiones Globales 🌍</h2>
+            <button class="warning" style="font-size: 0.95rem; text-align: center;" onclick="Game.openWorldMap()">
+                🌍 MAPA GLOBAL POR CONTINENTES Y REGIONES
+            </button>
         </section>
 
     </div>
 
     <div id="statusLog" class="status-box" role="log" aria-live="polite">
-        > Centro de mando activado. Inicializando audio...
+        > Puesto de mando en línea. Audio automatizado activado.
     </div>
 
-    <!-- MODAL 1: COCKPIT / CABINA DE VEHÍCULO DINÁMICA -->
-    <div id="modalCockpit" class="modal">
-        <div class="modal-content">
-            <h2 id="cockpitTitle" class="cockpit-title">
-                <span id="vehicleName">Cabina de Control</span>
-                <span id="vehicleTag" style="font-size: 0.8rem; color: var(--warning-color);"></span>
-            </h2>
-
-            <!-- MANDOS DE NAVEGACIÓN -->
-            <div class="control-section">
-                <h3>🕹️ Mandos de Navegación y Pilotaje</h3>
-                <div class="btn-grid-2">
-                    <button onclick="Game.controlMove('Acelerando propulsores')">
-                        ⬆️ Acelerar / Potencia
-                    </button>
-                    <button onclick="Game.controlMove('Frenos activados')">
-                        ⬇️ Desacelerar / Freno
-                    </button>
-                    <button onclick="Game.controlMove('Virando a babor (Izquierda)')">
-                        ⬅️ Timón Izquierda
-                    </button>
-                    <button onclick="Game.controlMove('Virando a estribor (Derecha)')">
-                        ➡️ Timón Derecha
-                    </button>
-                </div>
+    <!-- VISTA AISLADA DE CABINA / PILOTAJE DE VEHÍCULO -->
+    <div id="cockpitView" class="full-screen-modal">
+        <div class="modal-header">
+            <div>
+                <h2 id="cockpitName" style="color: var(--accent-color); margin: 0; font-size: 1.1rem;">CABINA DE CONTROL</h2>
+                <span id="cockpitTag" style="color: var(--warning-color); font-size: 0.8rem;"></span>
             </div>
+            <button class="danger" style="width: auto; padding: 6px 12px;" onclick="Game.exitCockpit()">✖ Salir al Mando</button>
+        </div>
 
-            <!-- ARSENAL EXCLUSIVO DEL VEHÍCULO -->
-            <div class="control-section">
-                <h3>💣 Sistemas de Armas Específicos</h3>
-                <div id="vehicleWeapons" class="btn-group"></div>
+        <!-- INSTRUMENTAL Y TELEMETRÍA RADAR -->
+        <div class="radar-screen">
+            <div style="font-weight: bold; border-bottom: 1px solid var(--success-color); padding-bottom: 4px; margin-bottom: 6px;">
+                📡 PANTALLA TÁCTICA DE BLANCO Y TELEMETRÍA
             </div>
+            <div id="telemetryData">Esperando fijación de objetivo o zona de patrulla...</div>
+        </div>
 
-            <div class="btn-group" style="margin-top: 10px;">
-                <button class="danger" onclick="Game.closeModal('modalCockpit')">❌ Salir de Cabina / Volver al Mando</button>
+        <!-- MANDOS DE MANIOBRA Y NAVEGACIÓN -->
+        <div class="module-card" style="margin-bottom: 10px;">
+            <h2>🕹️ Controles de Pilotaje y Navegación</h2>
+            <div class="btn-grid-2">
+                <button onclick="Game.vehicleSteer('Acelerando propulsores')">⬆️ Acelerar Potencia</button>
+                <button onclick="Game.vehicleSteer('Reduciendo velocidad')">⬇️ Desacelerar / Freno</button>
+                <button onclick="Game.vehicleSteer('Virando a babor')">⬅️ Virar Izquierda</button>
+                <button onclick="Game.vehicleSteer('Virando a estribor')">➡️ Virar Derecha</button>
             </div>
+            <button class="warning" style="margin-top: 6px;" onclick="Game.evasiveManeuver()">
+                🌀 MANIOBRA EVASIVA (Esquivar Ataque Enemigo)
+            </button>
+        </div>
+
+        <!-- ARSENAL Y ACCIONES EXCLUSIVAS -->
+        <div class="module-card">
+            <h2>💣 Arsenal y Acciones del Vehículo</h2>
+            <div id="cockpitWeapons" class="btn-group"></div>
         </div>
     </div>
 
-    <!-- MODAL 2: MAPA DE CONQUISTA POR CONTINENTES Y REGIONES -->
-    <div id="modalMap" class="modal">
-        <div class="modal-content">
-            <h2 style="color: var(--accent-color); margin-top: 0;">🗺️ Mapa Global de Operaciones</h2>
-            <div id="continentsContainer"></div>
-            <div class="btn-group" style="margin-top: 10px;">
-                <button class="danger" onclick="Game.closeModal('modalMap')">❌ Cerrar Mapa</button>
-            </div>
+    <!-- MAPA GLOBAL JERÁRQUICO POR CONTINENTES, REGIONES Y PAÍSES -->
+    <div id="mapView" class="full-screen-modal">
+        <div class="modal-header">
+            <h2 id="mapTitle" style="color: var(--accent-color); margin: 0;">🌍 MAPA MUNDIAL</h2>
+            <button class="danger" style="width: auto; padding: 6px 12px;" onclick="Game.closeWorldMap()">✖ Cerrar Mapa</button>
         </div>
+
+        <div id="breadcrumb" class="breadcrumb">Ubicación: Continentes Habitados</div>
+        <button id="btnMapBack" class="warning" style="display:none; margin-bottom: 10px; width: 100%;" onclick="Game.mapBackLevel()">
+            ⬅ Regresar de Nivel
+        </button>
+
+        <div id="mapList" class="btn-group"></div>
     </div>
 
-    <!-- MODAL 3: TIENDA -->
-    <div id="modalStore" class="modal">
-        <div class="modal-content">
-            <h2 style="color: var(--warning-color); margin-top: 0;">🛒 Tienda de Suministros</h2>
-            <div class="btn-group">
-                <button onclick="Game.buyResource('ammo', 10, 100)">🚀 10 Misiles/Cargas (100 Oro)</button>
-                <button onclick="Game.buyResource('fuel', 50, 150)">⛽ Recargar Fuel (150 Oro)</button>
-                <button onclick="Game.buyResource('armor', 50, 200)">🛡️ Reparar Blindaje (200 Oro)</button>
-                <button class="danger" onclick="Game.closeModal('modalStore')">❌ Cerrar Tienda</button>
-            </div>
+    <!-- TIENDA DE SUMINISTROS -->
+    <div id="storeView" class="full-screen-modal">
+        <div class="modal-header">
+            <h2 style="color: var(--warning-color); margin: 0;">🛒 SUMINISTROS MILITARES</h2>
+            <button class="danger" style="width: auto; padding: 6px 12px;" onclick="Game.closeStore()">✖ Cerrar</button>
+        </div>
+        <div class="btn-group">
+            <button onclick="Game.buyResource('ammo', 15, 150)">🚀 15 Misiles / Cargas (150 Oro)</button>
+            <button onclick="Game.buyResource('fuel', 50, 100)">⛽ Recargar Combustible (100 Oro)</button>
+            <button onclick="Game.buyResource('armor', 40, 200)">🛡️ Reparar Blindaje (200 Oro)</button>
         </div>
     </div>
 
     <script>
-        function bloquearOrientacion() {
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(() => {});
+        // BASE DE DATOS GEOGRÁFICA ORIGINAL COMPLETA
+        const worldData = {
+            "América": {
+                "América del Norte": [
+                    { nombre: "Canadá", tipo: "País", dinero: 800, minerales: 350, defensa: 200 },
+                    { nombre: "Estados Unidos", tipo: "País", dinero: 1200, minerales: 500, defensa: 350 },
+                    { nombre: "México", tipo: "País", dinero: 700, minerales: 300, defensa: 180 },
+                    { nombre: "Groenlandia", tipo: "Isla", dinero: 500, minerales: 600, defensa: 150 },
+                    { nombre: "Bermudas", tipo: "Archipiélago", dinero: 450, minerales: 200, defensa: 120 },
+                    { nombre: "San Pedro y Miquelón", tipo: "Archipiélago", dinero: 300, minerales: 150, defensa: 100 }
+                ],
+                "América Central": [
+                    { nombre: "Belice", tipo: "País", dinero: 400, minerales: 180, defensa: 110 },
+                    { nombre: "Costa Rica", tipo: "País", dinero: 550, minerales: 220, defensa: 120 },
+                    { nombre: "El Salvador", tipo: "País", dinero: 450, minerales: 190, defensa: 130 },
+                    { nombre: "Guatemala", tipo: "País", dinero: 500, minerales: 230, defensa: 140 },
+                    { nombre: "Honduras", tipo: "País", dinero: 500, minerales: 250, defensa: 140 },
+                    { nombre: "Nicaragua", tipo: "País", dinero: 450, minerales: 210, defensa: 130 },
+                    { nombre: "Panamá", tipo: "País", dinero: 650, minerales: 280, defensa: 160 }
+                ],
+                "El Caribe": [
+                    { nombre: "Antigua y Barbuda", tipo: "Isla", dinero: 350, minerales: 150, defensa: 90 },
+                    { nombre: "Bahamas", tipo: "Archipiélago", dinero: 500, minerales: 200, defensa: 110 },
+                    { nombre: "Barbados", tipo: "Isla", dinero: 400, minerales: 160, defensa: 100 },
+                    { nombre: "Cuba", tipo: "Isla", dinero: 550, minerales: 240, defensa: 180 },
+                    { nombre: "Dominica", tipo: "Isla", dinero: 300, minerales: 140, defensa: 80 },
+                    { nombre: "Granada", tipo: "Isla", dinero: 320, minerales: 150, defensa: 85 },
+                    { nombre: "Haití", tipo: "País", dinero: 350, minerales: 180, defensa: 95 },
+                    { nombre: "Jamaica", tipo: "Isla", dinero: 450, minerales: 210, defensa: 120 },
+                    { nombre: "Puerto Rico", tipo: "Isla", dinero: 500, minerales: 220, defensa: 150 },
+                    { nombre: "República Dominicana", tipo: "País", dinero: 520, minerales: 230, defensa: 140 },
+                    { nombre: "San Cristóbal y Nieves", tipo: "Isla", dinero: 300, minerales: 130, defensa: 80 },
+                    { nombre: "San Vicente y las Granadinas", tipo: "Archipiélago", dinero: 310, minerales: 140, defensa: 85 },
+                    { nombre: "Santa Lucía", tipo: "Isla", dinero: 330, minerales: 150, defensa: 90 },
+                    { nombre: "Trinidad y Tobago", tipo: "Isla", dinero: 480, minerales: 260, defensa: 130 }
+                ],
+                "América del Sur": [
+                    { nombre: "Argentina", tipo: "País", dinero: 850, minerales: 420, defensa: 220 },
+                    { nombre: "Bolivia", tipo: "País", dinero: 500, minerales: 450, defensa: 160 },
+                    { nombre: "Brasil", tipo: "País", dinero: 1100, minerales: 550, defensa: 300 },
+                    { nombre: "Chile", tipo: "País", dinero: 750, minerales: 600, defensa: 210 },
+                    { nombre: "Colombia", tipo: "País", dinero: 700, minerales: 380, defensa: 200 },
+                    { nombre: "Ecuador", tipo: "País", dinero: 550, minerales: 300, defensa: 150 },
+                    { nombre: "Guyana", tipo: "País", dinero: 450, minerales: 350, defensa: 120 },
+                    { nombre: "Paraguay", tipo: "País", dinero: 480, minerales: 220, defensa: 130 },
+                    { nombre: "Perú", tipo: "País", dinero: 680, minerales: 490, defensa: 190 },
+                    { nombre: "Surinam", tipo: "País", dinero: 420, minerales: 310, defensa: 110 },
+                    { nombre: "Uruguay", tipo: "País", dinero: 600, minerales: 250, defensa: 140 },
+                    { nombre: "Venezuela", tipo: "País", dinero: 650, minerales: 500, defensa: 210 },
+                    { nombre: "Islas Galápagos", tipo: "Archipiélago", dinero: 400, minerales: 300, defensa: 100 },
+                    { nombre: "Islas Malvinas", tipo: "Archipiélago", dinero: 450, minerales: 320, defensa: 130 }
+                ]
+            },
+            "Europa": {
+                "Europa Occidental": [
+                    { nombre: "Alemania", tipo: "País", dinero: 1050, minerales: 400, defensa: 280 },
+                    { nombre: "Francia", tipo: "País", dinero: 1000, minerales: 380, defensa: 270 },
+                    { nombre: "Reino Unido", tipo: "Isla", dinero: 1000, minerales: 350, defensa: 290 },
+                    { nombre: "España", tipo: "País", dinero: 900, minerales: 350, defensa: 230 }
+                ],
+                "Europa del Norte": [
+                    { nombre: "Noruega", tipo: "País", dinero: 950, minerales: 500, defensa: 220 },
+                    { nombre: "Suecia", tipo: "País", dinero: 880, minerales: 420, defensa: 210 },
+                    { nombre: "Finlandia", tipo: "País", dinero: 800, minerales: 360, defensa: 200 },
+                    { nombre: "Islandia", tipo: "Isla", dinero: 600, minerales: 380, defensa: 140 }
+                ]
+            },
+            "Asia": {
+                "Asia Oriental": [
+                    { nombre: "China", tipo: "País", dinero: 1300, minerales: 650, defensa: 380 },
+                    { nombre: "Japón", tipo: "Archipiélago", dinero: 1150, minerales: 400, defensa: 310 },
+                    { nombre: "Corea del Sur", tipo: "País", dinero: 950, minerales: 380, defensa: 260 },
+                    { nombre: "Taiwán", tipo: "Isla", dinero: 850, minerales: 300, defensa: 240 }
+                ],
+                "Sudeste Asiático": [
+                    { nombre: "Filipinas", tipo: "Archipiélago", dinero: 750, minerales: 380, defensa: 180 },
+                    { nombre: "Indonesia", tipo: "Archipiélago", dinero: 850, minerales: 500, defensa: 210 },
+                    { nombre: "Vietnam", tipo: "País", dinero: 680, minerales: 340, defensa: 190 }
+                ]
+            },
+            "África": {
+                "África del Norte": [
+                    { nombre: "Egipto", tipo: "País", dinero: 750, minerales: 380, defensa: 200 },
+                    { nombre: "Argelia", tipo: "País", dinero: 700, minerales: 450, defensa: 180 },
+                    { nombre: "Marruecos", tipo: "País", dinero: 650, minerales: 320, defensa: 170 }
+                ]
+            },
+            "Oceanía": {
+                "Australasia": [
+                    { nombre: "Australia", tipo: "País", dinero: 1100, minerales: 600, defensa: 270 },
+                    { nombre: "Nueva Zelanda", tipo: "Isla", dinero: 800, minerales: 350, defensa: 190 }
+                ],
+                "Polinesia": [
+                    { nombre: "Hawái", tipo: "Archipiélago", dinero: 750, minerales: 280, defensa: 220 }
+                ]
             }
-        }
+        };
 
         const Game = {
             level: 1,
-            gold: 1500,
-            ammo: 30,
+            gold: 2000,
+            minerals: 500,
+            ammo: 40,
             fuel: 100,
             armor: 100,
-            
+
             currentVehicleKey: null,
+            targetTerritory: null,
+            targetDef: 0,
+            targetMaxDef: 0,
+            isEvasiveActive: false,
+
+            // MAPA ESTADO
+            mapCurrentLevel: 'continents',
+            mapSelectedContinent: null,
+            mapSelectedRegion: null,
 
             vehiclesData: {
                 portaaviones: {
-                    name: "🚢 Portaaviones Pesado",
-                    tag: "[Buque de Superficie]",
+                    name: "🚢 Portaaviones Base Flotante",
+                    tag: "[Mando de Flota y Mar]",
                     engineSound: "sonidoportaaviones1.mp3",
                     weapons: [
-                        { name: "💥 Ametralladora Naval", sound: "Ametralladora.mp3", desc: "Defensa pesada cercana", ammoCost: 1, damage: 10 },
-                        { name: "🛡️ Torreta Antiaérea", sound: "Torreta.mp3", desc: "Cobertura de torreta", ammoCost: 1, damage: 15 },
-                        { name: "🔫 Cañón Naval Principal", sound: "Disparo.mp3", desc: "Fuego de artillería", ammoCost: 1, damage: 20 },
-                        { name: "🚀 Misil de Crucero Tomahawk", sound: "misil de crucero.mp3", desc: "Ataque a larga distancia", ammoCost: 2, damage: 50 },
-                        { name: "🛡️ Batería Antiaérea", sound: "bateriademisilesantiaereos.mp3", desc: "Defensa de misiles", ammoCost: 2, damage: 45 },
-                        { name: "🦈 Lanzamiento de Torpedos", sound: "Lanzatorpedoycaen.mp3", desc: "Disparo de torpedos", ammoCost: 1, damage: 40 },
-                        { name: "💥 Granadas / Cargas", sound: "bonba.mp3", desc: "Cargas de profundidad", ammoCost: 1, damage: 25 }
+                        { name: "🛩️ Desplegar Cazas a Patrulla", sound: "sonidodecasaenelaire.wav", desc: "Despliegue aéreo desde el portaaviones.", cost: 0, dmg: 0, special: 'patrol' },
+                        { name: "🔫 Cañón Naval Principal", sound: "Disparo.mp3", desc: "Fuego naval concentrado.", cost: 1, dmg: 25 },
+                        { name: "🛡️ Batería Antiaérea SAM", sound: "bateriademisilesantiaereos.mp3", desc: "Interceptar aviación enemiga.", cost: 2, dmg: 40 },
+                        { name: "🚀 Misil Tomahawk Naval", sound: "misil de crucero.mp3", desc: "Ataque a gran distancia.", cost: 3, dmg: 65 }
                     ]
                 },
                 submarino: {
                     name: "🌊 Submarino Nuclear",
-                    tag: "[Inmersión Abisal]",
+                    tag: "[Inmersión Abisal Táctica]",
                     engineSound: "Lanzatorpedoycaen.mp3",
                     weapons: [
-                        { name: "💥 Ametralladora Naval", sound: "Ametralladora.mp3", desc: "Fuego en superficie", ammoCost: 1, damage: 10 },
-                        { name: "🛡️ Torreta Submarina", sound: "Torreta.mp3", desc: "Defensa en cubierta", ammoCost: 1, damage: 15 },
-                        { name: "🔫 Cañón de Cubierta", sound: "Disparo.mp3", desc: "Artillería ligera", ammoCost: 1, damage: 20 },
-                        { name: "🚀 Misil de Crucero", sound: "misil de crucero.mp3", desc: "Lanzamiento vertical", ammoCost: 2, damage: 50 },
-                        { name: "🛡️ Batería Antiaérea", sound: "bateriademisilesantiaereos.mp3", desc: "Misiles de superficie", ammoCost: 2, damage: 45 },
-                        { name: "🦈 Torpedos de Ataque", sound: "Lanzatorpedoycaen.mp3", desc: "Fuego de torpedos pesados", ammoCost: 1, damage: 40 },
-                        { name: "💥 Cargas Explosivas", sound: "bonba.mp3", desc: "Granadas submarinas", ammoCost: 1, damage: 25 }
+                        { name: "🦈 Torpedo Pesado de Ataque", sound: "Lanzatorpedoycaen.mp3", desc: "Impacto bajo la línea de flotación.", cost: 2, dmg: 45 },
+                        { name: "🚀 Misil Sub-Superficie", sound: "misil de crucero.mp3", desc: "Lanzamiento desde inmersión.", cost: 3, dmg: 60 }
                     ]
                 },
                 caza: {
                     name: "⚡ Caza Interceptor",
-                    tag: "[Dominio Aéreo]",
+                    tag: "[Superioridad Aérea]",
                     engineSound: "sonidodecasaenelaire.wav",
                     weapons: [
-                        { name: "✨ Munición Trazadora", sound: "trazadoras.mp3", desc: "Munición trazadora pesada", ammoCost: 1, damage: 12 },
-                        { name: "🔫 Cañón Aéreo", sound: "Disparo.mp3", desc: "Metralla frontal", ammoCost: 1, damage: 20 },
-                        { name: "🚀 Misil Táctico Aire-Aire", sound: "misil.mp3", desc: "Misil de intercepción", ammoCost: 1, damage: 30 },
-                        { name: "💥 Cargas / Granadas Aéreas", sound: "bonba.mp3", desc: "Despliegue de bombas", ammoCost: 1, damage: 25 },
-                        { name: "🛬 Aterrizaje en Cubierta", sound: "aterrizaje.mp3", desc: "Maniobra de posado", ammoCost: 0, damage: 0 }
+                        { name: "✨ Ráfaga Trazadora", sound: "trazadoras.mp3", desc: "Ataque con cañón aéreo.", cost: 1, dmg: 20 },
+                        { name: "🚀 Misil Aire-Aire / Tierra", sound: "misil.mp3", desc: "Fijación y disparo.", cost: 2, dmg: 40 },
+                        { name: "🛬 Aterrizar en Portaaviones", sound: "aterrizaje.mp3", desc: "Regreso a la base flotante.", cost: 0, dmg: 0, special: 'land' }
                     ]
                 },
                 bombardero: {
@@ -445,96 +502,32 @@
                     tag: "[Ataque Estratégico]",
                     engineSound: "borbanderoenelaire.mp3",
                     weapons: [
-                        { name: "✨ Munición Trazadora", sound: "trazadoras.mp3", desc: "Fuego defensivo", ammoCost: 1, damage: 12 },
-                        { name: "🛡️ Torretas Defensivas", sound: "Torreta.mp3", desc: "Torretas de cola y flancos", ammoCost: 1, damage: 15 },
-                        { name: "🔫 Cañones Aéreos", sound: "Disparo.mp3", desc: "Ataque frontal", ammoCost: 1, damage: 20 },
-                        { name: "🚀 Misiles Pesados", sound: "misil.mp3", desc: "Misiles guiados", ammoCost: 1, damage: 30 },
-                        { name: "💣 Bombardeo en Picada", sound: "sonidodeborbandeo.mp3", desc: "Ataque en picada con bombas", ammoCost: 3, damage: 70 },
-                        { name: "💥 Granadas de Dispersión", sound: "bonba.mp3", desc: "Cargas explosivas", ammoCost: 1, damage: 25 }
+                        { name: "💣 Bombardeo en Picada", sound: "sonidodeborbandeo.mp3", desc: "Despliegue masivo de cargas.", cost: 4, dmg: 85 },
+                        { name: "🛡️ Torretas Defensivas", sound: "Torreta.mp3", desc: "Fuego cruzado de defensa.", cost: 1, dmg: 20 }
                     ]
                 },
                 f35: {
                     name: "🛩️ Caza F-35 Rescate",
-                    tag: "[Búsqueda e Intercepción]",
+                    tag: "[Multi-rol e Intercepción]",
                     engineSound: "sonidode-f-35.mp3",
                     weapons: [
-                        { name: "✨ Munición Trazadora", sound: "trazadoras.mp3", desc: "Fuego trazador", ammoCost: 1, damage: 12 },
-                        { name: "🔫 Cañón Automático", sound: "Disparo.mp3", desc: "Disparo rápido", ammoCost: 1, damage: 20 },
-                        { name: "🚀 Misil Táctico", sound: "misil.mp3", desc: "Lanzamiento aire-aire", ammoCost: 1, damage: 30 },
-                        { name: "🛬 Aterrizaje en Cubierta", sound: "aterrizaje.mp3", desc: "Aterrizaje vertical/cubierta", ammoCost: 0, damage: 0 }
+                        { name: "🔫 Cañón Automático", sound: "Disparo.mp3", desc: "Fuego continuo.", cost: 1, dmg: 25 },
+                        { name: "🚀 Misil Táctico Guiado", sound: "misil.mp3", desc: "Lanzamiento guiado.", cost: 2, dmg: 45 }
                     ]
                 }
             },
 
-            // ESTRUCTURA COMPLETA DE CONTINENTES, REGIONES Y TERRITORIOS
-            continentes: [
-                {
-                    nombre: "🌎 América del Norte y Caribe",
-                    territorios: [
-                        { id: 't1', nombre: 'Archipiélago de las Antillas', defensa: 120, defensaMax: 120, conquistado: false, recompensas: 350, rutas: ['Estrecho de Florida', 'Paso de los Vientos', 'Patrulla del Caribe'] },
-                        { id: 't2', nombre: 'Isla de San Lorenzo', defensa: 180, defensaMax: 180, conquistado: false, recompensas: 500, rutas: ['Entrada del Río San Lorenzo', 'Avanzada del Atlántico Norte'] },
-                        { id: 't3', nombre: 'Costa del Pacífico Noroeste', defensa: 250, defensaMax: 250, conquistado: false, recompensas: 750, rutas: ['Bahía de Puget', 'Incursión Costera de Profundidad'] }
-                    ]
-                },
-                {
-                    nombre: "🌍 Europa y Atlántico Norte",
-                    territorios: [
-                        { id: 't4', nombre: 'Islas Británicas y Mar del Norte', defensa: 200, defensaMax: 200, conquistado: false, recompensas: 550, rutas: ['Canal de la Mancha', 'Ruta del Mar del Norte'] },
-                        { id: 't5', nombre: 'Archipiélago Escandinavo', defensa: 280, defensaMax: 280, conquistado: false, recompensas: 800, rutas: ['Fiordos Occidentales', 'Estrecho de Kattegat'] },
-                        { id: 't6', nombre: 'Península Ibérica y Gibraltar', defensa: 320, defensaMax: 320, conquistado: false, recompensas: 950, rutas: ['Paso de Gibraltar', 'Golfo de Vizcaya'] }
-                    ]
-                },
-                {
-                    nombre: "🌏 Asia y Mar del Pacífico",
-                    territorios: [
-                        { id: 't7', nombre: 'Archipiélago de Japón', defensa: 350, defensaMax: 350, conquistado: false, recompensas: 1000, rutas: ['Mar de Japón', 'Paso de Tsushima', 'Incursión Aérea Oriental'] },
-                        { id: 't8', nombre: 'Mar de China Meridional e Islas Spratly', defensa: 420, defensaMax: 420, conquistado: false, recompensas: 1300, rutas: ['Estrecho de Malaca', 'Ruta Naviera Central'] },
-                        { id: 't9', nombre: 'Archipiélago de las Filipinas', defensa: 300, defensaMax: 300, conquistado: false, recompensas: 900, rutas: ['Mar de Filipinas', 'Paso de Luzón'] }
-                    ]
-                },
-                {
-                    nombre: "🕌 Oriente Medio y Mar Rojo",
-                    territorios: [
-                        { id: 't10', nombre: 'Golfo Pérsico y Estrecho de Ormuz', defensa: 380, defensaMax: 380, conquistado: false, recompensas: 1100, rutas: ['Estrecho de Ormuz', 'Golfo de Omán'] },
-                        { id: 't11', nombre: 'Península Arábiga y Mar Rojo', defensa: 450, defensaMax: 450, conquistado: false, recompensas: 1500, rutas: ['Canal de Suez', 'Estrecho de Bab el-Mandeb'] }
-                    ]
-                }
+            alliedNations: [
+                "Costa Rica", "Filipinas", "Islandia", "Bahamas", "Jamaica", "Nueva Zelanda", "Honduras"
             ],
 
-            seaAudio: null,
-            battleAudio: null,
-            carrierAudio: null,
-            isAudioInitialized: false,
-            enemyTimer: null,
-            targetTerritory: null,
-            activeRoute: null,
-
-            initAutoAudio() {
-                bloquearOrientacion();
-                if (this.isAudioInitialized) return;
-
-                this.seaAudio = new Audio('./mar.mp3');
-                this.seaAudio.loop = true;
-                this.seaAudio.volume = 0.15;
-
-                this.battleAudio = new Audio('./Batalla_Aeronaval.mp3');
-                this.battleAudio.loop = true;
-                this.battleAudio.volume = 0.15;
-
-                this.carrierAudio = new Audio('./sonidoportaaviones1.mp3');
-                this.carrierAudio.loop = true;
-                this.carrierAudio.volume = 0.20;
-
-                const promisePlay = () => {
-                    this.seaAudio.play().catch(() => {});
-                    this.battleAudio.play().catch(() => {});
-                    this.carrierAudio.play().catch(() => {});
-                };
-
-                promisePlay();
-                this.playFX('mensajedebienvenida.mp3', 'Sistemas de AeroOcean en línea. Centro de mando activo.');
-                this.isAudioInitialized = true;
-                this.startEnemyAI();
+            initAudio() {
+                if (!this.bgSea) {
+                    this.bgSea = new Audio('./mar.mp3');
+                    this.bgSea.loop = true;
+                    this.bgSea.volume = 0.15;
+                    this.bgSea.play().catch(() => {});
+                }
             },
 
             speak(text) {
@@ -549,162 +542,285 @@
                 log.scrollTop = log.scrollHeight;
             },
 
-            playFX(fileName, description) {
+            playFX(fileName, text) {
+                this.initAudio();
                 const audio = new Audio('./' + fileName);
-                audio.play().catch(e => console.warn("Audio pendiente:", fileName));
-                if (description) this.speak(description);
+                audio.play().catch(() => {});
+                if (text) this.speak(text);
             },
 
-            action(soundFile, text) {
-                this.initAutoAudio();
-                this.playFX(soundFile, text);
-            },
+            // ENTRAR A CABINA (AISLAMIENTO TOTAL)
+            enterCockpit(key) {
+                this.currentVehicleKey = key;
+                const v = this.vehiclesData[key];
 
-            openCockpit(vehicleKey) {
-                this.initAutoAudio();
-                this.currentVehicleKey = vehicleKey;
-                const data = this.vehiclesData[vehicleKey];
+                document.getElementById('mainDashboard').style.display = 'none';
+                document.getElementById('cockpitView').style.display = 'flex';
 
-                document.getElementById('vehicleName').innerText = data.name;
-                document.getElementById('vehicleTag').innerText = data.tag;
+                document.getElementById('cockpitName').innerText = v.name;
+                document.getElementById('cockpitTag').innerText = v.tag;
 
-                this.playFX(data.engineSound, `Ingresando a la cabina de ${data.name}. Sistemas de control listos.`);
+                this.playFX(v.engineSound, `Ingresando a la cabina de ${v.name}. Todos los sistemas operativos.`);
 
-                const weaponsContainer = document.getElementById('vehicleWeapons');
+                const weaponsContainer = document.getElementById('cockpitWeapons');
                 weaponsContainer.innerHTML = '';
-                
-                data.weapons.forEach(w => {
+
+                v.weapons.forEach(w => {
                     const btn = document.createElement('button');
                     btn.className = 'danger';
-                    btn.onclick = () => this.fireWeapon(w.sound, w.desc, w.ammoCost, w.damage);
-                    btn.innerHTML = `${w.name} <span>[${w.ammoCost > 0 ? '-' + w.ammoCost + ' Ammo' : 'Maniobra'}]</span>`;
+                    btn.onclick = () => this.fireWeapon(w);
+                    btn.innerHTML = `${w.name} <span>[${w.cost > 0 ? '-' + w.cost + ' Misil' : 'Acción'}]</span>`;
                     weaponsContainer.appendChild(btn);
                 });
 
-                document.getElementById('modalCockpit').style.display = 'flex';
+                this.updateTelemetry();
             },
 
-            controlMove(actionName) {
-                if (!this.currentVehicleKey) return;
-                const vData = this.vehiclesData[this.currentVehicleKey];
-                this.fuel = Math.max(0, this.fuel - 1);
-                this.updateUI();
-                this.playFX(vData.engineSound, `${vData.name}: ${actionName}.`);
+            exitCockpit() {
+                document.getElementById('cockpitView').style.display = 'none';
+                document.getElementById('mainDashboard').style.display = 'grid';
+                this.speak("Volviendo al puesto de mando general.");
             },
 
-            fireWeapon(soundFile, text, ammoCost, damage) {
+            vehicleSteer(action) {
                 if (this.fuel <= 0) {
                     this.playFX('emergencia.wav', '¡Sin combustible! Vehículo inmovilizado.');
                     return;
                 }
-                if (this.ammo >= ammoCost) {
-                    this.ammo -= ammoCost;
-                    this.fuel = Math.max(0, this.fuel - 1);
-                    this.updateUI();
-                    this.playFX(soundFile, text);
+                this.fuel = Math.max(0, this.fuel - 2);
+                this.updateUI();
+                const v = this.vehiclesData[this.currentVehicleKey];
+                this.playFX(v.engineSound, `${v.name}: ${action}.`);
+                this.updateTelemetry();
+            },
 
-                    if (this.targetTerritory && !this.targetTerritory.conquistado) {
-                        this.targetTerritory.defensa -= damage;
-                        if (this.targetTerritory.defensa <= 0) {
-                            this.targetTerritory.defensa = 0;
-                            this.targetTerritory.conquistado = true;
-                            this.gold += this.targetTerritory.recompensas;
-                            this.level++;
-                            this.playFX('Batalla_Aeronaval.mp3', `¡Victoria total! ${this.targetTerritory.nombre} conquistado. Ganaste ${this.targetTerritory.recompensas} de oro.`);
-                            this.targetTerritory = null;
-                            this.activeRoute = null;
-                        } else {
-                            this.speak(`Impacto en ${this.targetTerritory.nombre}. Defensa enemiga al ${Math.ceil((this.targetTerritory.defensa/this.targetTerritory.defensaMax)*100)}%.`);
-                        }
-                    }
+            evasiveManeuver() {
+                this.isEvasiveActive = true;
+                this.playFX('sonidodecasaenelaire.wav', "Ejecutando maniobra evasiva. Ángulo de evasión incrementado.");
+                setTimeout(() => { this.isEvasiveActive = false; }, 5000);
+            },
+
+            fireWeapon(w) {
+                if (!this.targetTerritory) {
+                    this.playFX('contactoderadar.mp3', "Atención: No hay un objetivo fijado. Selecciona un país u objetivo en el mapa mundial.");
+                    return;
+                }
+
+                if (w.special === 'patrol') {
+                    this.playFX(w.sound, "Cazas desplegados desde el Portaaviones. Patrullando sector marítimo.");
+                    return;
+                }
+
+                if (w.special === 'land') {
+                    this.playFX(w.sound, "Maniobra de aterrizaje completada en la cubierta del Portaaviones.");
+                    return;
+                }
+
+                if (this.ammo < w.cost) {
+                    this.playFX('alerta.mp3', "¡Munición insuficiente!");
+                    return;
+                }
+
+                this.ammo -= w.cost;
+                this.updateUI();
+                this.playFX(w.sound, `${w.name} ejecutado sobre ${this.targetTerritory.nombre}.`);
+
+                // DAÑO Y RESISTENCIA
+                this.targetDef -= w.dmg;
+
+                if (this.targetDef <= 0) {
+                    this.targetDef = 0;
+                    this.gold += this.targetTerritory.dinero;
+                    this.minerals += this.targetTerritory.minerales;
+                    this.level++;
+                    this.playFX('Batalla_Aeronaval.mp3', `¡Victoria militar! ${this.targetTerritory.nombre} ha sido dominado. Recompensa: ${this.targetTerritory.dinero} oro y ${this.targetTerritory.minerales} minerales.`);
+                    this.targetTerritory = null;
                 } else {
-                    this.playFX('alerta.mp3', '¡Sin munición ni armamento disponible!');
+                    // CONTRAATAQUE ENEMIGO REALISTA CON SONIDOS
+                    setTimeout(() => this.enemyCounterAttack(), 2000);
+                }
+
+                this.updateTelemetry();
+            },
+
+            enemyCounterAttack() {
+                if (!this.targetTerritory) return;
+
+                if (this.isEvasiveActive) {
+                    this.speak("¡El ataque enemigo falló gracias a la maniobra evasiva!");
+                    this.isEvasiveActive = false;
+                    return;
+                }
+
+                const enemyWeapons = [
+                    { sound: 'Disparo.mp3', name: 'Baterías de Costa Enemigas', dmg: 12 },
+                    { sound: 'misil.mp3', name: 'Cazas Enemigos de Intercepción', dmg: 18 },
+                    { sound: 'sonidodeborbandeo.mp3', name: 'Bombardero Rival', dmg: 25 },
+                    { sound: 'Ametralladora.mp3', name: 'Destructores Hostiles', dmg: 15 }
+                ];
+
+                const attack = enemyWeapons[Math.floor(Math.random() * enemyWeapons.length)];
+                this.armor = Math.max(0, this.armor - attack.dmg);
+                this.updateUI();
+
+                this.playFX(attack.sound, `¡ALERTA! Fuego enemigo entrante de ${attack.name}. Daño recibido: ${attack.dmg}%.`);
+
+                if (this.armor <= 0) {
+                    this.playFX('emergencia.wav', "¡Misión fallida! Tu vehículo o flota fue destruida. Regresando a base para reparación.");
+                    this.targetTerritory = null;
+                    this.armor = 100;
+                    this.updateUI();
+                    this.exitCockpit();
                 }
             },
 
-            startEnemyAI() {
-                if (this.enemyTimer) clearInterval(this.enemyTimer);
-                this.enemyTimer = setInterval(() => {
-                    if (this.targetTerritory && !this.targetTerritory.conquistado) {
-                        const enemyAttacks = [
-                            { sound: 'Alarmadeataqueenemigo.mp3', text: 'Respuesta enemiga: Ataque masivo detectado.' },
-                            { sound: 'alarmadeemergencia.mp3', text: 'Respuesta enemiga: Fuego e incendios provocados por impacto enemigo.' }
-                        ];
-                        const att = enemyAttacks[Math.floor(Math.random() * enemyAttacks.length)];
-                        this.armor = Math.max(0, this.armor - 12);
-                        this.updateUI();
-                        this.playFX(att.sound, att.text);
-
-                        if (this.armor <= 0) {
-                            this.playFX('emergencia.wav', 'Flota comprometida. Incursión fallida. Regresando a base.');
-                            this.targetTerritory = null;
-                            this.activeRoute = null;
-                            this.armor = 100;
-                            this.updateUI();
-                        }
-                    }
-                }, 11000);
-            },
-
-            selectRoute(territoryId, routeName) {
-                if (!routeName) return;
-                
-                // Buscar el territorio en todos los continentes
-                for (let c of this.continentes) {
-                    let found = c.territorios.find(t => t.id === territoryId);
-                    if (found) {
-                        this.targetTerritory = found;
-                        break;
-                    }
+            updateTelemetry() {
+                const el = document.getElementById('telemetryData');
+                if (this.targetTerritory) {
+                    const pct = Math.ceil((this.targetDef / this.targetMaxDef) * 100);
+                    const dist = Math.floor(Math.random() * 30) + 12;
+                    const azim = Math.floor(Math.random() * 360);
+                    el.innerHTML = `
+                        OBJETIVO: <strong>${this.targetTerritory.nombre.toUpperCase()} (${this.targetTerritory.tipo})</strong><br>
+                        DEFENSA HOSTIL: ${this.targetDef}/${this.targetMaxDef} (${pct}%)<br>
+                        DISTANCIA: ${dist} km | ACIMUT: ${azim}° | ALTITUD/INMERSIÓN: Óptima<br>
+                        ESTADO: <span style="color:var(--danger-color);">RESISTENCIA HOSTIL ACTIVA</span>
+                    `;
+                } else {
+                    el.innerHTML = "SIN BLANCO FIJADO. Explora el mapa mundial para seleccionar un país, isla o archipiélago a atacar o defender.";
                 }
-
-                this.activeRoute = routeName;
-                this.closeModal('modalMap');
-                this.playFX('contactoderadar.mp3', `Ruta confirmada: ${routeName} hacia ${this.targetTerritory.nombre}. Respuesta enemiga activa.`);
             },
 
-            renderMap() {
-                const container = document.getElementById('continentsContainer');
-                container.innerHTML = '';
+            scanRadar() {
+                const dist = Math.floor(Math.random() * 50) + 10;
+                const azim = Math.floor(Math.random() * 360);
+                this.playFX('contactoderadar.mp3', `Contacto hostil detectado en radar. Distancia: ${dist} km, Acimut: ${azim} grados.`);
+            },
 
-                this.continentes.forEach(c => {
-                    const block = document.createElement('div');
-                    block.className = 'continent-block';
-                    
-                    let html = `<h3>${c.nombre}</h3>`;
-                    
-                    c.territorios.forEach(t => {
-                        html += `<div class="territory-card ${t.conquistado ? 'conquered' : ''}">
-                            <strong>${t.nombre}</strong> (Defensa: ${t.defensa}/${t.defensaMax})<br>`;
-                        if (t.conquistado) {
-                            html += `<span style="color: var(--success-color);">✓ Territorio Conquistado (+${t.recompensas} Oro)</span>`;
-                        } else {
-                            html += `<select class="route-select" onchange="Game.selectRoute('${t.id}', this.value)">
-                                <option value="">-- Seleccionar Ruta de Navegación --</option>
-                                ${t.rutas.map(r => `<option value="${r}">${r}</option>`).join('')}
-                            </select>`;
-                        }
-                        html += `</div>`;
-                    });
+            checkRadioIntercom() {
+                const ally = this.alliedNations[Math.floor(Math.random() * this.alliedNations.length)];
+                this.playFX('alarmadeemergencia.mp3', ` Transmisión de Radio de Auxilio: "¡Aquí ${ally}! Estamos sufriendo un ataque aéreo hostil. ¡Solicitamos asistencia inmediata de la flota AeroOcean!"`);
+            },
 
-                    block.innerHTML = html;
-                    container.appendChild(block);
+            triggerEnemyAssault() {
+                this.playFX('Alarmadeataqueenemigo.mp3', "¡Alerta Roja de Combate! Escuadrón enemigo en rumbo de colisión.");
+            },
+
+            // LÓGICA DEL MAPA MUNDIAL
+            openWorldMap() {
+                this.initAudio();
+                document.getElementById('mainDashboard').style.display = 'none';
+                document.getElementById('mapView').style.display = 'flex';
+                this.showContinents();
+            },
+
+            closeWorldMap() {
+                document.getElementById('mapView').style.display = 'none';
+                if (!this.currentVehicleKey) {
+                    document.getElementById('mainDashboard').style.display = 'grid';
+                } else {
+                    document.getElementById('cockpitView').style.display = 'flex';
+                }
+            },
+
+            showContinents() {
+                this.mapCurrentLevel = 'continents';
+                document.getElementById('mapTitle').innerText = "🌍 CONTINENTES";
+                document.getElementById('breadcrumb').innerText = "Ubicación: Continentes Habitados";
+                document.getElementById('btnMapBack').style.display = "none";
+
+                const list = document.getElementById('mapList');
+                list.innerHTML = "";
+
+                Object.keys(worldData).forEach(cont => {
+                    const btn = document.createElement('button');
+                    btn.className = 'map-card';
+                    btn.innerHTML = `<span><strong>${cont}</strong></span> <span>Explorar ➔</span>`;
+                    btn.onclick = () => this.selectContinent(cont);
+                    list.appendChild(btn);
                 });
+                this.speak("Selecciona un continente.");
             },
 
-            openMap() {
-                this.initAutoAudio();
-                this.renderMap();
-                document.getElementById('modalMap').style.display = 'flex';
+            selectContinent(cont) {
+                this.mapCurrentLevel = 'regions';
+                this.mapSelectedContinent = cont;
+                document.getElementById('mapTitle').innerText = `🌍 ${cont.toUpperCase()}`;
+                document.getElementById('breadcrumb').innerText = `Ubicación: ${cont} > Regiones`;
+                document.getElementById('btnMapBack').style.display = "block";
+
+                const list = document.getElementById('mapList');
+                list.innerHTML = "";
+
+                Object.keys(worldData[cont]).forEach(reg => {
+                    const btn = document.createElement('button');
+                    btn.className = 'map-card';
+                    btn.innerHTML = `<span><strong>${reg}</strong></span> <span>Ver Territorios ➔</span>`;
+                    btn.onclick = () => this.selectRegion(reg);
+                    list.appendChild(btn);
+                });
+                this.speak(`Continente ${cont} seleccionado.`);
             },
 
+            selectRegion(reg) {
+                this.mapCurrentLevel = 'territories';
+                this.mapSelectedRegion = reg;
+                document.getElementById('mapTitle').innerText = `📍 ${reg.toUpperCase()}`;
+                document.getElementById('breadcrumb').innerText = `Ubicación: ${reg}`;
+
+                const list = document.getElementById('mapList');
+                list.innerHTML = "";
+
+                const terrs = worldData[this.mapSelectedContinent][reg];
+                terrs.forEach(t => {
+                    const btn = document.createElement('button');
+                    btn.className = 'map-card';
+                    btn.innerHTML = `
+                        <div>
+                            <strong>${t.nombre} (${t.tipo})</strong><br>
+                            <span class="reward-tag">Recompensa: $${t.dinero} | 💎 ${t.minerales} Min | Def: ${t.defensa}</span>
+                        </div>
+                        <span style="color:var(--accent-color);">Atacar 🎯</span>
+                    `;
+                    btn.onclick = () => this.attackTarget(t);
+                    list.appendChild(btn);
+                });
+                this.speak(`Región ${reg}. Selecciona un país o isla objetivo.`);
+            },
+
+            mapBackLevel() {
+                if (this.mapCurrentLevel === 'territories') {
+                    this.selectContinent(this.mapSelectedContinent);
+                } else if (this.mapCurrentLevel === 'regions') {
+                    this.showContinents();
+                }
+            },
+
+            attackTarget(terr) {
+                this.targetTerritory = terr;
+                this.targetDef = terr.defensa;
+                this.targetMaxDef = terr.defensa;
+
+                this.closeWorldMap();
+                this.playFX('mensajedebienvenida.mp3', `Fijando objetivo táctico en ${terr.nombre}. Resistencia enemiga lista.`);
+
+                if (this.currentVehicleKey) {
+                    this.updateTelemetry();
+                } else {
+                    this.enterCockpit('portaaviones');
+                }
+            },
+
+            // TIENDA
             openStore() {
-                this.initAutoAudio();
-                document.getElementById('modalStore').style.display = 'flex';
+                this.initAudio();
+                document.getElementById('mainDashboard').style.display = 'none';
+                document.getElementById('storeView').style.display = 'flex';
             },
 
-            closeModal(id) {
-                document.getElementById(id).style.display = 'none';
+            closeStore() {
+                document.getElementById('storeView').style.display = 'none';
+                document.getElementById('mainDashboard').style.display = 'grid';
             },
 
             buyResource(type, amount, cost) {
@@ -714,25 +830,26 @@
                     if (type === 'fuel') this.fuel = Math.min(100, this.fuel + amount);
                     if (type === 'armor') this.armor = Math.min(100, this.armor + amount);
                     this.updateUI();
-                    this.speak('Suministros comprados y equipados.');
+                    this.speak('Suministros integrados con éxito.');
                 } else {
-                    this.speak('Oro insuficiente para la compra.');
+                    this.speak('Oro insuficiente.');
                 }
             },
 
             updateUI() {
                 document.getElementById('res-level').innerText = this.level;
                 document.getElementById('res-gold').innerText = this.gold;
+                document.getElementById('res-minerals').innerText = this.minerals;
                 document.getElementById('res-ammo').innerText = this.ammo;
                 document.getElementById('res-fuel').innerText = this.fuel + '%';
                 document.getElementById('res-armor').innerText = this.armor + '%';
             }
         };
 
-        // Activación de audio automática al cargar y por interacción si el navegador lo requiere
-        window.addEventListener('DOMContentLoaded', () => Game.initAutoAudio());
-        window.addEventListener('click', () => Game.initAutoAudio(), { once: true });
-        window.addEventListener('touchstart', () => Game.initAutoAudio(), { once: true });
+        // EVENTOS DE INICIALIZACIÓN
+        window.addEventListener('DOMContentLoaded', () => Game.initAudio());
+        window.addEventListener('click', () => Game.initAudio(), { once: true });
+        window.addEventListener('touchstart', () => Game.initAudio(), { once: true });
     </script>
 </body>
 </html>
