@@ -1,4 +1,4 @@
-name: Compilar APK AeroOcean Modern War
+name: Compilar APK del Juego
 
 on:
   push:
@@ -12,62 +12,44 @@ jobs:
 
     steps:
       - name: Descargar el código
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Configurar Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 18
 
       - name: Configurar Java JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Instalar Cordova
+      - name: Configurar Cordova e instalar plugins de pantalla
         run: |
           npm install -g cordova
 
-      - name: Crear proyecto Cordova
+      - name: Crear proyecto Cordova, configurar orientación y compilar APK
         run: |
-          cordova create temp_app com.guerra.sobreelagua "AeroOcean: Modern War"
-
-      - name: Copiar archivos del juego
-        run: |
-          rm -rf temp_app/www/*
-          cp -r ./activos/www/. ./temp_app/www/
-
-      - name: Agregar Android
-        run: |
+          cordova create temp_app com.guerra.sobreelagua "Guerra Sobre el Agua"
           cd temp_app
+          rm -rf www/*
+          cp -r ../* www/ 2>/dev/null || true
+          
+          # Copiar config.xml del repositorio si existe
+          if [ -f ../config.xml ]; then
+            cp ../config.xml .
+          fi
+
+          # Añadir plataforma Android y plugin de orientación horizontal
           cordova platform add android
-
-      - name: Configurar orientación horizontal
-        run: |
-          cd temp_app
-          python3 - <<'PY'
-          from pathlib import Path
-
-          archivo = Path("config.xml")
-          texto = archivo.read_text()
-
-          if 'name="Orientation"' not in texto:
-              texto = texto.replace(
-                  "</widget>",
-                  '    <preference name="Orientation" value="landscape" />\n</widget>'
-              )
-
-          archivo.write_text(texto)
-          PY
-
-      - name: Compilar APK
-        run: |
-          cd temp_app
+          cordova plugin add cordova-plugin-screen-orientation
+          
+          # Compilar APK
           cordova build android --release
 
-      - name: Guardar APK
+      - name: Subir APK compilada como Artefacto
         uses: actions/upload-artifact@v4
         with:
-          name: AeroOcean-Modern-War
-          path: temp_app/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          name: AeroOcean-ModernWar-APK
+          path: temp_app/platforms/android/app/build/outputs/apk/release/*.apk
