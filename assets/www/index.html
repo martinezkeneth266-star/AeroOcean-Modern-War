@@ -34,10 +34,23 @@
             flex-direction: column;
         }
 
-        /* Accesibilidad - Enfoque visible */
-        button:focus, select:focus, input:focus {
-            outline: 3px solid var(--accent-color);
-            outline-offset: 2px;
+        /* Accesibilidad - Enfoque visible de alta visibilidad */
+        button:focus, select:focus, input:focus, [tabindex="0"]:focus {
+            outline: 3px solid var(--accent-color) !important;
+            outline-offset: 3px !important;
+            background-color: #1e3a5f !important;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
         }
 
         /* Pantalla Principal */
@@ -63,6 +76,8 @@
         .top-menu-group {
             display: flex;
             gap: 10px;
+            width: 100%;
+            justify-content: space-around;
         }
 
         /* Área de Combate Central (HUD) */
@@ -80,10 +95,10 @@
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.6);
-            padding: 10px 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 15px 25px;
             border-radius: 20px;
-            border: 1px solid var(--accent-color);
+            border: 2px solid var(--accent-color);
             text-align: center;
         }
 
@@ -117,7 +132,7 @@
             border: 1px solid var(--border-color);
             color: var(--text-color);
             padding: 12px 16px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
@@ -161,7 +176,7 @@
         }
 
         .modal.active {
-            display: flex;
+            display: flex !important;
         }
 
         .modal-header {
@@ -190,8 +205,8 @@
         .menu-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            max-width: 600px;
+            gap: 12px;
+            max-width: 700px;
             margin: 0 auto;
         }
 
@@ -203,16 +218,17 @@
         }
 
         input[type="text"], select {
-            padding: 10px;
+            padding: 12px;
             background: #101a29;
             border: 1px solid var(--border-color);
             color: var(--text-color);
             border-radius: 4px;
+            font-size: 1rem;
         }
 
         .taller-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 15px;
         }
 
@@ -242,17 +258,27 @@
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
-            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+
+        .map-item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
 
+    <!-- ANUNCIADOR DE ACCESIBILIDAD EN TIEMPO REAL -->
+    <div id="aria-announcer" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+
     <!-- PANTALLA PRINCIPAL: PORTAAVIONES -->
     <div id="game-screen">
         <!-- MENÚ SUPERIOR -->
-        <header class="top-menu" role="menubar" aria-label="Menú Principal">
-            <div class="top-menu-group" role="group" aria-label="Navegación de menús">
+        <header class="top-menu" role="menubar" aria-label="Menú Principal del Juego">
+            <div class="top-menu-group" role="group">
                 <button class="btn" onclick="openModal('modal-ajustes')" aria-label="Menú de Ajustes">Ajustes</button>
                 <button class="btn" onclick="openModal('modal-market')" aria-label="Menú Market Store">Market Store</button>
                 <button class="btn" onclick="openModal('modal-vehiculos')" aria-label="Menú Vehículos">Vehículos</button>
@@ -262,7 +288,7 @@
         </header>
 
         <!-- ÁREA DE COMBATE CENTRAL -->
-        <main class="viewport" role="region" aria-label="Área de combate">
+        <main class="viewport" role="region" aria-label="Área de combate del Portaaviones">
             <div class="hud-status" aria-live="polite">
                 <h2>PORTAAVIONES INSIGNIA</h2>
                 <p id="target-info">Estado: En Patrulla | Ruta: Sin fijar</p>
@@ -296,7 +322,7 @@
     <div id="modal-ajustes" class="modal" role="dialog" aria-labelledby="title-ajustes" aria-modal="true">
         <div class="modal-header">
             <h2 id="title-ajustes">Menú de Ajustes</h2>
-            <button class="btn" onclick="closeModal('modal-ajustes')" aria-label="Regresar al juego">Regresar</button>
+            <button class="btn" onclick="closeModal('modal-ajustes')" aria-label="Regresar al juego principal">Regresar</button>
         </div>
         <div class="modal-body">
             <div class="menu-list">
@@ -305,14 +331,14 @@
                     <h3 id="sec-cuenta">Opción 1: Cuenta</h3>
                     <div class="form-group">
                         <label for="username">Nombre de Usuario:</label>
-                        <input type="text" id="username" placeholder="Ingrese su nombre">
+                        <input type="text" id="username" value="Keneth" aria-label="Escriba su nombre de usuario">
                     </div>
                     <div class="form-group">
-                        <label for="login-type">Iniciar Sesión con:</label>
-                        <select id="login-type">
-                            <option>Google</option>
-                            <option>Facebook</option>
-                            <option>Correo Electrónico</option>
+                        <label for="login-type">Decidir si iniciar sesión con:</label>
+                        <select id="login-type" aria-label="Seleccionar proveedor de inicio de sesión">
+                            <option value="Google">Google</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="Correo">Correo electrónico</option>
                         </select>
                     </div>
                 </section>
@@ -322,36 +348,36 @@
                 <section aria-labelledby="sec-sonido">
                     <h3 id="sec-sonido">Opción 2: Sonido y Vibración</h3>
                     <div class="form-group">
-                        <label for="vol-disparos">Volumen Disparos:</label>
-                        <input type="range" id="vol-disparos" min="0" max="100" value="80" aria-label="Volumen de disparos">
+                        <label for="vol-disparos">Volumen de disparos:</label>
+                        <input type="range" id="vol-disparos" min="0" max="100" value="80" onchange="updateAudioVolumes()" aria-label="Ajustar volumen de disparos">
                     </div>
                     <div class="form-group">
-                        <label for="vol-vehiculos">Volumen Vehículos:</label>
-                        <input type="range" id="vol-vehiculos" min="0" max="100" value="80" aria-label="Volumen de vehículos">
+                        <label for="vol-vehiculos">Volumen de vehículos:</label>
+                        <input type="range" id="vol-vehiculos" min="0" max="100" value="80" onchange="updateAudioVolumes()" aria-label="Ajustar volumen de vehículos">
                     </div>
                     <div class="form-group">
-                        <label for="vol-fondo">Volumen Sonido de Fondo:</label>
-                        <input type="range" id="vol-fondo" min="0" max="100" value="50" aria-label="Volumen de ambiente">
+                        <label for="vol-fondo">Volumen de sonido de fondo y mar:</label>
+                        <input type="range" id="vol-fondo" min="0" max="100" value="60" onchange="updateAudioVolumes()" aria-label="Ajustar volumen de ambiente y sonido de fondo">
                     </div>
-                    <button class="btn" onclick="toggleVibration()" aria-label="Activar o Desactivar Vibración Háptica">Vibración: ACTIVADA</button>
+                    <button class="btn" id="btn-vibration" onclick="toggleVibration()" aria-label="Activar o desactivar la vibración en el juego">Vibración: ACTIVADA</button>
                 </section>
                 <hr style="border-color: var(--border-color); margin: 15px 0;">
 
                 <!-- Opción 3: Ajustes de Notificaciones -->
                 <section aria-labelledby="sec-notif">
-                    <h3 id="sec-notif">Opción 3: Notificaciones</h3>
-                    <button class="btn" style="margin-bottom: 10px;" onclick="announceAccessibility('Notificaciones Generales Conmutadas')" aria-label="Activar o desactivar notificaciones generales">Activar/Desactivar Notificaciones</button>
-                    <button class="btn" style="margin-bottom: 10px;" onclick="announceAccessibility('Auxilio a Países Aliados Conmutado')" aria-label="Auxiliar a países aliados">Auxiliar a Países Aliados (Código Alerta)</button>
-                    <button class="btn" style="margin-bottom: 10px;" onclick="openSubMenu('notif-realtime')" aria-label="Notificaciones en tiempo real">Notificaciones en Tiempo Real</button>
-                    <button class="btn" style="margin-bottom: 10px;" onclick="openSubMenu('notif-conquistados')" aria-label="Notificaciones de países conquistados">Notificaciones de Países Conquistados</button>
-                    <button class="btn" onclick="openSubMenu('notif-niveles')" aria-label="Notificaciones de niveles superados">Notificaciones de Niveles Superados</button>
+                    <h3 id="sec-notif">Opción 3: Ajustes de Notificaciones</h3>
+                    <button class="btn" style="margin-bottom: 10px;" onclick="toggleNotif('generales')" aria-label="Activar o desactivar notificaciones generales">1. Activar / Desactivar Notificaciones</button>
+                    <button class="btn" style="margin-bottom: 10px;" onclick="toggleNotif('auxilio')" aria-label="Auxiliar a países aliados. Notificación de defensa territorial con código de ayuda">2. Auxiliar a países aliados (Código de ayuda)</button>
+                    <button class="btn" style="margin-bottom: 10px;" onclick="toggleNotif('tiempo-real')" aria-label="Notificaciones en tiempo real">3. Notificaciones en Tiempo Real</button>
+                    <button class="btn" style="margin-bottom: 10px;" onclick="toggleNotif('conquistados')" aria-label="Notificaciones de países, islas o archipiélagos conquistados">4. Notificaciones de Países Conquistados</button>
+                    <button class="btn" onclick="toggleNotif('niveles')" aria-label="Notificaciones de niveles superados">5. Notificaciones de Niveles Superados</button>
                 </section>
                 <hr style="border-color: var(--border-color); margin: 15px 0;">
 
                 <!-- Opción 4: Política de Privacidad -->
                 <section aria-labelledby="sec-privacidad">
                     <h3 id="sec-privacidad">Opción 4: Política de Privacidad</h3>
-                    <p style="font-size: 0.9rem;">El juego respeta la privacidad de los datos de navegación y perfil del usuario conforme a la normativa vigente.</p>
+                    <p tabindex="0" style="font-size: 0.95rem; line-height: 1.5;">Esta es la política de privacidad del juego Guerra Sobre el Agua. Todos los datos de cuenta y configuraciones hápticas de sonido se procesan de forma segura para garantizar el uso accesible y competitivo.</p>
                 </section>
             </div>
         </div>
@@ -361,28 +387,29 @@
     <div id="modal-market" class="modal" role="dialog" aria-labelledby="title-market" aria-modal="true">
         <div class="modal-header">
             <h2 id="title-market">Menú Market Store</h2>
-            <button class="btn" onclick="closeModal('modal-market')" aria-label="Regresar al juego">Regresar</button>
+            <button class="btn" onclick="closeModal('modal-market')" aria-label="Regresar al juego principal">Regresar</button>
         </div>
         <div class="modal-body">
             <div class="menu-list">
                 <section aria-labelledby="sec-recursos">
-                    <h3 id="sec-recursos">1. Recursos Disponibles</h3>
-                    <ul style="list-style: none; padding-left: 0; line-height: 1.8;">
-                        <li>Combustible: 10,000 L</li>
-                        <li>Municiones: 50,000 Unidades</li>
-                        <li>Oro: 500 Lingotes</li>
-                        <li>Dólares: $150,000</li>
-                        <li>Metales Obtenidos: 1,200 Toneladas</li>
-                        <li>Repuestos: 450 Kits</li>
-                        <li>Víveres: 90 Días</li>
-                        <li>Reserva de Emergencia: 100%</li>
+                    <h3 id="sec-recursos">1. Recursos</h3>
+                    <ul style="list-style: none; padding-left: 0; line-height: 2;">
+                        <li tabindex="0">Combustible: 25,000 Litros</li>
+                        <li tabindex="0">Municiones: 100,000 Cartuchos</li>
+                        <li tabindex="0">Oro: 1,000 Lingotes</li>
+                        <li tabindex="0">Dólares: $500,000</li>
+                        <li tabindex="0">Metales obtenidos en territorios conquistados: 2,500 Toneladas</li>
+                        <li tabindex="0">Repuestos: 800 Unidades</li>
+                        <li tabindex="0">Víveres: 120 Raciones</li>
+                        <li tabindex="0">Reserva para viajes largos o casos de emergencia: 100% Carga</li>
                     </ul>
                 </section>
                 <hr style="border-color: var(--border-color); margin: 15px 0;">
                 <section aria-labelledby="sec-mercado">
-                    <h3 id="sec-mercado">2. Mercado de Abastecimiento</h3>
-                    <button class="btn" style="margin-bottom: 10px;" onclick="announceAccessibility('Compra efectuada con Dólares')" aria-label="Comprar Insumos con Dólares">Comprar Insumos con Dólares</button>
-                    <button class="btn" onclick="announceAccessibility('Intercambio efectuado con Minerales')" aria-label="Intercambiar Minerales por Insumos">Intercambiar Minerales por Insumos</button>
+                    <h3 id="sec-mercado">2. Mercado</h3>
+                    <p style="margin-bottom: 10px;" tabindex="0">Abastece al portaaviones de todo lo que necesite para viajes largos.</p>
+                    <button class="btn" style="margin-bottom: 10px;" onclick="announceAccessibility('Compra realizada con Dólares con éxito.')" aria-label="Comprar insumos utilizando Dólares disponibles">Comprar insumos con Dólares</button>
+                    <button class="btn" onclick="announceAccessibility('Intercambio de minerales realizado con éxito.')" aria-label="Intercambiar minerales obtenidos por insumos de viaje">Intercambiar minerales por insumos</button>
                 </section>
             </div>
         </div>
@@ -391,15 +418,15 @@
     <!-- NÚMERO 4: MENÚ VEHÍCULOS -->
     <div id="modal-vehiculos" class="modal" role="dialog" aria-labelledby="title-vehiculos" aria-modal="true">
         <div class="modal-header">
-            <h2 id="title-vehiculos">Selección de Vehículos</h2>
-            <button class="btn" onclick="closeModal('modal-vehiculos')" aria-label="Regresar al juego">Regresar</button>
+            <h2 id="title-vehiculos">Menú Vehículos</h2>
+            <button class="btn" onclick="closeModal('modal-vehiculos')" aria-label="Regresar al juego principal">Regresar</button>
         </div>
         <div class="modal-body">
             <div class="menu-list">
-                <button class="btn" style="padding: 20px;" onclick="openVehiclePanel('f35')" aria-label="Desplegar Cazas F-35 Lightning II">Cazas F-35 Lightning II (Escuadrón de 50)</button>
-                <button class="btn" style="padding: 20px;" onclick="openVehiclePanel('b21')" aria-label="Desplegar Bombarderos B-21 Raider">Bombarderos B-21 Raider (Escuadrón de 50)</button>
-                <button class="btn" style="padding: 20px;" onclick="openVehiclePanel('destructores')" aria-label="Desplegar Buques Destructores">Buques Destructores (Trío Insignia DDG-125)</button>
-                <button class="btn" style="padding: 20px;" onclick="openVehiclePanel('shadowhawk')" aria-label="Desplegar Submarino USS Shadowhawk">Submarino USS Shadowhawk</button>
+                <button class="btn" style="padding: 20px;" onclick="openVehiclePanel('f35')" aria-label="Vehículo 1: Cazas F-35 Lightning II. Escuadrón de 50 cazas incluyendo el caza líder">Vehículo 1: Cazas F-35 Lightning II (Escuadrón 50)</button>
+                <button class="btn" style="padding: 20px;" onclick="openVehiclePanel('b21')" aria-label="Vehículo 2: Bombarderos B-21 Raider. Escuadrón de 50 bombarderos incluyendo el bombardero líder">Vehículo 2: Bombarderos B-21 Raider (Escuadrón 50)</button>
+                <button class="btn" style="padding: 20px;" onclick="openVehiclePanel('destructores')" aria-label="Vehículo 3: Buques Destructores. Grupo conformado por USS Zumwalt, USS Michael Monsoor y USS Jack H. Lucas líder">Vehículo 3: Buques Destructores (Trío Insignia DDG-125)</button>
+                <button class="btn" style="padding: 20px;" onclick="openVehiclePanel('shadowhawk')" aria-label="Vehículo 4: Submarino USS Shadowhawk. Control total sumergible y de superficie">Vehículo 4: Submarino USS Shadowhawk</button>
             </div>
         </div>
     </div>
@@ -407,30 +434,30 @@
     <!-- PANEL DE VEHÍCULO ESPECÍFICO (PANTALLA COMPLETA) -->
     <div id="modal-vehicle-active" class="modal" role="dialog" aria-labelledby="vehicle-active-title" aria-modal="true">
         <div class="modal-header">
-            <div style="display: flex; gap: 10px;">
+            <div style="display: flex; gap: 8px;">
                 <button class="btn" onclick="closeModal('modal-vehicle-active')" aria-label="Regresar al menú de vehículos">Regresar</button>
-                <button class="btn" onclick="triggerVehicleAction('Fijar y Bloquear Objetivo')" aria-label="Fijar y bloquear objetivos">Bloquear Objetivo</button>
-                <button class="btn" onclick="triggerVehicleAction('Reserva de Combustible')" aria-label="Activar reserva de combustible">Reserva Combustible</button>
+                <button class="btn" onclick="triggerVehicleAction('Fijar y Bloquear Objetivo')" aria-label="Fijar y bloquear objetivos enemigos">Bloquear Objetivo</button>
+                <button class="btn" onclick="triggerVehicleAction('Reserva de Combustible')" aria-label="Activar reservas de combustible">Reserva Combustible</button>
             </div>
             <h2 id="vehicle-active-title">Panel de Vehículo</h2>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn" onclick="triggerVehicleAction('Radio Portaaviones / Base')" aria-label="Comunicación con portaaviones o base">Radio Base</button>
-                <button class="btn" id="btn-radio-esc" onclick="triggerVehicleAction('Radio Escuadrón / Flota')" aria-label="Comunicación con escuadrón o flota">Radio Escuadrón</button>
-                <button class="btn" id="btn-extra-1" onclick="triggerVehicleAction('Radar / Inmersión')" aria-label="Función especial radar o inmersión">Radar</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn" onclick="triggerVehicleAction('Radio Portaaviones / Base')" aria-label="Comunicación de radio con el portaaviones o base">Radio Base</button>
+                <button class="btn" id="btn-radio-esc" onclick="triggerVehicleAction('Radio Escuadrón / Flota')" aria-label="Comunicación de radio con el escuadrón o demás buques">Radio Escuadrón</button>
+                <button class="btn" id="btn-extra-1" onclick="triggerVehicleAction('Radar')" aria-label="Escaneo por radar para aeronaves y unidades enemigas">Radar</button>
             </div>
         </div>
         <div class="modal-body viewport">
             <div class="hud-status">
                 <h3 id="v-status-title">Vehículo Activo</h3>
-                <p id="v-status-desc">Estado: En Vuelo / Navegación</p>
-                <p id="v-damage">Daño recibido: 0% | Daño causado: 0%</p>
+                <p id="v-status-desc">Estado: Control Manual | Modo Competitivo</p>
+                <p id="v-damage" tabindex="0">Daño recibido: 0% | Daño causado: 0%</p>
             </div>
         </div>
         <div class="modal-footer bottom-panel" style="width: 100%;">
-            <div class="control-group attack-grid" id="v-attack-controls" role="group" aria-label="Controles de ataque del vehículo">
+            <div class="control-group attack-grid" id="v-attack-controls" role="group" aria-label="Parte baja izquierda: Botones de Ataque">
                 <!-- Se llena dinámicamente -->
             </div>
-            <div class="control-group nav-grid" id="v-nav-controls" role="group" aria-label="Controles de navegación del vehículo">
+            <div class="control-group nav-grid" id="v-nav-controls" role="group" aria-label="Parte baja derecha: Botones de Navegación">
                 <!-- Se llena dinámicamente -->
             </div>
         </div>
@@ -439,37 +466,40 @@
     <!-- NÚMERO 5: MENÚ TALLER Y REPARACIONES -->
     <div id="modal-taller" class="modal" role="dialog" aria-labelledby="title-taller" aria-modal="true">
         <div class="modal-header">
-            <button class="btn" onclick="closeModal('modal-taller')" aria-label="Regresar al juego">Regresar</button>
-            <h2 id="title-taller">Taller y Reparaciones Manuales</h2>
+            <button class="btn" onclick="closeModal('modal-taller')" aria-label="Regresar al menú principal">Regresar</button>
+            <h2 id="title-taller">Menú Taller y Reparaciones</h2>
             <div></div>
         </div>
         <div class="modal-body">
+            <p style="margin-bottom: 15px;" tabindex="0">Inspeccione y repare manualmente cada vehículo dañado pieza por pieza hasta dejarlo al 100%. No se reparan automáticamente.</p>
             <div class="taller-grid">
-                <div class="vehicle-card" role="region" aria-label="Reparación de Cazas F-35">
-                    <h3>Cazas F-35 Lightning II</h3>
-                    <p>Estado del fuselaje: 85%</p>
-                    <div class="progress-bar"><div class="progress-fill" style="width: 85%;"></div></div>
-                    <button class="btn" onclick="repairPart('F-35', 'Turbina')" aria-label="Reparar Turbina de F-35">Reparar Turbina</button>
-                    <button class="btn" style="margin-top: 5px;" onclick="repairPart('F-35', 'Alas')" aria-label="Reparar Alas de F-35">Reparar Alas</button>
+                <div class="vehicle-card" role="region" aria-label="Reparación del Escuadrón de Cazas F-35">
+                    <h3 tabindex="0">Cazas F-35 Lightning II</h3>
+                    <p tabindex="0">Estado del fuselaje: 85%</p>
+                    <div class="progress-bar" aria-hidden="true"><div class="progress-fill" style="width: 85%;"></div></div>
+                    <button class="btn" onclick="repairPart('F-35', 'Turbina Principal')" aria-label="Reparar Turbina Principal del F-35">Reparar Turbina</button>
+                    <button class="btn" style="margin-top: 5px;" onclick="repairPart('F-35', 'Alas y Flaps')" aria-label="Reparar Alas y Flaps del F-35">Reparar Alas</button>
                 </div>
-                <div class="vehicle-card" role="region" aria-label="Reparación de Bombarderos B-21">
-                    <h3>Bombarderos B-21 Raider</h3>
-                    <p>Estado del fuselaje: 60%</p>
-                    <div class="progress-bar"><div class="progress-fill" style="width: 60%;"></div></div>
-                    <button class="btn" onclick="repairPart('B-21', 'Sistema Sigilo')" aria-label="Reparar Sistema Sigilo de B-21">Reparar Sistema Sigilo</button>
-                    <button class="btn" style="margin-top: 5px;" onclick="repairPart('B-21', 'Bodega de Bombas')" aria-label="Reparar Bodega de Bombas">Reparar Bodega Bombas</button>
+                <div class="vehicle-card" role="region" aria-label="Reparación del Escuadrón de Bombarderos B-21">
+                    <h3 tabindex="0">Bombarderos B-21 Raider</h3>
+                    <p tabindex="0">Estado del fuselaje: 60%</p>
+                    <div class="progress-bar" aria-hidden="true"><div class="progress-fill" style="width: 60%;"></div></div>
+                    <button class="btn" onclick="repairPart('B-21', 'Sistema Sigilo')" aria-label="Reparar Sistema Sigilo del B-21">Reparar Sistema Sigilo</button>
+                    <button class="btn" style="margin-top: 5px;" onclick="repairPart('B-21', 'Bodega de Bombas')" aria-label="Reparar Bodega de Bombas del B-21">Reparar Bodega Bombas</button>
                 </div>
-                <div class="vehicle-card" role="region" aria-label="Reparación de Destructores">
-                    <h3>Buques Destructores</h3>
-                    <p>Estado del casco: 90%</p>
-                    <div class="progress-bar"><div class="progress-fill" style="width: 90%;"></div></div>
-                    <button class="btn" onclick="repairPart('Destructores', 'Blindaje Lateral')" aria-label="Reparar Blindaje Lateral">Reparar Blindaje Lateral</button>
+                <div class="vehicle-card" role="region" aria-label="Reparación del Grupo de Buques Destructores">
+                    <h3 tabindex="0">Buques Destructores</h3>
+                    <p tabindex="0">Estado del casco: 90%</p>
+                    <div class="progress-bar" aria-hidden="true"><div class="progress-fill" style="width: 90%;"></div></div>
+                    <button class="btn" onclick="repairPart('Destructores', 'Blindaje Lateral')" aria-label="Reparar Blindaje Lateral de Buques">Reparar Blindaje</button>
+                    <button class="btn" style="margin-top: 5px;" onclick="repairPart('Destructores', 'Batería Antiaérea')" aria-label="Reparar Baterías Antiaéreas de Buques">Reparar Baterías AA</button>
                 </div>
-                <div class="vehicle-card" role="region" aria-label="Reparación de Submarino Shadowhawk">
-                    <h3>Submarino USS Shadowhawk</h3>
-                    <p>Estado del casco: 45%</p>
-                    <div class="progress-bar"><div class="progress-fill" style="width: 45%;"></div></div>
-                    <button class="btn" onclick="repairPart('Shadowhawk', 'Válvulas de Inmersión')" aria-label="Reparar Válvulas de Inmersión">Reparar Válvulas Inmersión</button>
+                <div class="vehicle-card" role="region" aria-label="Reparación del Submarino Shadowhawk">
+                    <h3 tabindex="0">Submarino USS Shadowhawk</h3>
+                    <p tabindex="0">Estado del casco: 45%</p>
+                    <div class="progress-bar" aria-hidden="true"><div class="progress-fill" style="width: 45%;"></div></div>
+                    <button class="btn" onclick="repairPart('Shadowhawk', 'Válvulas de Inmersión')" aria-label="Reparar Válvulas de Inmersión del Submarino">Reparar Válvulas Inmersión</button>
+                    <button class="btn" style="margin-top: 5px;" onclick="repairPart('Shadowhawk', 'Tubos Lanzatorpedos')" aria-label="Reparar Tubos Lanzatorpedos del Submarino">Reparar Lanzatorpedos</button>
                 </div>
             </div>
         </div>
@@ -478,81 +508,191 @@
     <!-- NÚMERO 6: MENÚ MAPAS -->
     <div id="modal-mapas" class="modal" role="dialog" aria-labelledby="title-mapas" aria-modal="true">
         <div class="modal-header">
-            <button class="btn" onclick="closeModal('modal-mapas')" aria-label="Regresar al juego">Regresar</button>
-            <h2 id="title-mapas">Selección de Mapas y Rutas Mundiales</h2>
-            <div style="display: flex; gap: 5px;">
-                <button class="btn" onclick="selectRoute('Ruta Directa')" aria-label="Seleccionar Ruta Directa">Ruta 1: Directa</button>
-                <button class="btn" onclick="selectRoute('Ruta Sigilosa')" aria-label="Seleccionar Ruta Sigilosa">Ruta 2: Sigilosa</button>
+            <button class="btn" onclick="closeModal('modal-mapas')" aria-label="Regresar al menú principal">Regresar</button>
+            <h2 id="title-mapas">Menú Mapas y Seleccionar Rutas</h2>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn" onclick="selectRoute('Ruta Directa')" aria-label="Seleccionar Ruta Directa hacia el objetivo">Ruta Directa</button>
+                <button class="btn" onclick="selectRoute('Ruta Sigilosa')" aria-label="Seleccionar Ruta Sigilosa por aguas profundas">Ruta Sigilosa</button>
             </div>
         </div>
         <div class="modal-body">
-            <p style="margin-bottom: 15px;">Seleccione un continente para desplegar sus regiones, países, islas y archipiélagos:</p>
-            <div class="continent-tabs" role="tablist" aria-label="Continentes Habitados">
-                <button class="btn" role="tab" onclick="loadContinent('América')" aria-label="Continente América">América</button>
-                <button class="btn" role="tab" onclick="loadContinent('Europa')" aria-label="Continente Europa">Europa</button>
-                <button class="btn" role="tab" onclick="loadContinent('Asia')" aria-label="Continente Asia">Asia</button>
-                <button class="btn" role="tab" onclick="loadContinent('África')" aria-label="Continente África">África</button>
-                <button class="btn" role="tab" onclick="loadContinent('Oceanía')" aria-label="Continente Oceanía">Oceanía</button>
+            <h3 tabindex="0" style="margin-bottom: 10px;">Parte baja: Continentes Habitados</h3>
+            <div class="continent-tabs" role="tablist" aria-label="Listado de los 5 continentes habitados de izquierda a derecha">
+                <button class="btn" role="tab" onclick="loadContinent('América')" aria-label="Acceso directo a América">1. América</button>
+                <button class="btn" role="tab" onclick="loadContinent('Europa')" aria-label="Acceso directo a Europa">2. Europa</button>
+                <button class="btn" role="tab" onclick="loadContinent('Asia')" aria-label="Acceso directo a Asia">3. Asia</button>
+                <button class="btn" role="tab" onclick="loadContinent('África')" aria-label="Acceso directo a África">4. África</button>
+                <button class="btn" role="tab" onclick="loadContinent('Oceanía')" aria-label="Acceso directo a Oceanía">5. Oceanía</button>
             </div>
+
             <div id="map-region-view" style="background: var(--panel-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);" role="region" aria-live="polite">
-                <h3>Selección Global</h3>
-                <p>Presione un continente arriba para explorar todos sus territorios sin excepción.</p>
+                <h3 tabindex="0">Selección Territorial Global</h3>
+                <p tabindex="0">Seleccione un continente con su botón de acceso directo arriba para abrir sus regiones, países, islas y archipiélagos.</p>
             </div>
         </div>
     </div>
 
     <script>
-        // Mapeo integral de catálogo de audio / efectos hápticos
-        const audioCatalog = {
-            cannons: 'cañon.mp3',
-            guns: 'metralleta.mp3',
-            torpedo: 'torpedo.mp3',
-            grenade: 'granada.mp3',
-            missile: 'misil.mp3',
-            aa: 'antiaereo.mp3',
-            alarmEmergency: 'alarma_emergencia.mp3',
-            alarmAttack: 'alarma_ataque.mp3',
-            radar: 'radar_ping.mp3',
-            engine: 'motor_ambiente.mp3'
-        };
+        // SINTETIZADOR WEB AUDIO API PARA AUDIOS AUTOMÁTICOS
+        let audioCtx = null;
+        let isAudioInitialized = false;
 
-        // Síntesis de respuesta o retroalimentación háptica accesible
+        // Función de locución de texto a voz accesible en tiempo real
         function announceAccessibility(text) {
-            console.log('Accesibilidad:', text);
-            // Ejecución de patrón de vibración si está soportado
-            if ("vibrate" in navigator) {
-                navigator.vibrate([100, 50, 100]);
+            const announcer = document.getElementById('aria-announcer');
+            if (announcer) {
+                announcer.innerText = text;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'es-ES';
+                utterance.rate = 1.1;
+                window.speechSynthesis.speak(utterance);
+            }
+            console.log("Accesibilidad:", text);
+        }
+
+        // MOTOR DE AUDIO SINTETIZADO AUTOMÁTICO DESDE EL INICIO
+        function initAutoAudio() {
+            if (isAudioInitialized) return;
+            isAudioInitialized = true;
+
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            // 1. Sonido de la bienvenida hablado al iniciar
+            setTimeout(() => {
+                announceAccessibility("¡Bienvenido a Guerra Sobre el Agua, AeroOcean: Modern War! Portaaviones listo para el combate.");
+            }, 500);
+
+            // 2. Ruido ambiental en bucle (Sonido del mar y motor del portaaviones)
+            playOceanAndEngineSound();
+
+            // 3. Música de fondo ambiental militar
+            playBackgroundMusic();
+        }
+
+        function playOceanAndEngineSound() {
+            if (!audioCtx) return;
+            // Generación de ruido rosa/blanco para simular el mar en bucle
+            const bufferSize = audioCtx.sampleRate * 2;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+
+            const whiteNoise = audioCtx.createBufferSource();
+            whiteNoise.buffer = noiseBuffer;
+            whiteNoise.loop = true;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(180, audioCtx.currentTime);
+
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime); // Volumen de mar y motor
+
+            whiteNoise.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            whiteNoise.start();
+        }
+
+        function playBackgroundMusic() {
+            if (!audioCtx) return;
+            // Tonalidad sorda continua militar en bucle
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(55, audioCtx.currentTime); // Nota La grave continuo
+
+            gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+        }
+
+        // ACTIVACIÓN AUTOMÁTICA AL CARGAR Y AL PRIMER CONTACTO CON LA PANTALLA
+        window.addEventListener('load', () => {
+            initAutoAudio();
+        });
+        window.addEventListener('click', () => {
+            initAutoAudio();
+        });
+        window.addEventListener('keydown', () => {
+            initAutoAudio();
+        });
+        window.addEventListener('touchstart', () => {
+            initAutoAudio();
+        });
+
+        // CONTROL DE ABRIR Y CERRAR MENÚS MODALES
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('active');
+                const titleText = modal.querySelector('h2') ? modal.querySelector('h2').innerText : modalId;
+                announceAccessibility('Abierto ' + titleText);
+                
+                // Mover foco al primer elemento para lectores de pantalla
+                setTimeout(() => {
+                    const firstFocusable = modal.querySelector('button, input, select, [tabindex="0"]');
+                    if (firstFocusable) firstFocusable.focus();
+                }, 100);
             }
         }
 
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+                announceAccessibility('Menú cerrado. De regreso al portaaviones.');
+            }
+        }
+
+        // ACCIONES DE ATAQUE Y NAVEGACIÓN
         function triggerWeapon(weaponName) {
-            announceAccessibility('Arma disparada: ' + weaponName);
+            announceAccessibility('Ataque ejecutado: ' + weaponName);
+            if ("vibrate" in navigator) {
+                navigator.vibrate([150, 50, 150]);
+            }
         }
 
-        function triggerNav(actionName) {
-            announceAccessibility('Maniobra de navegación: ' + actionName);
-        }
-
-        function openModal(id) {
-            document.getElementById(id).classList.add('active');
-            announceAccessibility('Menú abierto: ' + id);
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-            announceAccessibility('Menú cerrado');
+        function triggerNav(navName) {
+            announceAccessibility('Maniobra de navegación: ' + navName);
+            if ("vibrate" in navigator) {
+                navigator.vibrate(80);
+            }
         }
 
         function toggleVibration() {
-            alert("AVISO IMPORTANTE DE ACCESIBILIDAD: La vibración háptica es fundamental para detectar proyectiles y ataques enemigos esquivables. ¿Desea continuar?");
-            announceAccessibility('Ajuste de vibración cambiado');
+            const btn = document.getElementById('btn-vibration');
+            announceAccessibility("Atención: La vibración háptica es esencial para alertar al usuario ciego sobre misiles, torpedos y bombas enemigas que puede esquivar.");
+            if (btn.innerText.includes('ACTIVADA')) {
+                btn.innerText = 'Vibración: DESACTIVADA';
+            } else {
+                btn.innerText = 'Vibración: ACTIVADA';
+            }
         }
 
-        function openSubMenu(type) {
-            announceAccessibility('Abriendo submenú de ' + type);
+        function toggleNotif(type) {
+            announceAccessibility('Ajuste de notificación conmutado para ' + type);
         }
 
-        // Carga dinámica de controles por vehículo
+        function updateAudioVolumes() {
+            announceAccessibility('Volúmenes de audio actualizados según configuración.');
+        }
+
+        // CARGA DINÁMICA DE VEHÍCULOS
         function openVehiclePanel(type) {
             const modal = document.getElementById('modal-vehicle-active');
             const title = document.getElementById('vehicle-active-title');
@@ -565,77 +705,119 @@
             if (type === 'f35') {
                 title.innerText = 'Caza F-35 Lightning II (Líder)';
                 attackBox.innerHTML = `
-                    <button class="btn btn-attack" onclick="triggerWeapon('Ametralladoras F35')" aria-label="Disparar 8 Ametralladoras">8 Ametralladoras</button>
-                    <button class="btn btn-attack" onclick="triggerWeapon('Misiles Aire-Aire')" aria-label="Lanzar Misiles Aire-Aire">Misiles Aire-Aire</button>
-                    <button class="btn btn-attack" onclick="triggerWeapon('Cañón F35')" aria-label="Disparar Cañón">Cañón</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('8 Ametralladoras')" aria-label="Botón 1: Disparar 8 ametralladoras">8 Ametralladoras</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Misiles Aire-Aire')" aria-label="Botón 2: Disparar misiles aire-aire">Misiles Aire-Aire</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Cañón')" aria-label="Botón 3: Disparar cañón">Cañón</button>
                 `;
                 navBox.innerHTML = `
                     <button class="btn btn-nav" onclick="triggerNav('Acelerar')" aria-label="Acelerar Caza">Acelerar</button>
                     <button class="btn btn-nav" onclick="triggerNav('Frenar')" aria-label="Frenar Caza">Frenar</button>
-                    <button class="btn btn-nav" onclick="triggerNav('Subir Altitud')" aria-label="Inclinación arriba / Altitud">Subir Altitud</button>
-                    <button class="btn btn-nav" onclick="triggerNav('Bajar Altitud')" aria-label="Inclinación abajo / Bajada">Bajar Altitud</button>
-                    <button class="btn btn-nav" onclick="triggerNav('Giro Izquierda')" aria-label="Giro a la izquierda">Giro Izq.</button>
-                    <button class="btn btn-nav" onclick="triggerNav('Giro Derecha')" aria-label="Giro a la derecha">Giro Der.</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Inclinación arriba')" aria-label="Altitud / Inclinación arriba">Subir Altitud</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Inclinación abajo')" aria-label="Altitud / Inclinación abajo">Bajar Altitud</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Giro a la izquierda')" aria-label="Giro a la izquierda">Giro Izquierda</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Giro a la derecha')" aria-label="Giro a la derecha">Giro Derecha</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Aterrizar')" aria-label="Aterrizar en el portaaviones">Aterrizar</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Despegar')" aria-label="Despegar del portaaviones">Despegar</button>
                 `;
             } else if (type === 'b21') {
                 title.innerText = 'Bombardero B-21 Raider (Líder)';
                 attackBox.innerHTML = `
-                    <button class="btn btn-attack" onclick="triggerWeapon('Torretas Traseras')" aria-label="Disparar Torretas Traseras">Torretas Traseras</button>
-                    <button class="btn btn-attack" onclick="triggerWeapon('Lanzar Bombas')" aria-label="Lanzar Bombas">Lanzar Bombas</button>
-                    <button class="btn btn-attack" onclick="triggerWeapon('Metralletas B21')" aria-label="Disparar Metralletas">Metralletas</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Torretas Traseras')" aria-label="Disparar torretas traseras">Torretas Traseras</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Lanzar Bombas')" aria-label="Lanzar bombas de bombardeo">Lanzar Bombas</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Metralletas')" aria-label="Disparar metralletas">Metralletas</button>
                 `;
                 navBox.innerHTML = `
                     <button class="btn btn-nav" onclick="triggerNav('Acelerar')" aria-label="Acelerar Bombardero">Acelerar</button>
                     <button class="btn btn-nav" onclick="triggerNav('Frenar')" aria-label="Frenar Bombardero">Frenar</button>
-                    <button class="btn btn-nav" onclick="triggerNav('Giro Izquierda')" aria-label="Giro a la izquierda">Giro Izq.</button>
-                    <button class="btn btn-nav" onclick="triggerNav('Giro Derecha')" aria-label="Giro a la derecha">Giro Der.</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Control de Altitud')" aria-label="Control de altitud">Control Altitud</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Giro a la izquierda')" aria-label="Giro a la izquierda">Giro Izq.</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Giro a la derecha')" aria-label="Giro a la derecha">Giro Der.</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Eyectarse y pedir rescate')" aria-label="Eyectarse para esperar rescate">Eyectarse / Rescate</button>
                 `;
             } else if (type === 'destructores' || type === 'shadowhawk') {
                 title.innerText = type === 'destructores' ? 'Buque Destructor USS Jack H. Lucas' : 'Submarino USS Shadowhawk';
                 attackBox.innerHTML = `
-                    <button class="btn btn-attack" onclick="triggerWeapon('Cañones')" aria-label="Disparar Cañones">Cañones</button>
-                    <button class="btn btn-attack" onclick="triggerWeapon('Ametralladoras')" aria-label="Disparar Ametralladoras">Ametralladoras</button>
-                    <button class="btn btn-attack" onclick="triggerWeapon('Torpedos')" aria-label="Lanzar Torpedos">Torpedos</button>
-                    <button class="btn btn-attack" onclick="triggerWeapon('Granadas')" aria-label="Lanzar Granadas">Granadas</button>
-                    <button class="btn btn-attack" onclick="triggerWeapon('Misiles AA')" aria-label="Batería de Misiles Antiaéreos">Misiles AA</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Cañones')" aria-label="Disparar cañones">Cañones</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Ametralladoras')" aria-label="Disparar ametralladoras">Ametralladoras</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Torpedos')" aria-label="Lanzar torpedos">Torpedos</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Granadas')" aria-label="Lanzar granadas">Granadas</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Misiles Antiaéreos')" aria-label="Batería de misiles antiaéreos">Misiles AA</button>
                 `;
                 navBox.innerHTML = `
-                    <button class="btn btn-nav" onclick="triggerNav('Acelerar')" aria-label="Acelerar Navío">Acelerar</button>
-                    <button class="btn btn-nav" onclick="triggerNav('Frenar')" aria-label="Frenar Navío">Frenar</button>
-                    <button class="btn btn-nav" onclick="triggerNav('Babor')" aria-label="Girar a Babor">Babor</button>
-                    <button class="btn btn-nav" onclick="triggerNav('Estribor')" aria-label="Girar a Estribor">Estribor</button>
-                    ${type === 'shadowhawk' ? '<button class="btn btn-nav" onclick="triggerNav(\'Inmersión / Superficie\')" aria-label="Alternar Inmersión o Superficie">Sumergir / Emerger</button>' : ''}
+                    <button class="btn btn-nav" onclick="triggerNav('Acelerar')" aria-label="Acelerar navío">Acelerar</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Frenar')" aria-label="Frenar navío">Frenar</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Viraje a Babor')" aria-label="Girar a Babor">Babor</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Viraje a Estribor')" aria-label="Girar a Estribor">Estribor</button>
+                    ${type === 'shadowhawk' ? '<button class="btn btn-nav" onclick="triggerNav(\'Navegar bajo el agua o en superficie\')" aria-label="Control de inmersión bajo el agua y navegación encima">Sumergir / Emerger</button>' : ''}
                 `;
             }
 
-            modal.classList.add('active');
-            announceAccessibility('Desplegado panel de ' + title.innerText);
+            openModal('modal-vehicle-active');
         }
 
         function triggerVehicleAction(action) {
-            announceAccessibility('Acción de vehículo: ' + action);
+            announceAccessibility('Acción activa: ' + action);
         }
 
         function repairPart(vehicle, part) {
-            announceAccessibility('Reparando ' + part + ' de ' + vehicle + '. Proceso manual en curso.');
+            announceAccessibility('Reparando ' + part + ' del ' + vehicle + '. Trabajo manual pieza por pieza completado.');
         }
 
         function selectRoute(routeName) {
-            announceAccessibility('Ruta seleccionada: ' + routeName);
+            announceAccessibility('Ruta seleccionada para el viaje: ' + routeName);
         }
 
+        // CARGA ACCESIBLE DE CONTINENTES Y SUS REGIONES / PAÍSES / ISLAS Y ARCHIPIÉLAGOS
         function loadContinent(continentName) {
-            const container = document.getElementById('map-region-view');
-            container.innerHTML = `
-                <h3>Continente: ${continentName}</h3>
-                <p>Lista completa de regiones y territorios sin excepción:</p>
-                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
-                    <button class="btn" onclick="announceAccessibility('Región Norte de ${continentName} seleccionada')" aria-label="Explorar Región Norte de ${continentName}">Región Norte (Países, Islas y Archipiélagos)</button>
-                    <button class="btn" onclick="announceAccessibility('Región Sur de ${continentName} seleccionada')" aria-label="Explorar Región Sur de ${continentName}">Región Sur (Países, Islas y Archipiélagos)</button>
-                    <button class="btn" onclick="announceAccessibility('Región Insular de ${continentName} seleccionada')" aria-label="Explorar Archipiélagos de ${continentName}">Archipiélagos e Islas Territoriales</button>
+            const view = document.getElementById('map-region-view');
+            let regionsHTML = '';
+
+            const dataMap = {
+                'América': ['Región Norteamérica (EE.UU., Canadá, México)', 'Región Centroamérica y Caribe (Honduras, Cuba, Bahamas)', 'Región Sudamérica (Brasil, Argentina, Chile, Archipiélagos del Sur)'],
+                'Europa': ['Región Europa Occidental (Reino Unido, Francia, España)', 'Región Escandinavia e Islas del Norte', 'Región Mediterráneo (Grecia, Italia, Islas Baleares)'],
+                'Asia': ['Región Asia Oriental (Japón, Filipinas, Taiwán)', 'Región Sudeste Asiático e Islas Archipiélagos', 'Región Oriente Medio'],
+                'África': ['Región Norte de África y Costas', 'Región África Subsahariana', 'Región Insular e Islas del Océano Índico'],
+                'Oceanía': ['Región Australia y Nueva Zelanda', 'Región Polinesia y Micronesia', 'Región Archipiélagos del Pacífico']
+            };
+
+            const list = dataMap[continentName] || ['Región Norte', 'Región Sur', 'Islas y Archipiélagos'];
+
+            list.forEach((reg, index) => {
+                regionsHTML += `
+                    <button class="btn" onclick="openCountryList('${continentName}', '${reg}')" aria-label="Seleccionar ${reg}">
+                        ${index + 1}. ${reg}
+                    </button>
+                `;
+            });
+
+            view.innerHTML = `
+                <h3 tabindex="0">Continente: ${continentName}</h3>
+                <p tabindex="0" style="margin-bottom: 10px;">Seleccione una región de ${continentName} para desplegar sus países, islas y archipiélagos:</p>
+                <div class="map-item-list" role="group" aria-label="Regiones de ${continentName}">
+                    ${regionsHTML}
                 </div>
             `;
-            announceAccessibility('Cargado continente ' + continentName);
+
+            announceAccessibility('Cargado continente ' + continentName + '. Seleccione una región.');
+        }
+
+        function openCountryList(continent, region) {
+            const view = document.getElementById('map-region-view');
+            view.innerHTML = `
+                <h3 tabindex="0">${region}</h3>
+                <p tabindex="0" style="margin-bottom: 10px;">Todos los países, islas y archipiélagos pertenicientes a esta región:</p>
+                <div class="map-item-list" role="group" aria-label="Países e islas en ${region}">
+                    <button class="btn" onclick="selectTerritory('País Insignia de ${region}')" aria-label="Conquistar País Insignia de ${region}">1. Territorio Continental (País)</button>
+                    <button class="btn" onclick="selectTerritory('Isla Estratégica de ${region}')" aria-label="Atacar Isla Estratégica de ${region}">2. Isla Estratégica Naval</button>
+                    <button class="btn" onclick="selectTerritory('Archipiélago de ${region}')" aria-label="Desplegar flota en Archipiélago de ${region}">3. Archipiélago de Alta Mar</button>
+                    <button class="btn btn-nav" onclick="loadContinent('${continent}')" aria-label="Volver a la lista de regiones de ${continent}">Volver a regiones de ${continent}</button>
+                </div>
+            `;
+            announceAccessibility('Mostrando países, islas y archipiélagos de ' + region);
+        }
+
+        function selectTerritory(name) {
+            announceAccessibility('Objetivo seleccionado: ' + name + '. Defensas territoriales enemigas detectadas.');
         }
     </script>
 </body>
