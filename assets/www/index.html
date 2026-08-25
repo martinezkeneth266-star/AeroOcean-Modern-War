@@ -263,7 +263,7 @@
                 <button onclick="Game.setVehicle('Portaaviones', 'sonidoportaaviones1.mp3', 'Portaaviones pesado seleccionado.')">
                     🚢 Portaaviones <span id="v-ammo-Portaaviones">[100%]</span>
                 </button>
-                <button onclick="Game.setVehicle('Destructor', 'contactoderadar.mp3', 'Destructor misilístico seleccionado.')">
+                <button onclick="Game.setVehicle('Destructor', 'contactoderadar.mp3', 'Destructor naval seleccionado.')">
                     🚀 Destructor Naval <span id="v-ammo-Destructor">[100%]</span>
                 </button>
                 <button onclick="Game.setVehicle('Submarino', 'Lanzatorpedoycaen.mp3', 'Submarino atómico seleccionado.')">
@@ -449,7 +449,7 @@
             
             // Navegación
             speed: 0,
-            heading: 0, // 0 a 359 grados
+            heading: 0,
 
             // Munición independiente por vehículo (0 a 100%)
             vehicleAmmo: {
@@ -486,9 +486,9 @@
                     { id: 'w3', name: '🎯 Misil de Crucero Tomahawk', sound: 'misil de crucero.mp3', text: 'Misil de crucero pesado en curso.', cost: 15, dmg: 55, cooldown: 4000 }
                 ],
                 'Destructor': [
-                    { id: 'w13', name: '💥 Batería de Cañones 127mm', sound: 'Disparo.mp3', text: 'Fuego de cañón principal sobre el objetivo.', cost: 5, dmg: 25, cooldown: 800 },
-                    { id: 'w14', name: '🚀 Misiles Antibuque Harpoon', sound: 'misil.mp3', text: 'Misil Harpoon lanzado hacia la posición enemiga.', cost: 12, dmg: 50, cooldown: 3000 },
-                    { id: 'w15', name: '💣 Cargas Antisubmarinas', sound: 'bonba.mp3', text: 'Efectuando descarga antisubmarina.', cost: 8, dmg: 35, cooldown: 2000 }
+                    { id: 'w13', name: '💥 Batería de Cañones 127mm', sound: 'Disparo.mp3', text: 'Fuego de cañón principal.', cost: 5, dmg: 25, cooldown: 800 },
+                    { id: 'w14', name: '🚀 Misiles Antibuque Harpoon', sound: 'misil.mp3', text: 'Misil Harpoon lanzado.', cost: 12, dmg: 50, cooldown: 3000 },
+                    { id: 'w15', name: '💣 Cargas Antisubmarinas', sound: 'bonba.mp3', text: 'Descarga de profundidad lanzada.', cost: 8, dmg: 35, cooldown: 2000 }
                 ],
                 'Submarino': [
                     { id: 'w4', name: '🦈 Torpedo Pesado Abisal', sound: 'Lanzatorpedoycaen.mp3', text: 'Torpedo abisal lanzado.', cost: 10, dmg: 45, cooldown: 2000 },
@@ -504,7 +504,7 @@
                     { id: 'w10', name: '💥 Cargas de Demolición', sound: 'bonba.mp3', text: 'Cargas explosivas pesadas soltadas.', cost: 10, dmg: 35, cooldown: 2000 }
                 ],
                 'Caza F-35 Rescate': [
-                    { id: 'w11', name: '💥 Ametralladora Defensiva Ligera', sound: 'Ametralladora.mp3', text: 'Ametralladora defensiva en tiro rápido.', cost: 3, dmg: 12, cooldown: 500 },
+                    { id: 'w11', name: '💥 Ametralladora Defensiva Ligera', sound: 'Ametralladora.mp3', text: 'Ametralladora defensiva disparada.', cost: 3, dmg: 12, cooldown: 500 },
                     { id: 'w12', name: '🛡️ Torreta de Cobertura', sound: 'Torreta.mp3', text: 'Fuego de cubierta activado.', cost: 6, dmg: 18, cooldown: 800 }
                 ]
             },
@@ -586,8 +586,8 @@
                 this.battleAudio.play().catch(() => {});
                 this.carrierAudio.play().catch(() => {});
 
-                this.playFX('mensajedebienvenida.mp3', 'Sistemas de AeroOcean en línea. Flota lista.', 'speech');
                 this.isAudioInitialized = true;
+                this.speak('Sistemas de AeroOcean en línea. Flota lista.');
                 this.renderVehicleWeapons();
                 this.populateMapFilters();
                 this.startEnemyAI();
@@ -610,17 +610,27 @@
                 }
             },
 
-            speak(text) {
+            // --- SISTEMA DE VOZ EN TIEMPO REAL ---
+            speak(text, interrupt = true) {
+                // Escribir en la consola gráfica de eventos
+                const log = document.getElementById('statusLog');
+                if (log) {
+                    log.innerHTML += `<div>> ${text}</div>`;
+                    log.scrollTop = log.scrollHeight;
+                }
+
+                // Reproducir la locución directamente
                 if ('speechSynthesis' in window && this.volumes.speech > 0) {
-                    window.speechSynthesis.cancel();
+                    if (interrupt) {
+                        window.speechSynthesis.cancel(); // Interrumpe frase previa para dar alerta inmediata
+                    }
                     const utterance = new SpeechSynthesisUtterance(text);
                     utterance.lang = 'es-ES';
+                    utterance.rate = 1.0;  // Velocidad táctica
+                    utterance.pitch = 1.0;
                     utterance.volume = this.volumes.speech;
                     window.speechSynthesis.speak(utterance);
                 }
-                const log = document.getElementById('statusLog');
-                log.innerHTML += `<div>> ${text}</div>`;
-                log.scrollTop = log.scrollHeight;
             },
 
             playFX(fileName, description, type, vibratePattern) {
@@ -636,7 +646,9 @@
                     navigator.vibrate(vibratePattern);
                 }
 
-                if (description) this.speak(description);
+                if (description) {
+                    this.speak(description);
+                }
             },
 
             action(soundFile, text, vibratePattern) {
@@ -653,7 +665,7 @@
             // --- CONTROLES DE NAVEGACIÓN Y RUMBO ---
             adjustSpeed(delta) {
                 this.speed = Math.max(0, Math.min(100, this.speed + delta));
-                const text = `Velocidad ajustada a ${this.speed} nudos.`;
+                const text = `Velocidad ${this.speed} nudos.`;
                 this.playFX('contactoderadar.mp3', text, 'vehicles');
                 document.getElementById('nav-speed').innerText = `${this.speed} kts`;
             },
@@ -666,7 +678,7 @@
                     this.heading = (this.heading + angle) % 360;
                 }
                 const cardinal = this.getCardinalDirection(this.heading);
-                const desc = `Giro a ${direction} completado. Nuevo rumbo ${this.heading} grados, dirección ${cardinal}.`;
+                const desc = `Giro a ${direction}. Rumbo ${this.heading} grados ${cardinal}.`;
                 this.playFX('contactoderadar.mp3', desc, 'vehicles');
                 document.getElementById('nav-heading').innerText = `${this.heading}° (${cardinal})`;
             },
@@ -695,15 +707,15 @@
                 document.getElementById('target-name').innerText = type;
                 document.getElementById('target-dist').innerText = `${dist} km`;
 
-                this.playFX('contactoderadar.mp3', `Contacto radar detectado: ${type} a ${dist} kilómetros.`, 'vehicles', [100, 50, 100]);
+                this.playFX('contactoderadar.mp3', `Radar detecta ${type} a ${dist} kilómetros.`, 'vehicles', [100, 50, 100]);
             },
 
             lockTarget() {
                 if (this.detectedEnemies.length > 0 && this.lockedTargetIndex >= 0) {
                     const target = this.detectedEnemies[this.lockedTargetIndex];
-                    this.playFX('alerta.mp3', `¡Blanco enganchado! ${target.name} fijado con radar de tiro.`, 'weapons', [200, 100, 200]);
+                    this.playFX('alerta.mp3', `Blanco ${target.name} enganchado.`, 'weapons', [200, 100, 200]);
                 } else {
-                    this.playFX('alerta.mp3', 'No hay ningún objetivo detectado para enganchar. Escanee el radar.', 'vehicles');
+                    this.speak('Sin blanco para enganchar. Active el radar.');
                 }
             },
 
@@ -714,10 +726,12 @@
                         const dmg = Math.floor(Math.random() * 12) + 5;
                         this.armor = Math.max(0, this.armor - dmg);
                         this.updateUI();
-                        this.playFX('Alarmadeataqueenemigo.mp3', `¡Alerta! Fuego enemigo en curso. Blindaje reducido al ${this.armor}%.`, 'weapons', [300, 100, 300]);
+                        
+                        // NOTIFICACIÓN EN TIEMPO REAL: Ataque enemigo automático
+                        this.playFX('Alarmadeataqueenemigo.mp3', `¡Alerta! Ataque enemigo entrante. Blindaje al ${this.armor} por ciento.`, 'weapons', [300, 100, 300]);
                         
                         if (this.armor <= 0) {
-                            this.playFX('emergencia.wav', '¡Crítico! Flota destruida. Iniciando reparaciones de emergencia.', 'weapons', [500, 200, 500]);
+                            this.playFX('emergencia.wav', '¡Crítico! Flota destruida. Reparaciones iniciadas.', 'weapons', [500, 200, 500]);
                             this.armor = 50;
                             this.targetCountry = null;
                             this.updateUI();
@@ -744,7 +758,7 @@
 
             fireWeapon(btnElement, soundFile, text, ammoCost, damage, cooldownMs) {
                 if (this.fuel <= 0) {
-                    this.playFX('emergencia.wav', '¡Sin combustible suficiente para maniobra!', 'vehicles', [300, 100, 300]);
+                    this.playFX('emergencia.wav', '¡Sin combustible!', 'vehicles', [300, 100, 300]);
                     return;
                 }
 
@@ -770,7 +784,6 @@
                         setTimeout(() => btnElement.disabled = false, cooldownMs);
                     }
 
-                    // Impacto en el país/región u objetivo detectado
                     if (this.targetCountry && !this.targetCountry.conquistado) {
                         this.targetCountry.defensa -= damage;
                         if (this.targetCountry.defensa <= 0) {
@@ -778,29 +791,30 @@
                             this.targetCountry.conquistado = true;
                             this.gold += this.targetCountry.recompensas;
                             this.level++;
-                            this.playFX('Batalla_Aeronaval.mp3', `¡Victoria total! ${this.targetCountry.nombre} conquistado. Ganaste ${this.targetCountry.recompensas} de oro.`, 'weapons', [500]);
+                            this.playFX('Batalla_Aeronaval.mp3', `¡Victoria! ${this.targetCountry.nombre} conquistado. Ganaste ${this.targetCountry.recompensas} de oro.`, 'weapons', [500]);
                             this.targetCountry = null;
                             this.activeRoute = null;
                         } else {
-                            this.speak(`Impacto directo. Defensa de ${this.targetCountry.nombre} al ${Math.ceil((this.targetCountry.defensa/this.targetCountry.defensaMax)*100)}%.`);
+                            const pct = Math.ceil((this.targetCountry.defensa/this.targetCountry.defensaMax)*100);
+                            this.speak(`Impacto en ${this.targetCountry.nombre}. Defensa al ${pct} por ciento.`);
                         }
                     } else if (this.detectedEnemies.length > 0 && this.lockedTargetIndex >= 0) {
                         const enemy = this.detectedEnemies[this.lockedTargetIndex];
                         enemy.hp -= damage;
                         if (enemy.hp <= 0) {
-                            this.speak(`Blanco ${enemy.name} destruido.`);
+                            this.speak(`Objetivo ${enemy.name} destruido.`);
                             this.detectedEnemies = [];
                             this.lockedTargetIndex = -1;
                             document.getElementById('target-name').innerText = 'Ninguno';
                             document.getElementById('target-dist').innerText = '---';
                         } else {
-                            this.speak(`Impacto en ${enemy.name}. Daño infligido.`);
+                            this.speak(`Impacto en ${enemy.name}.`);
                         }
                     } else {
-                        this.speak('Disparo efectuado sin blanco fijado.');
+                        this.speak('Disparo al aire sin blanco fijado.');
                     }
                 } else {
-                    this.playFX('alerta.mp3', `¡Sin munición suficiente en el almacén del ${this.vehicleActive}!`, 'weapons', [200]);
+                    this.playFX('alerta.mp3', `¡Munición agotada en ${this.vehicleActive}!`, 'weapons', [200]);
                 }
             },
 
@@ -823,6 +837,7 @@
                     Object.keys(this.mapData[contName]).forEach(reg => {
                         selectReg.innerHTML += `<option value="${reg}">${reg}</option>`;
                     });
+                    this.speak(`Continente ${contName} seleccionado.`);
                 } else {
                     selectReg.disabled = true;
                 }
@@ -831,6 +846,7 @@
 
             onRegionChange(regName) {
                 this.selectedRegion = regName;
+                if (regName) this.speak(`Región ${regName} seleccionada.`);
                 this.renderCountries();
             },
 
@@ -849,7 +865,7 @@
                     this.targetCountry = found;
                     this.activeRoute = routeName;
                     this.closeModal('modalMap');
-                    this.playFX('contactoderadar.mp3', `Ruta confirmada hacia ${this.targetCountry.nombre}.`, 'vehicles');
+                    this.playFX('contactoderadar.mp3', `Ruta fijada hacia ${this.targetCountry.nombre}.`, 'vehicles');
                 }
             },
 
@@ -858,7 +874,7 @@
                 container.innerHTML = '';
 
                 if (!this.selectedContinent || !this.selectedRegion) {
-                    container.innerHTML = '<div style="text-align:center; padding:15px; color:#888;">Selecciona continente y región para ver los países e islas.</div>';
+                    container.innerHTML = '<div style="text-align:center; padding:15px; color:#888;">Selecciona continente y región.</div>';
                     return;
                 }
 
@@ -883,10 +899,12 @@
             openMap() {
                 this.renderCountries();
                 this.openModal('modalMap');
+                this.speak('Mapa táctico abierto.');
             },
 
             openStore() {
                 this.openModal('modalStore');
+                this.speak('Tienda de suministros abierta.');
             },
 
             openModal(id) {
@@ -895,6 +913,7 @@
 
             closeModal(id) {
                 document.getElementById(id).style.display = 'none';
+                this.speak('Menú cerrado.');
             },
 
             buyResource(type, amount, cost) {
@@ -902,11 +921,17 @@
                     this.gold -= cost;
                     if (type === 'ammo') {
                         this.vehicleAmmo[this.vehicleActive] = Math.min(100, this.vehicleAmmo[this.vehicleActive] + amount);
+                        this.speak(`Munición reabastecida al ${this.vehicleAmmo[this.vehicleActive]} por ciento.`);
                     }
-                    if (type === 'fuel') this.fuel = Math.min(100, this.fuel + amount);
-                    if (type === 'armor') this.armor = Math.min(100, this.armor + amount);
+                    if (type === 'fuel') {
+                        this.fuel = Math.min(100, this.fuel + amount);
+                        this.speak(`Combustible al ${this.fuel} por ciento.`);
+                    }
+                    if (type === 'armor') {
+                        this.armor = Math.min(100, this.armor + amount);
+                        this.speak(`Blindaje reparado al ${this.armor} por ciento.`);
+                    }
                     this.updateUI();
-                    this.speak('Suministros reabastecidos.');
                 } else {
                     this.speak('Oro insuficiente.');
                 }
@@ -919,7 +944,6 @@
                 document.getElementById('res-fuel').innerText = this.fuel + '%';
                 document.getElementById('res-armor').innerText = this.armor + '%';
 
-                // Actualizar contadores individuales de la lista de vehículos
                 Object.keys(this.vehicleAmmo).forEach(vName => {
                     const el = document.getElementById(`v-ammo-${vName}`);
                     if (el) el.innerText = `[${this.vehicleAmmo[vName]}%]`;
