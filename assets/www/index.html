@@ -70,7 +70,7 @@
             border-radius: 6px;
             padding: 6px;
             margin-bottom: 8px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: bold;
         }
 
@@ -121,6 +121,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            position: relative;
+            overflow: hidden;
         }
 
         button:active {
@@ -130,6 +132,17 @@
 
         button.danger { border-left: 4px solid var(--danger-color); }
         button.success { border-left: 4px solid var(--success-color); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .cooldown-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background-color: var(--warning-color);
+            width: 0%;
+            transition: width linear;
+        }
 
         .status-box {
             background-color: #000;
@@ -163,7 +176,7 @@
             border-radius: 10px;
             padding: 15px;
             width: 100%;
-            max-width: 500px;
+            max-width: 550px;
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -179,7 +192,7 @@
             border-color: var(--success-color);
             background: #10382b;
         }
-        .route-select {
+        .route-select, .map-filter-select {
             width: 100%;
             padding: 6px;
             background: var(--bg-color);
@@ -189,6 +202,11 @@
             margin-top: 4px;
             font-family: inherit;
             font-size: 0.8rem;
+        }
+        .filter-group {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -202,11 +220,10 @@
         <div>🎖️ Niv: <span id="res-level">1</span></div>
         <div>💰 Oro: <span id="res-gold">1500</span></div>
         <div>⛽ Fuel: <span id="res-fuel">100%</span></div>
-        <div>🚀 Misiles: <span id="res-ammo">30</span></div>
+        <div>🚀 Misiles: <span id="res-ammo">30</span>/<span id="res-max-ammo">30</span></div>
         <div>🛡️ Blindaje: <span id="res-armor">100%</span></div>
     </div>
 
-    <!-- Módulos independientes organizados en cuadrícula 2x2 -->
     <div class="dashboard-grid">
 
         <!-- MÓDULO 1: CONTROL DE FLOTA Y NAVEGACIÓN -->
@@ -238,19 +255,19 @@
         <section class="module-card">
             <h2>Módulo 2: Detección y Alertas 📡</h2>
             <div class="btn-group">
-                <button onclick="Game.action('contactoderadar.mp3', 'Contacto en radar detectado en la ruta activa.')">
+                <button onclick="Game.action('contactoderadar.mp3', 'Contacto en radar detectado en la ruta activa.', [100, 50, 100])">
                     🔍 Contacto Radar <span>[Escanear]</span>
                 </button>
-                <button class="danger" onclick="Game.action('alerta.mp3', '¡Alerta! Caza enemigo fije y bloquee nuestra posición.')">
+                <button class="danger" onclick="Game.action('alerta.mp3', '¡Alerta! Caza enemigo fije y bloquee nuestra posición.', [200, 100, 200])">
                     🎯 Radar Blanco Enclavado <span>[Enganche]</span>
                 </button>
-                <button class="danger" onclick="Game.action('Alarmadeataqueenemigo.mp3', '¡Ataque enemigo inminente! Todos los vehículos a puestos de combate.')">
+                <button class="danger" onclick="Game.action('Alarmadeataqueenemigo.mp3', '¡Ataque enemigo inminente! Todos los vehículos a puestos de combate.', [400, 100, 400])">
                     🚨 Ataque Enemigo <span>[Alerta]</span>
                 </button>
-                <button class="danger" onclick="Game.action('alarmadeemergencia.mp3', '¡Incendio y daños estructurales en unidades navales!')">
+                <button class="danger" onclick="Game.action('alarmadeemergencia.mp3', '¡Incendio y daños estructurales en unidades navales!', [500])">
                     🔥 Emergencia Naval <span>[Fuego]</span>
                 </button>
-                <button class="danger" onclick="Game.action('emergencia.wav', '¡Fallo de controles y daño crítico en aeronave!')">
+                <button class="danger" onclick="Game.action('emergencia.wav', '¡Fallo de controles y daño crítico en aeronave!', [100, 100, 100, 100, 300])">
                     ⚠️ Emergencia Aérea <span>[Avanzada]</span>
                 </button>
             </div>
@@ -260,35 +277,45 @@
         <section class="module-card">
             <h2>Módulo 3: Arsenal de Armas 💣</h2>
             <div class="btn-group">
-                <button class="danger" onclick="Game.fireWeapon('Ametralladora.mp3', 'Ametralladora pesada en defensa naval.', 1, 10)">
+                <button id="btn-w1" class="danger" onclick="Game.fireWeapon(this, 'Ametralladora.mp3', 'Ametralladora pesada en defensa naval.', 1, 10, 500, 'ametralladora', [50])">
                     💥 Ametralladora Naval <span>[-1]</span>
+                    <div class="cooldown-bar"></div>
                 </button>
-                <button class="danger" onclick="Game.fireWeapon('trazadoras.mp3', 'Munición trazadora pesada de aviación.', 1, 12)">
+                <button id="btn-w2" class="danger" onclick="Game.fireWeapon(this, 'trazadoras.mp3', 'Munición trazadora pesada de aviación.', 1, 12, 600, 'trazadoras', [60])">
                     ✨ Munición Trazadora <span>[-1]</span>
+                    <div class="cooldown-bar"></div>
                 </button>
-                <button class="danger" onclick="Game.fireWeapon('Torreta.mp3', 'Fuego de torreta defensiva.', 1, 15)">
+                <button id="btn-w3" class="danger" onclick="Game.fireWeapon(this, 'Torreta.mp3', 'Fuego de torreta defensiva.', 1, 15, 800, 'torreta', [80])">
                     🛡️ Torreta Aérea/Naval <span>[-1]</span>
+                    <div class="cooldown-bar"></div>
                 </button>
-                <button class="danger" onclick="Game.fireWeapon('Disparo.mp3', 'Disparo de cañón principal naval.', 1, 20)">
+                <button id="btn-w4" class="danger" onclick="Game.fireWeapon(this, 'Disparo.mp3', 'Disparo de cañón principal naval.', 1, 20, 1000, 'canon', [120])">
                     🔫 Cañón Principal Naval <span>[-1]</span>
+                    <div class="cooldown-bar"></div>
                 </button>
-                <button class="danger" onclick="Game.fireWeapon('misil.mp3', 'Misil aire-aire / aire-superficie lanzado.', 1, 30)">
+                <button id="btn-w5" class="danger" onclick="Game.fireWeapon(this, 'misil.mp3', 'Misil aire-aire / aire-superficie lanzado.', 1, 30, 2000, 'misil', [200, 50, 100])">
                     🚀 Misil Táctico <span>[-1]</span>
+                    <div class="cooldown-bar"></div>
                 </button>
-                <button class="danger" onclick="Game.fireWeapon('misil de crucero.mp3', 'Misil de crucero pesado Tomahawk en curso.', 2, 50)">
+                <button id="btn-w6" class="danger" onclick="Game.fireWeapon(this, 'misil de crucero.mp3', 'Misil de crucero pesado Tomahawk en curso.', 2, 50, 3500, 'crucero', [300, 100, 300])">
                     🎯 Misil de Crucero <span>[-2]</span>
+                    <div class="cooldown-bar"></div>
                 </button>
-                <button class="danger" onclick="Game.fireWeapon('bateriademisilesantiaereos.mp3', 'Batería de misiles antiaéreos activada.', 2, 45)">
+                <button id="btn-w7" class="danger" onclick="Game.fireWeapon(this, 'bateriademisilesantiaereos.mp3', 'Batería de misiles antiaéreos activada.', 2, 45, 3000, 'antiaereo', [250, 80, 250])">
                     🛡️ Misil Antiaéreo <span>[-2]</span>
+                    <div class="cooldown-bar"></div>
                 </button>
-                <button class="danger" onclick="Game.fireWeapon('Lanzatorpedoycaen.mp3', 'Torpedo pesado lanzado al agua.', 1, 40)">
+                <button id="btn-w8" class="danger" onclick="Game.fireWeapon(this, 'Lanzatorpedoycaen.mp3', 'Torpedo pesado lanzado al agua.', 1, 40, 2500, 'torpedo', [150, 150, 150])">
                     🦈 Lanzamiento Torpedo <span>[-1]</span>
+                    <div class="cooldown-bar"></div>
                 </button>
-                <button class="danger" onclick="Game.fireWeapon('sonidodeborbandeo.mp3', 'Bombardero estratégico ejecutando ataque aéreo.', 3, 70)">
+                <button id="btn-w9" class="danger" onclick="Game.fireWeapon(this, 'sonidodeborbandeo.mp3', 'Bombardero estratégico ejecutando ataque aéreo.', 3, 70, 4500, 'bombardero', [400, 100, 200])">
                     💣 Ataque de Bombardero <span>[-3]</span>
+                    <div class="cooldown-bar"></div>
                 </button>
-                <button class="danger" onclick="Game.fireWeapon('bonba.mp3', 'Despliegue de granadas y cargas de profundidad.', 1, 25)">
+                <button id="btn-w10" class="danger" onclick="Game.fireWeapon(this, 'bonba.mp3', 'Despliegue de granadas y cargas de profundidad.', 1, 25, 1500, 'cargas', [100, 100])">
                     💥 Granadas / Cargas <span>[-1]</span>
+                    <div class="cooldown-bar"></div>
                 </button>
             </div>
         </section>
@@ -298,10 +325,10 @@
             <h2>Módulo 4: Operaciones y Comercio 🌍</h2>
             <div class="btn-group">
                 <button class="success" onclick="Game.openMap()">
-                    🗺️ Mapa de Conquista <span>[Misiones]</span>
+                    🗺️ Mapa Mundial de Conquista <span>[Misiones]</span>
                 </button>
                 <button class="success" onclick="Game.openStore()">
-                    🛒 Suministros <span>[Mercado]</span>
+                    🛒 Suministros y Mejoras <span>[Mercado]</span>
                 </button>
             </div>
         </section>
@@ -315,8 +342,19 @@
     <!-- Modales -->
     <div id="modalMap" class="modal">
         <div class="modal-content">
-            <h2 style="color: var(--accent-color); margin-top: 0;">🗺️ Campaña y Rutas de Conquista</h2>
+            <h2 style="color: var(--accent-color); margin-top: 0;">🗺️ Campaña Mundial por Continentes</h2>
+            
+            <div class="filter-group">
+                <select id="selectContinent" class="map-filter-select" onchange="Game.onContinentChange(this.value)">
+                    <option value="">-- Seleccionar Continente --</option>
+                </select>
+                <select id="selectRegion" class="map-filter-select" onchange="Game.onRegionChange(this.value)" disabled>
+                    <option value="">-- Seleccionar Región --</option>
+                </select>
+            </div>
+
             <div id="countriesContainer"></div>
+            
             <div class="btn-group" style="margin-top: 10px;">
                 <button class="danger" onclick="Game.closeModal('modalMap')">❌ Cerrar Mapa</button>
             </div>
@@ -325,11 +363,14 @@
 
     <div id="modalStore" class="modal">
         <div class="modal-content">
-            <h2 style="color: var(--warning-color); margin-top: 0;">🛒 Tienda de Suministros</h2>
+            <h2 style="color: var(--warning-color); margin-top: 0;">🛒 Tienda de Suministros y Taller</h2>
             <div class="btn-group">
                 <button onclick="Game.buyResource('ammo', 10, 100)">🚀 10 Misiles/Cargas (100 Oro)</button>
                 <button onclick="Game.buyResource('fuel', 50, 150)">⛽ Recargar Fuel (150 Oro)</button>
                 <button onclick="Game.buyResource('armor', 50, 200)">🛡️ Reparar Blindaje (200 Oro)</button>
+                <hr style="border-color: rgba(255,255,255,0.1); width: 100%;">
+                <button onclick="Game.buyUpgrade('maxAmmo', 10, 400)">➕ Ampliar Capacidad Misiles +10 (400 Oro)</button>
+                <button onclick="Game.buyUpgrade('fuelEfficiency', 1, 500)">⚡ Eficiencia de Combustible (500 Oro)</button>
                 <button class="danger" onclick="Game.closeModal('modalStore')">❌ Cerrar Tienda</button>
             </div>
         </div>
@@ -346,23 +387,99 @@
             level: 1,
             gold: 1500,
             ammo: 30,
+            maxAmmo: 30,
             fuel: 100,
             armor: 100,
+            fuelEfficiencyLevel: 0,
             vehicleActive: 'Portaaviones',
             
-            // Pistas de Audio Ambientales en Bucle
+            // Audio y Ducking
             seaAudio: null,
             battleAudio: null,
             carrierAudio: null,
+            bgVolumeNormal: 0.15,
+            bgVolumeDucked: 0.03,
             
             isAudioInitialized: false,
             enemyTimer: null,
             
-            paises: [
-                { id: 'p1', nombre: 'Archipiélago del Este', defensa: 100, defensaMax: 100, conquistado: false, recompensas: 300, rutas: ['Paso Marítimo Estrecho', 'Incursión Aérea Directa'] },
-                { id: 'p2', nombre: 'Bastión Costero del Norte', defensa: 220, defensaMax: 220, conquistado: false, recompensas: 600, rutas: ['Despliegue de Mando Naval', 'Avanzada Submarina Abisal'] },
-                { id: 'p3', nombre: 'Imperio Continental', defensa: 400, defensaMax: 400, conquistado: false, recompensas: 1200, rutas: ['Ataque Combinado Mar y Aire'] }
-            ],
+            // Estructura Mundial Completa
+            mapData: {
+                "América": {
+                    "América del Norte": [
+                        { id: 'ca', nombre: 'Canadá', defensa: 180, defensaMax: 180, conquistado: false, recompensas: 500, rutas: ['Paso del Noroeste', 'Incursión Ártica'] },
+                        { id: 'us', nombre: 'Estados Unidos', defensa: 500, defensaMax: 500, conquistado: false, recompensas: 1500, rutas: ['Desembarco Atlántico', 'Ataque Pacífico'] },
+                        { id: 'mx', nombre: 'México', defensa: 200, defensaMax: 200, conquistado: false, recompensas: 550, rutas: ['Golfo de México', 'Avanzada del Pacífico'] }
+                    ],
+                    "Centroamérica": [
+                        { id: 'hn', nombre: 'Honduras', defensa: 120, defensaMax: 120, conquistado: false, recompensas: 350, rutas: ['Bahía de Honduras', 'Incursión Costera'] },
+                        { id: 'gt', nombre: 'Guatemala', defensa: 110, defensaMax: 110, conquistado: false, recompensas: 320, rutas: ['Ruta del Caribe', 'Desembarco Sur'] },
+                        { id: 'pa', nombre: 'Panamá', defensa: 160, defensaMax: 160, conquistado: false, recompensas: 450, rutas: ['Canal de Panamá', 'Ataque Biceánico'] }
+                    ],
+                    "El Caribe (Archipiélagos e Islas)": [
+                        { id: 'cu', nombre: 'Cuba', defensa: 140, defensaMax: 140, conquistado: false, recompensas: 400, rutas: ['Estrecho de la Florida', 'Mar Caribe'] },
+                        { id: 'do', nombre: 'República Dominicana', defensa: 120, defensaMax: 120, conquistado: false, recompensas: 360, rutas: ['Paso de la Mona', 'Canal del Viento'] },
+                        { id: 'jm', nombre: 'Jamaica y Antillas Menores', defensa: 130, defensaMax: 130, conquistado: false, recompensas: 380, rutas: ['Incursión Archipiélago', 'Bloqueo Marítimo'] }
+                    ],
+                    "América del Sur": [
+                        { id: 'br', nombre: 'Brasil', defensa: 350, defensaMax: 350, conquistado: false, recompensas: 1000, rutas: ['Cuenca del Amazonas', 'Atlántico Sur'] },
+                        { id: 'ar', nombre: 'Argentina y Tierra del Fuego', defensa: 280, defensaMax: 280, conquistado: false, recompensas: 800, rutas: ['Paso de Drake', 'Patagonia Marítima'] },
+                        { id: 'cl', nombre: 'Chile e Islas Galápagos (Ecuador)', defensa: 240, defensaMax: 240, conquistado: false, recompensas: 700, rutas: ['Océano Pacífico Sur', 'Desembarco Insular'] }
+                    ]
+                },
+                "Europa": {
+                    "Europa Occidental y del Norte": [
+                        { id: 'uk', nombre: 'Reino Unido e Islas Británicas', defensa: 380, defensaMax: 380, conquistado: false, recompensas: 1100, rutas: ['Canal de la Mancha', 'Mar del Norte'] },
+                        { id: 'fr', nombre: 'Francia', defensa: 360, defensaMax: 360, conquistado: false, recompensas: 1050, rutas: ['Bahía de Vizcaya', 'Mediterráneo Occidental'] },
+                        { id: 'de', nombre: 'Alemania', defensa: 370, defensaMax: 370, conquistado: false, recompensas: 1080, rutas: ['Mar Báltico', 'Acceso Terrestre/Naval'] }
+                    ],
+                    "Europa del Sur y Mediterráneo": [
+                        { id: 'es', nombre: 'España e Islas Baleares/Canarias', defensa: 300, defensaMax: 300, conquistado: false, recompensas: 850, rutas: ['Estrecho de Gibraltar', 'Mar Alborán'] },
+                        { id: 'it', nombre: 'Italia y Sicilia/Cérdeña', defensa: 310, defensaMax: 310, conquistado: false, recompensas: 880, rutas: ['Mar Tirreno', 'Mar Adriático'] },
+                        { id: 'gr', nombre: 'Grecia y Archipiélago del Egeo', defensa: 220, defensaMax: 220, conquistado: false, recompensas: 650, rutas: ['Mar Jónico', 'Incursión Insular Egeo'] }
+                    ],
+                    "Europa Oriental": [
+                        { id: 'ru', nombre: 'Rusia (Sector Europeo)', defensa: 480, defensaMax: 480, conquistado: false, recompensas: 1400, rutas: ['Mar Negro', 'Frente Ártico'] },
+                        { id: 'ua', nombre: 'Ucrania', defensa: 260, defensaMax: 260, conquistado: false, recompensas: 750, rutas: ['Ruta del Mar Negro', 'Avanzada Terrestre'] }
+                    ]
+                },
+                "Asia": {
+                    "Asia Oriental y Archipiélagos": [
+                        { id: 'cn', nombre: 'China', defensa: 500, defensaMax: 500, conquistado: false, recompensas: 1500, rutas: ['Mar de China Meridional', 'Estrecho de Taiwán'] },
+                        { id: 'jp', nombre: 'Japón y Archipiélago Volcánico', defensa: 420, defensaMax: 420, conquistado: false, recompensas: 1250, rutas: ['Mar del Japón', 'Fosa de las Marianas'] },
+                        { id: 'ph', nombre: 'Filipinas e Indonesia (Archipiélagos)', defensa: 290, defensaMax: 290, conquistado: false, recompensas: 820, rutas: ['Estrecho de Malaca', 'Mar de Celebes'] }
+                    ],
+                    "Asia del Sur y Medio Oriente": [
+                        { id: 'in', nombre: 'India y Sri Lanka', defensa: 400, defensaMax: 400, conquistado: false, recompensas: 1200, rutas: ['Océano Índico', 'Golfo de Bengala'] },
+                        { id: 'sa', nombre: 'Arabia Saudita y Golfo Pérsico', defensa: 330, defensaMax: 330, conquistado: false, recompensas: 950, rutas: ['Mar Rojo', 'Estrecho de Ormuz'] }
+                    ]
+                },
+                "África": {
+                    "África del Norte": [
+                        { id: 'eg', nombre: 'Egipto y Canal de Suez', defensa: 270, defensaMax: 270, conquistado: false, recompensas: 800, rutas: ['Canal de Suez', 'Mediterráneo Oriental'] },
+                        { id: 'ma', nombre: 'Marruecos', defensa: 190, defensaMax: 190, conquistado: false, recompensas: 550, rutas: ['Atlántico Norte', 'Estrecho de Gibraltar'] }
+                    ],
+                    "África Subsahariana e Islas": [
+                        { id: 'za', nombre: 'Sudáfrica', defensa: 250, defensaMax: 250, conquistado: false, recompensas: 720, rutas: ['Cabo de Buena Esperanza', 'Atlántico/Índico'] },
+                        { id: 'mg', nombre: 'Madagascar y Mascareñas', defensa: 160, defensaMax: 160, conquistado: false, recompensas: 480, rutas: ['Canal de Mozambique', 'Índico Sur'] }
+                    ]
+                },
+                "Oceanía": {
+                    "Australasia y Polinesia": [
+                        { id: 'au', nombre: 'Australia y Tasmania', defensa: 340, defensaMax: 340, conquistado: false, recompensas: 1000, rutas: ['Gran Barrera de Coral', 'Mar de Tasmania'] },
+                        { id: 'nz', nombre: 'Nueva Zelanda', defensa: 210, defensaMax: 210, conquistado: false, recompensas: 620, rutas: ['Pacífico Sur', 'Estrecho de Cook'] },
+                        { id: 'fj', nombre: 'Fiyi, Hawái y Archipiélagos del Pacífico', defensa: 180, defensaMax: 180, conquistado: false, recompensas: 520, rutas: ['Atolones del Pacífico', 'Ruta Transoceánica'] }
+                    ]
+                },
+                "Antártida": {
+                    "Región Polar": [
+                        { id: 'aq', nombre: 'Bases Antárticas y Mares Glaciares', defensa: 300, defensaMax: 300, conquistado: false, recompensas: 900, rutas: ['Mar de Weddell', 'Mar de Ross'] }
+                    ]
+                }
+            },
+
+            selectedContinent: null,
+            selectedRegion: null,
             targetCountry: null,
             activeRoute: null,
 
@@ -370,30 +487,34 @@
                 bloquearOrientacion();
                 if (this.isAudioInitialized) return;
 
-                // Inicialización automática de fondos de audio
                 this.seaAudio = new Audio('./mar.mp3');
                 this.seaAudio.loop = true;
-                this.seaAudio.volume = 0.15;
+                this.seaAudio.volume = this.bgVolumeNormal;
 
                 this.battleAudio = new Audio('./Batalla_Aeronaval.mp3');
                 this.battleAudio.loop = true;
-                this.battleAudio.volume = 0.15;
+                this.battleAudio.volume = this.bgVolumeNormal;
 
                 this.carrierAudio = new Audio('./sonidoportaaviones1.mp3');
                 this.carrierAudio.loop = true;
-                this.carrierAudio.volume = 0.20;
+                this.carrierAudio.volume = this.bgVolumeNormal + 0.05;
 
                 this.seaAudio.play().catch(() => {});
                 this.battleAudio.play().catch(() => {});
                 this.carrierAudio.play().catch(() => {});
 
-                // Bienvenida inicial por síntesis y FX
-                this.playFX('mensajedebienvenida.mp3', 'Sistemas de AeroOcean en línea. Centro de mando activo.');
+                this.playFX('mensajedebienvenida.mp3', 'Sistemas de AeroOcean en línea. Centro de mando mundial activo.');
                 this.isAudioInitialized = true;
                 this.startEnemyAI();
+                this.populateMapFilters();
             },
 
-            // Control de silencio al minimizar la app
+            setBgVolume(vol) {
+                if (this.seaAudio) this.seaAudio.volume = vol;
+                if (this.battleAudio) this.battleAudio.volume = vol;
+                if (this.carrierAudio) this.carrierAudio.volume = vol + 0.05;
+            },
+
             pauseAudio() {
                 if (this.seaAudio) this.seaAudio.pause();
                 if (this.battleAudio) this.battleAudio.pause();
@@ -401,7 +522,6 @@
                 if ('speechSynthesis' in window) window.speechSynthesis.cancel();
             },
 
-            // Reanudación al regresar a la app
             resumeAudio() {
                 if (this.isAudioInitialized) {
                     if (this.seaAudio) this.seaAudio.play().catch(() => {});
@@ -415,6 +535,16 @@
                     window.speechSynthesis.cancel();
                     const utterance = new SpeechSynthesisUtterance(text);
                     utterance.lang = 'es-ES';
+                    
+                    // Ducking
+                    this.setBgVolume(this.bgVolumeDucked);
+                    utterance.onend = () => {
+                        this.setBgVolume(this.bgVolumeNormal);
+                    };
+                    utterance.onerror = () => {
+                        this.setBgVolume(this.bgVolumeNormal);
+                    };
+
                     window.speechSynthesis.speak(utterance);
                 }
                 const log = document.getElementById('statusLog');
@@ -422,16 +552,19 @@
                 log.scrollTop = log.scrollHeight;
             },
 
-            playFX(fileName, description) {
+            playFX(fileName, description, vibratePattern) {
                 const audio = new Audio('./' + fileName);
-                audio.play().catch(e => {
-                    console.warn("Audio no encontrado:", fileName);
-                });
+                audio.play().catch(e => console.warn("Audio no encontrado:", fileName));
+                
+                if (vibratePattern && navigator.vibrate) {
+                    navigator.vibrate(vibratePattern);
+                }
+
                 if (description) this.speak(description);
             },
 
-            action(soundFile, text) {
-                this.playFX(soundFile, text);
+            action(soundFile, text, vibratePattern) {
+                this.playFX(soundFile, text, vibratePattern);
             },
 
             setVehicle(name, soundFile, text) {
@@ -439,16 +572,45 @@
                 this.playFX(soundFile, text);
             },
 
-            fireWeapon(soundFile, text, ammoCost, damage) {
+            fireWeapon(btnElement, soundFile, text, ammoCost, baseDamage, cooldownMs, weaponType, vibratePattern) {
                 if (this.fuel <= 0) {
-                    this.playFX('emergencia.wav', '¡Sin combustible! Vehículo inmovilizado.');
+                    this.playFX('emergencia.wav', '¡Sin combustible! Vehículo inmovilizado.', [300, 100, 300]);
                     return;
                 }
                 if (this.ammo >= ammoCost) {
                     this.ammo -= ammoCost;
-                    this.fuel = Math.max(0, this.fuel - 2);
+                    const fuelConsumption = Math.max(1, 2 - this.fuelEfficiencyLevel);
+                    this.fuel = Math.max(0, this.fuel - fuelConsumption);
+                    
+                    // Bonificaciones por vehículo activo
+                    let damage = baseDamage;
+                    if ((weaponType === 'torpedo' || weaponType === 'cargas') && this.vehicleActive === 'Submarino') {
+                        damage = Math.floor(baseDamage * 1.5);
+                    } else if (weaponType === 'bombardero' && this.vehicleActive === 'Bombardero') {
+                        damage = Math.floor(baseDamage * 1.5);
+                    } else if ((weaponType === 'misil' || weaponType === 'trazadoras') && this.vehicleActive === 'Caza Interceptor') {
+                        damage = Math.floor(baseDamage * 1.25);
+                    }
+
                     this.updateUI();
-                    this.playFX(soundFile, text);
+                    this.playFX(soundFile, text, vibratePattern);
+
+                    // Aplicar Cooldown
+                    if (btnElement) {
+                        btnElement.disabled = true;
+                        const bar = btnElement.querySelector('.cooldown-bar');
+                        if (bar) {
+                            bar.style.transition = 'none';
+                            bar.style.width = '100%';
+                            setTimeout(() => {
+                                bar.style.transition = `width ${cooldownMs}ms linear`;
+                                bar.style.width = '0%';
+                            }, 20);
+                        }
+                        setTimeout(() => {
+                            btnElement.disabled = false;
+                        }, cooldownMs);
+                    }
 
                     if (this.targetCountry && !this.targetCountry.conquistado) {
                         this.targetCountry.defensa -= damage;
@@ -457,7 +619,7 @@
                             this.targetCountry.conquistado = true;
                             this.gold += this.targetCountry.recompensas;
                             this.level++;
-                            this.playFX('Batalla_Aeronaval.mp3', `¡Victoria total! ${this.targetCountry.nombre} conquistado. Ganaste ${this.targetCountry.recompensas} de oro.`);
+                            this.playFX('Batalla_Aeronaval.mp3', `¡Victoria total! ${this.targetCountry.nombre} conquistado. Ganaste ${this.targetCountry.recompensas} de oro.`, [500, 100, 500]);
                             this.targetCountry = null;
                             this.activeRoute = null;
                         } else {
@@ -465,7 +627,7 @@
                         }
                     }
                 } else {
-                    this.playFX('alerta.mp3', '¡Sin munición ni armamento disponible!');
+                    this.playFX('alerta.mp3', '¡Sin munición ni armamento disponible!', [200]);
                 }
             },
 
@@ -474,16 +636,16 @@
                 this.enemyTimer = setInterval(() => {
                     if (this.targetCountry && !this.targetCountry.conquistado) {
                         const enemyAttacks = [
-                            { sound: 'Alarmadeataqueenemigo.mp3', text: 'Respuesta enemiga: Ataque masivo detectado.' },
-                            { sound: 'alarmadeemergencia.mp3', text: 'Respuesta enemiga: Fuego e incendios provocados por impacto enemigo.' }
+                            { sound: 'Alarmadeataqueenemigo.mp3', text: 'Respuesta enemiga: Ataque masivo detectado.', vib: [300, 100, 300] },
+                            { sound: 'alarmadeemergencia.mp3', text: 'Respuesta enemiga: Fuego e incendios provocados por impacto enemigo.', vib: [400] }
                         ];
                         const att = enemyAttacks[Math.floor(Math.random() * enemyAttacks.length)];
                         this.armor = Math.max(0, this.armor - 12);
                         this.updateUI();
-                        this.playFX(att.sound, att.text);
+                        this.playFX(att.sound, att.text, att.vib);
 
                         if (this.armor <= 0) {
-                            this.playFX('emergencia.wav', 'Flota comprometida. Incursión fallida. Regresando a base.');
+                            this.playFX('emergencia.wav', 'Flota comprometida. Incursión fallida. Regresando a base.', [100, 100, 100, 100, 500]);
                             this.targetCountry = null;
                             this.activeRoute = null;
                             this.armor = 100;
@@ -493,18 +655,68 @@
                 }, 11000);
             },
 
+            populateMapFilters() {
+                const selectCont = document.getElementById('selectContinent');
+                selectCont.innerHTML = '<option value="">-- Seleccionar Continente --</option>';
+                Object.keys(this.mapData).forEach(cont => {
+                    selectCont.innerHTML += `<option value="${cont}">${cont}</option>`;
+                });
+            },
+
+            onContinentChange(contName) {
+                this.selectedContinent = contName;
+                this.selectedRegion = null;
+                const selectReg = document.getElementById('selectRegion');
+                selectReg.innerHTML = '<option value="">-- Seleccionar Región --</option>';
+                
+                if (contName && this.mapData[contName]) {
+                    selectReg.disabled = false;
+                    Object.keys(this.mapData[contName]).forEach(reg => {
+                        selectReg.innerHTML += `<option value="${reg}">${reg}</option>`;
+                    });
+                } else {
+                    selectReg.disabled = true;
+                }
+                this.renderCountries();
+            },
+
+            onRegionChange(regName) {
+                this.selectedRegion = regName;
+                this.renderCountries();
+            },
+
             selectRoute(countryId, routeName) {
                 if (!routeName) return;
-                this.targetCountry = this.paises.find(p => p.id === countryId);
-                this.activeRoute = routeName;
-                this.closeModal('modalMap');
-                this.playFX('contactoderadar.mp3', `Ruta confirmada: ${routeName} hacia ${this.targetCountry.nombre}. Capacidad de respuesta enemiga activa.`);
+                
+                // Buscar país en estructura global
+                let found = null;
+                for (const cont in this.mapData) {
+                    for (const reg in this.mapData[cont]) {
+                        const match = this.mapData[cont][reg].find(p => p.id === countryId);
+                        if (match) { found = match; break; }
+                    }
+                    if (found) break;
+                }
+
+                if (found) {
+                    this.targetCountry = found;
+                    this.activeRoute = routeName;
+                    this.closeModal('modalMap');
+                    this.playFX('contactoderadar.mp3', `Ruta confirmada: ${routeName} hacia ${this.targetCountry.nombre}. Capacidad de respuesta enemiga activa.`, [150, 50, 150]);
+                }
             },
 
             renderCountries() {
                 const container = document.getElementById('countriesContainer');
                 container.innerHTML = '';
-                this.paises.forEach(p => {
+
+                if (!this.selectedContinent || !this.selectedRegion) {
+                    container.innerHTML = '<div style="text-align:center; padding:15px; color:#888;">Selecciona un continente y región para desplegar la lista de países y archipiélagos.</div>';
+                    return;
+                }
+
+                const list = this.mapData[this.selectedContinent][this.selectedRegion] || [];
+                list.forEach(p => {
                     const card = document.createElement('div');
                     card.className = `country-card ${p.conquistado ? 'conquered' : ''}`;
                     let html = `<strong>${p.nombre}</strong> (Defensa: ${p.defensa}/${p.defensaMax})<br>`;
@@ -537,13 +749,30 @@
             buyResource(type, amount, cost) {
                 if (this.gold >= cost) {
                     this.gold -= cost;
-                    if (type === 'ammo') this.ammo += amount;
+                    if (type === 'ammo') this.ammo = Math.min(this.maxAmmo, this.ammo + amount);
                     if (type === 'fuel') this.fuel = Math.min(100, this.fuel + amount);
                     if (type === 'armor') this.armor = Math.min(100, this.armor + amount);
                     this.updateUI();
-                    this.speak('Suministros comprados y equipados.');
+                    this.speak('Suministros comprados y reabastecidos.');
                 } else {
                     this.speak('Oro insuficiente para la compra.');
+                }
+            },
+
+            buyUpgrade(type, amount, cost) {
+                if (this.gold >= cost) {
+                    this.gold -= cost;
+                    if (type === 'maxAmmo') {
+                        this.maxAmmo += amount;
+                        this.ammo += amount;
+                        this.speak('Capacidad máxima de armamento ampliada.');
+                    } else if (type === 'fuelEfficiency') {
+                        this.fuelEfficiencyLevel++;
+                        this.speak('Eficiencia de motores optimizada.');
+                    }
+                    this.updateUI();
+                } else {
+                    this.speak('Oro insuficiente para la mejora.');
                 }
             },
 
@@ -551,19 +780,19 @@
                 document.getElementById('res-level').innerText = this.level;
                 document.getElementById('res-gold').innerText = this.gold;
                 document.getElementById('res-ammo').innerText = this.ammo;
+                document.getElementById('res-max-ammo').innerText = this.maxAmmo;
                 document.getElementById('res-fuel').innerText = this.fuel + '%';
                 document.getElementById('res-armor').innerText = this.armor + '%';
             }
         };
 
-        // Escuchadores de eventos de Cordova para la inicialización y el estado en segundo plano
+        // Eventos Cordova y Fallback Navegador
         document.addEventListener("deviceready", function() {
             Game.initAutoAudio();
             document.addEventListener("pause", () => Game.pauseAudio(), false);
             document.addEventListener("resume", () => Game.resumeAudio(), false);
         }, false);
 
-        // Respaldo para ejecuciones de prueba directas en navegadores web
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => Game.initAutoAudio(), 500);
         });
