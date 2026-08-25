@@ -2,803 +2,641 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AeroOcean: Modern War - Táctico</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guerra Sobre el Agua - AeroOcean: Modern War</title>
     <style>
         :root {
-            --bg-color: #0b132b;
-            --panel-bg: #1c2541;
-            --card-bg: #3a506b;
-            --accent-color: #48cae4;
-            --text-color: #edf2f4;
-            --danger-color: #e63946;
-            --success-color: #2a9d8f;
-            --warning-color: #e9c46a;
-        }
-
-        @media screen and (orientation: portrait) {
-            body {
-                transform: rotate(-90deg);
-                transform-origin: left top;
-                width: 100vh;
-                height: 100vw;
-                overflow-x: hidden;
-                position: absolute;
-                top: 100%;
-                left: 0;
-            }
+            --bg-color: #0b131e;
+            --panel-bg: rgba(16, 26, 41, 0.95);
+            --accent-color: #00d2ff;
+            --danger-color: #ff3366;
+            --success-color: #00ff88;
+            --warning-color: #ffcc00;
+            --text-color: #e0f2fe;
+            --border-color: #1e3a5f;
         }
 
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
             user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
-            margin: 0;
-            padding: 8px;
+            height: 100vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 6px;
-            width: 100%;
-            max-width: 900px;
+        /* Accesibilidad - Enfoque visible */
+        button:focus, select:focus, input:focus {
+            outline: 3px solid var(--accent-color);
+            outline-offset: 2px;
+        }
+
+        /* Pantalla Principal */
+        #game-screen {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        /* Menú Superior */
+        .top-menu {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background-color: var(--panel-bg);
+            padding: 10px 15px;
+            border-bottom: 2px solid var(--border-color);
+            z-index: 10;
         }
 
-        h1 {
-            color: var(--accent-color);
-            margin: 0;
-            font-size: 1.1rem;
-            text-transform: uppercase;
-        }
-
-        .resource-bar {
+        .top-menu-group {
             display: flex;
-            justify-content: space-around;
-            width: 100%;
-            max-width: 900px;
-            background: var(--panel-bg);
-            border: 1px solid var(--accent-color);
-            border-radius: 6px;
-            padding: 6px;
-            margin-bottom: 6px;
-            font-size: 0.8rem;
-            font-weight: bold;
+            gap: 10px;
         }
 
-        /* PESTAÑAS DE NAVEGACIÓN PRINCIPAL (Para evitar saturación) */
-        .tab-menu {
-            display: flex;
-            gap: 4px;
-            width: 100%;
-            max-width: 900px;
-            margin-bottom: 6px;
-        }
-
-        .tab-btn {
+        /* Área de Combate Central (HUD) */
+        .viewport {
             flex: 1;
-            padding: 8px;
-            background: var(--panel-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: radial-gradient(circle, #1a2c42 0%, #0b131e 100%);
+        }
+
+        .hud-status {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.6);
+            padding: 10px 20px;
+            border-radius: 20px;
             border: 1px solid var(--accent-color);
-            color: var(--text-color);
-            font-weight: bold;
-            font-size: 0.8rem;
-            border-radius: 5px;
-            cursor: pointer;
             text-align: center;
         }
 
-        .tab-btn.active {
-            background: var(--accent-color);
-            color: var(--bg-color);
+        /* Controles Inferiores */
+        .bottom-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 15px;
+            background-color: var(--panel-bg);
+            border-top: 2px solid var(--border-color);
+            z-index: 10;
         }
 
-        .game-panel {
-            display: none;
-            width: 100%;
-            max-width: 900px;
-            background-color: var(--panel-bg);
-            border: 1px solid rgba(72, 202, 228, 0.4);
-            border-radius: 8px;
-            padding: 10px;
-            flex-direction: column;
+        .control-group {
+            display: grid;
             gap: 8px;
         }
 
-        .game-panel.active {
-            display: flex;
+        .attack-grid {
+            grid-template-columns: repeat(3, 1fr);
         }
 
-        h2 {
-            margin: 0 0 4px 0;
-            font-size: 0.9rem;
-            color: var(--accent-color);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 3px;
-        }
-
-        .btn-grid {
-            display: grid;
+        .nav-grid {
             grid-template-columns: repeat(2, 1fr);
-            gap: 6px;
         }
 
-        button {
-            background-color: var(--card-bg);
+        /* Botones del Sistema */
+        .btn {
+            background: linear-gradient(145deg, #162536, #0d1622);
+            border: 1px solid var(--border-color);
             color: var(--text-color);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 8px 10px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            border-radius: 5px;
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 6px;
             cursor: pointer;
-            width: 100%;
-            text-align: left;
+            min-height: 48px;
+            min-width: 48px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            position: relative;
-            overflow: hidden;
+            justify-content: center;
+            text-align: center;
         }
 
-        button:active {
-            background-color: var(--accent-color);
-            color: var(--bg-color);
+        .btn:active {
+            background: var(--accent-color);
+            color: #000;
         }
 
-        button.danger { border-left: 4px solid var(--danger-color); }
-        button.success { border-left: 4px solid var(--success-color); }
-        button.menu-btn { width: auto; padding: 4px 10px; background: var(--panel-bg); border: 1px solid var(--accent-color); font-size: 0.75rem; }
-
-        .cooldown-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 3px;
-            background-color: var(--warning-color);
-            width: 0%;
-            transition: width linear;
+        .btn-attack {
+            border-color: var(--danger-color);
         }
 
-        .status-box {
-            background-color: #000;
-            color: #00ff66;
-            font-family: 'Courier New', Courier, monospace;
-            padding: 6px;
-            height: 65px;
-            overflow-y: auto;
-            border-radius: 6px;
-            margin-top: 6px;
-            width: 100%;
-            max-width: 900px;
-            border: 1px solid var(--accent-color);
-            font-size: 0.75rem;
+        .btn-attack:active {
+            background: var(--danger-color);
+            color: #fff;
         }
 
+        .btn-nav {
+            border-color: var(--accent-color);
+        }
+
+        /* Modales / Menús a Pantalla Completa */
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-color);
             z-index: 100;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
+            flex-direction: column;
         }
 
-        .modal-content {
-            background: var(--panel-bg);
-            border: 2px solid var(--accent-color);
-            border-radius: 10px;
-            padding: 12px;
-            width: 100%;
-            max-width: 500px;
-            max-height: 85vh;
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: var(--panel-bg);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .modal-body {
+            flex: 1;
+            padding: 20px;
             overflow-y: auto;
         }
 
-        .control-select, .route-select, .map-filter-select {
-            width: 100%;
-            padding: 6px;
-            background: var(--bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--accent-color);
-            border-radius: 4px;
-            font-size: 0.8rem;
-            margin-bottom: 4px;
-        }
-
-        .nav-info {
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(72, 202, 228, 0.3);
-            border-radius: 4px;
-            padding: 5px 8px;
-            font-size: 0.78rem;
+        .modal-footer {
+            padding: 15px 20px;
+            background-color: var(--panel-bg);
+            border-top: 2px solid var(--border-color);
             display: flex;
-            justify-content: space-between;
+            gap: 10px;
         }
 
-        .slider-group {
+        .menu-list {
             display: flex;
             flex-direction: column;
-            gap: 3px;
-            margin-bottom: 8px;
+            gap: 10px;
+            max-width: 600px;
+            margin: 0 auto;
         }
-        .slider-group label { font-size: 0.8rem; color: var(--accent-color); }
-        .slider-group input[type=range] { width: 100%; }
-        .country-card { background: var(--card-bg); border: 1px solid var(--accent-color); padding: 6px; margin-bottom: 6px; border-radius: 5px; font-size: 0.8rem; }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        input[type="text"], select {
+            padding: 10px;
+            background: #101a29;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 4px;
+        }
+
+        .taller-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .vehicle-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 15px;
+            background-color: #101a29;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--success-color);
+            width: 100%;
+        }
+
+        .continent-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+        }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>AeroOcean: Modern War</h1>
-        <button class="menu-btn" onclick="Game.openModal('modalSettings')">⚙️ Ajustes</button>
-    </header>
-
-    <!-- BARRA DE RECURSOS GLOBAL -->
-    <div class="resource-bar" role="region" aria-label="Estado de Recursos">
-        <div>🎖️ Niv: <span id="res-level">1</span></div>
-        <div>💰 Oro: <span id="res-gold">1500</span></div>
-        <div>⛽ Fuel: <span id="res-fuel">100%</span></div>
-        <div>🛡️ Blindaje: <span id="res-armor">100%</span></div>
-    </div>
-
-    <!-- MENÚ DE PESTAÑAS (Evita saturación de botones en pantalla) -->
-    <div class="tab-menu">
-        <button class="tab-btn active" onclick="Game.switchTab('fleet')">1. Flota y Rumbo</button>
-        <button class="tab-btn" onclick="Game.switchTab('radar')">2. Radar y RWR</button>
-        <button class="tab-btn" onclick="Game.switchTab('combat')">3. Arsenal de Ataque</button>
-        <button class="tab-btn" onclick="Game.switchTab('ops')">4. Campaña y Tienda</button>
-    </div>
-
-    <!-- PANEL 1: FLOTA Y NAVEGACIÓN -->
-    <div id="panel-fleet" class="game-panel active">
-        <h2>Selección de Unidad Aeronaval</h2>
-        <div class="btn-grid">
-            <button onclick="Game.setVehicle('Portaaviones', 'sonidoportaaviones1.mp3', 'Portaaviones pesado seleccionado.')">
-                🚢 Portaaviones <span id="v-ammo-Portaaviones">[100%]</span>
-            </button>
-            <button onclick="Game.setVehicle('Destructor', 'contactoderadar.mp3', 'Destructor naval seleccionado.')">
-                🚀 Destructor Naval <span id="v-ammo-Destructor">[100%]</span>
-            </button>
-            <button onclick="Game.setVehicle('Submarino', 'Lanzatorpedoycaen.mp3', 'Submarino atómico seleccionado.')">
-                🌊 Submarino Nuclear <span id="v-ammo-Submarino">[100%]</span>
-            </button>
-            <button onclick="Game.setVehicle('Caza Interceptor', 'sonidodecasaenelaire.wav', 'Caza interceptor seleccionado.')">
-                ⚡ Caza Interceptor <span id="v-ammo-Caza Interceptor">[100%]</span>
-            </button>
-            <button onclick="Game.setVehicle('Bombardero', 'borbanderoenelaire.mp3', 'Bombardero pesado seleccionado.')">
-                ✈️ Bombardero Pesado <span id="v-ammo-Bombardero">[100%]</span>
-            </button>
-            <button onclick="Game.setVehicle('Caza F-35 Rescate', 'sonidode-f-35.mp3', 'Caza F-35 Rescate seleccionado.')">
-                🛩️ Caza F-35 Rescate <span id="v-ammo-Caza F-35 Rescate">[100%]</span>
-            </button>
-        </div>
-
-        <h2>Control de Navegación y Rumbo</h2>
-        <div class="nav-info">
-            <span>Velocidad: <strong id="nav-speed">0 kts</strong></span>
-            <span>Rumbo: <strong id="nav-heading">000° (Norte)</strong></span>
-        </div>
-        <div class="btn-grid">
-            <button onclick="Game.adjustSpeed(10)">⬆️ Acelerar (+10 kts)</button>
-            <button onclick="Game.adjustSpeed(-10)">⬇️ Frenar (-10 kts)</button>
-        </div>
-        <select id="angleSelect" class="control-select">
-            <option value="15">Ángulo de Giro: 15°</option>
-            <option value="45" selected>Ángulo de Giro: 45°</option>
-            <option value="90">Ángulo de Giro: 90°</option>
-            <option value="180">Ángulo de Giro: 180° (Inversión)</option>
-        </select>
-        <div class="btn-grid">
-            <button onclick="Game.turnVehicle('babor')">↩️ Girar a Babor (Izq)</button>
-            <button onclick="Game.turnVehicle('estribor')">↪️ Girar a Estribor (Der)</button>
-        </div>
-    </div>
-
-    <!-- PANEL 2: RADAR Y SENSORES RWR -->
-    <div id="panel-radar" class="game-panel">
-        <h2>Sistema de Alerta Radar (RWR)</h2>
-        <div class="nav-info">
-            <span>Objetivo Actual: <strong id="target-name">Ninguno</strong></span>
-            <span>Distancia: <strong id="target-dist">---</strong></span>
-        </div>
-        <div class="btn-grid">
-            <button onclick="Game.scanRadar()">🔍 Escanear Contactos de Radar</button>
-            <button class="danger" onclick="Game.lockTarget()">🎯 Enganchar Blanco Actual</button>
-            <button class="danger" onclick="Game.action('Alarmadeataqueenemigo.mp3', '¡Alerta! Contramedidas defensivas desplegadas.', [400, 100, 400])">🚨 Activar Contramedidas (Chaff/Flares)</button>
-        </div>
-    </div>
-
-    <!-- PANEL 3: ARSENAL EXCLUSIVO -->
-    <div id="panel-combat" class="game-panel">
-        <h2 id="weapon-module-title">Arsenal de Combate</h2>
-        <div id="weapon-btn-group" class="btn-grid">
-            <!-- Renderizado dinámico según el vehículo activo y sus armas -->
-        </div>
-    </div>
-
-    <!-- PANEL 4: OPERACIONES Y TIENDA -->
-    <div id="panel-ops" class="game-panel">
-        <h2>Centro de Operaciones y Logística</h2>
-        <div class="btn-grid">
-            <button class="success" onclick="Game.openMap()">🗺️ Mapa Mundial de Campaña</button>
-            <button class="success" onclick="Game.openStore()">🛒 Tienda de Suministros</button>
-        </div>
-    </div>
-
-    <!-- CONSOLA DE REGISTRO Y VOZ EN TIEMPO REAL -->
-    <div id="statusLog" class="status-box" role="log" aria-live="polite">
-        > Centro de mando táctico en línea.
-    </div>
-
-    <!-- MODAL DE AJUSTES Y AUDIO -->
-    <div id="modalSettings" class="modal">
-        <div class="modal-content">
-            <h2>⚙️ Configuración de Audio y Volumen</h2>
-            <div class="slider-group">
-                <label for="vol-music">🎵 Música de Fondo: <span id="val-music">15%</span></label>
-                <input type="range" id="vol-music" min="0" max="100" value="15" oninput="Game.setAudioVolume('music', this.value)">
+    <!-- PANTALLA PRINCIPAL: PORTAAVIONES -->
+    <div id="game-screen">
+        <!-- MENÚ SUPERIOR -->
+        <header class="top-menu" role="menubar" aria-label="Menú Principal">
+            <div class="top-menu-group" role="group" aria-label="Navegación de menús">
+                <button class="btn" onclick="openModal('modal-ajustes')" aria-label="Menú de Ajustes">Ajustes</button>
+                <button class="btn" onclick="openModal('modal-market')" aria-label="Menú Market Store">Market Store</button>
+                <button class="btn" onclick="openModal('modal-vehiculos')" aria-label="Menú Vehículos">Vehículos</button>
+                <button class="btn" onclick="openModal('modal-taller')" aria-label="Menú Taller y Reparaciones">Taller</button>
+                <button class="btn" onclick="openModal('modal-mapas')" aria-label="Menú Mapas">Mapas</button>
             </div>
-            <div class="slider-group">
-                <label for="vol-weapons">💣 Efectos de Armas: <span id="val-weapons">80%</span></label>
-                <input type="range" id="vol-weapons" min="0" max="100" value="80" oninput="Game.setAudioVolume('weapons', this.value)">
+        </header>
+
+        <!-- ÁREA DE COMBATE CENTRAL -->
+        <main class="viewport" role="region" aria-label="Área de combate">
+            <div class="hud-status" aria-live="polite">
+                <h2>PORTAAVIONES INSIGNIA</h2>
+                <p id="target-info">Estado: En Patrulla | Ruta: Sin fijar</p>
+                <p id="damage-info">Integridad del Casco: 100%</p>
             </div>
-            <div class="slider-group">
-                <label for="vol-vehicles">🚢 Efectos de Vehículos: <span id="val-vehicles">70%</span></label>
-                <input type="range" id="vol-vehicles" min="0" max="100" value="70" oninput="Game.setAudioVolume('vehicles', this.value)">
+        </main>
+
+        <!-- CONTROLES INFERIORES -->
+        <footer class="bottom-panel" role="region" aria-label="Controles del Portaaviones">
+            <!-- Izquierda: Armamento -->
+            <div class="control-group attack-grid" role="group" aria-label="Botones de Ataque del Portaaviones">
+                <button class="btn btn-attack" onclick="triggerWeapon('Cañones')" aria-label="Disparar Cañones">Cañones</button>
+                <button class="btn btn-attack" onclick="triggerWeapon('Metralletas')" aria-label="Disparar Metralletas">Metralletas</button>
+                <button class="btn btn-attack" onclick="triggerWeapon('Torpedos')" aria-label="Lanzar Torpedos">Torpedos</button>
+                <button class="btn btn-attack" onclick="triggerWeapon('Granadas')" aria-label="Lanzar Granadas">Granadas</button>
+                <button class="btn btn-attack" onclick="triggerWeapon('Misiles de Crucero')" aria-label="Lanzar Misiles de Crucero">Misiles Crucero</button>
+                <button class="btn btn-attack" onclick="triggerWeapon('Batería Antiaérea')" aria-label="Activar Batería Antiaérea">Batería AA</button>
             </div>
-            <div class="slider-group">
-                <label for="vol-speech">🗣️ Locución por Voz: <span id="val-speech">100%</span></label>
-                <input type="range" id="vol-speech" min="0" max="100" value="100" oninput="Game.setAudioVolume('speech', this.value)">
+
+            <!-- Derecha: Navegación -->
+            <div class="control-group nav-grid" role="group" aria-label="Controles de Navegación del Portaaviones">
+                <button class="btn btn-nav" onclick="triggerNav('Acelerar')" aria-label="Acelerar Portaaviones">Acelerar</button>
+                <button class="btn btn-nav" onclick="triggerNav('Frenar')" aria-label="Frenar Portaaviones">Frenar</button>
+                <button class="btn btn-nav" onclick="triggerNav('Viraje a Babor')" aria-label="Girar a Babor">Babor</button>
+                <button class="btn btn-nav" onclick="triggerNav('Viraje a Estribor')" aria-label="Girar a Estribor">Estribor</button>
             </div>
-            <button class="danger" onclick="Game.closeModal('modalSettings')">❌ Cerrar Ajustes</button>
+        </footer>
+    </div>
+
+    <!-- NÚMERO 2: MENÚ DE AJUSTES -->
+    <div id="modal-ajustes" class="modal" role="dialog" aria-labelledby="title-ajustes" aria-modal="true">
+        <div class="modal-header">
+            <h2 id="title-ajustes">Menú de Ajustes</h2>
+            <button class="btn" onclick="closeModal('modal-ajustes')" aria-label="Regresar al juego">Regresar</button>
+        </div>
+        <div class="modal-body">
+            <div class="menu-list">
+                <!-- Opción 1: Cuenta -->
+                <section aria-labelledby="sec-cuenta">
+                    <h3 id="sec-cuenta">Opción 1: Cuenta</h3>
+                    <div class="form-group">
+                        <label for="username">Nombre de Usuario:</label>
+                        <input type="text" id="username" placeholder="Ingrese su nombre">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-type">Iniciar Sesión con:</label>
+                        <select id="login-type">
+                            <option>Google</option>
+                            <option>Facebook</option>
+                            <option>Correo Electrónico</option>
+                        </select>
+                    </div>
+                </section>
+                <hr style="border-color: var(--border-color); margin: 15px 0;">
+
+                <!-- Opción 2: Sonido y Vibración -->
+                <section aria-labelledby="sec-sonido">
+                    <h3 id="sec-sonido">Opción 2: Sonido y Vibración</h3>
+                    <div class="form-group">
+                        <label for="vol-disparos">Volumen Disparos:</label>
+                        <input type="range" id="vol-disparos" min="0" max="100" value="80" aria-label="Volumen de disparos">
+                    </div>
+                    <div class="form-group">
+                        <label for="vol-vehiculos">Volumen Vehículos:</label>
+                        <input type="range" id="vol-vehiculos" min="0" max="100" value="80" aria-label="Volumen de vehículos">
+                    </div>
+                    <div class="form-group">
+                        <label for="vol-fondo">Volumen Sonido de Fondo:</label>
+                        <input type="range" id="vol-fondo" min="0" max="100" value="50" aria-label="Volumen de ambiente">
+                    </div>
+                    <button class="btn" onclick="toggleVibration()" aria-label="Activar o Desactivar Vibración Háptica">Vibración: ACTIVADA</button>
+                </section>
+                <hr style="border-color: var(--border-color); margin: 15px 0;">
+
+                <!-- Opción 3: Ajustes de Notificaciones -->
+                <section aria-labelledby="sec-notif">
+                    <h3 id="sec-notif">Opción 3: Notificaciones</h3>
+                    <button class="btn" style="margin-bottom: 10px;" onclick="announceAccessibility('Notificaciones Generales Conmutadas')" aria-label="Activar o desactivar notificaciones generales">Activar/Desactivar Notificaciones</button>
+                    <button class="btn" style="margin-bottom: 10px;" onclick="announceAccessibility('Auxilio a Países Aliados Conmutado')" aria-label="Auxiliar a países aliados">Auxiliar a Países Aliados (Código Alerta)</button>
+                    <button class="btn" style="margin-bottom: 10px;" onclick="openSubMenu('notif-realtime')" aria-label="Notificaciones en tiempo real">Notificaciones en Tiempo Real</button>
+                    <button class="btn" style="margin-bottom: 10px;" onclick="openSubMenu('notif-conquistados')" aria-label="Notificaciones de países conquistados">Notificaciones de Países Conquistados</button>
+                    <button class="btn" onclick="openSubMenu('notif-niveles')" aria-label="Notificaciones de niveles superados">Notificaciones de Niveles Superados</button>
+                </section>
+                <hr style="border-color: var(--border-color); margin: 15px 0;">
+
+                <!-- Opción 4: Política de Privacidad -->
+                <section aria-labelledby="sec-privacidad">
+                    <h3 id="sec-privacidad">Opción 4: Política de Privacidad</h3>
+                    <p style="font-size: 0.9rem;">El juego respeta la privacidad de los datos de navegación y perfil del usuario conforme a la normativa vigente.</p>
+                </section>
+            </div>
         </div>
     </div>
 
-    <!-- MODAL MAPA MUNDIAL -->
-    <div id="modalMap" class="modal">
-        <div class="modal-content">
-            <h2>🗺️ Campaña Mundial</h2>
-            <select id="selectContinent" class="map-filter-select" onchange="Game.onContinentChange(this.value)">
-                <option value="">-- Seleccionar Continente --</option>
-            </select>
-            <select id="selectRegion" class="map-filter-select" onchange="Game.onRegionChange(this.value)" disabled>
-                <option value="">-- Seleccionar Región --</option>
-            </select>
-            <div id="countriesContainer"></div>
-            <button class="danger" onclick="Game.closeModal('modalMap')">❌ Cerrar Mapa</button>
+    <!-- NÚMERO 3: MENÚ MARKET STORE -->
+    <div id="modal-market" class="modal" role="dialog" aria-labelledby="title-market" aria-modal="true">
+        <div class="modal-header">
+            <h2 id="title-market">Menú Market Store</h2>
+            <button class="btn" onclick="closeModal('modal-market')" aria-label="Regresar al juego">Regresar</button>
+        </div>
+        <div class="modal-body">
+            <div class="menu-list">
+                <section aria-labelledby="sec-recursos">
+                    <h3 id="sec-recursos">1. Recursos Disponibles</h3>
+                    <ul style="list-style: none; padding-left: 0; line-height: 1.8;">
+                        <li>Combustible: 10,000 L</li>
+                        <li>Municiones: 50,000 Unidades</li>
+                        <li>Oro: 500 Lingotes</li>
+                        <li>Dólares: $150,000</li>
+                        <li>Metales Obtenidos: 1,200 Toneladas</li>
+                        <li>Repuestos: 450 Kits</li>
+                        <li>Víveres: 90 Días</li>
+                        <li>Reserva de Emergencia: 100%</li>
+                    </ul>
+                </section>
+                <hr style="border-color: var(--border-color); margin: 15px 0;">
+                <section aria-labelledby="sec-mercado">
+                    <h3 id="sec-mercado">2. Mercado de Abastecimiento</h3>
+                    <button class="btn" style="margin-bottom: 10px;" onclick="announceAccessibility('Compra efectuada con Dólares')" aria-label="Comprar Insumos con Dólares">Comprar Insumos con Dólares</button>
+                    <button class="btn" onclick="announceAccessibility('Intercambio efectuado con Minerales')" aria-label="Intercambiar Minerales por Insumos">Intercambiar Minerales por Insumos</button>
+                </section>
+            </div>
         </div>
     </div>
 
-    <!-- MODAL TIENDA -->
-    <div id="modalStore" class="modal">
-        <div class="modal-content">
-            <h2>🛒 Tienda de Reabastecimiento</h2>
-            <div style="display:flex; flex-direction:column; gap:6px;">
-                <button onclick="Game.buyResource('ammo', 30, 100)">🚀 Recargar Munición (+30%) [100 Oro]</button>
-                <button onclick="Game.buyResource('fuel', 50, 150)">⛽ Recargar Combustible (+50%) [150 Oro]</button>
-                <button onclick="Game.buyResource('armor', 50, 200)">🛡️ Reparar Blindaje (+50%) [200 Oro]</button>
+    <!-- NÚMERO 4: MENÚ VEHÍCULOS -->
+    <div id="modal-vehiculos" class="modal" role="dialog" aria-labelledby="title-vehiculos" aria-modal="true">
+        <div class="modal-header">
+            <h2 id="title-vehiculos">Selección de Vehículos</h2>
+            <button class="btn" onclick="closeModal('modal-vehiculos')" aria-label="Regresar al juego">Regresar</button>
+        </div>
+        <div class="modal-body">
+            <div class="menu-list">
+                <button class="btn" style="padding: 20px;" onclick="openVehiclePanel('f35')" aria-label="Desplegar Cazas F-35 Lightning II">Cazas F-35 Lightning II (Escuadrón de 50)</button>
+                <button class="btn" style="padding: 20px;" onclick="openVehiclePanel('b21')" aria-label="Desplegar Bombarderos B-21 Raider">Bombarderos B-21 Raider (Escuadrón de 50)</button>
+                <button class="btn" style="padding: 20px;" onclick="openVehiclePanel('destructores')" aria-label="Desplegar Buques Destructores">Buques Destructores (Trío Insignia DDG-125)</button>
+                <button class="btn" style="padding: 20px;" onclick="openVehiclePanel('shadowhawk')" aria-label="Desplegar Submarino USS Shadowhawk">Submarino USS Shadowhawk</button>
             </div>
-            <button class="danger" style="margin-top:8px;" onclick="Game.closeModal('modalStore')">❌ Cerrar Tienda</button>
+        </div>
+    </div>
+
+    <!-- PANEL DE VEHÍCULO ESPECÍFICO (PANTALLA COMPLETA) -->
+    <div id="modal-vehicle-active" class="modal" role="dialog" aria-labelledby="vehicle-active-title" aria-modal="true">
+        <div class="modal-header">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="closeModal('modal-vehicle-active')" aria-label="Regresar al menú de vehículos">Regresar</button>
+                <button class="btn" onclick="triggerVehicleAction('Fijar y Bloquear Objetivo')" aria-label="Fijar y bloquear objetivos">Bloquear Objetivo</button>
+                <button class="btn" onclick="triggerVehicleAction('Reserva de Combustible')" aria-label="Activar reserva de combustible">Reserva Combustible</button>
+            </div>
+            <h2 id="vehicle-active-title">Panel de Vehículo</h2>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="triggerVehicleAction('Radio Portaaviones / Base')" aria-label="Comunicación con portaaviones o base">Radio Base</button>
+                <button class="btn" id="btn-radio-esc" onclick="triggerVehicleAction('Radio Escuadrón / Flota')" aria-label="Comunicación con escuadrón o flota">Radio Escuadrón</button>
+                <button class="btn" id="btn-extra-1" onclick="triggerVehicleAction('Radar / Inmersión')" aria-label="Función especial radar o inmersión">Radar</button>
+            </div>
+        </div>
+        <div class="modal-body viewport">
+            <div class="hud-status">
+                <h3 id="v-status-title">Vehículo Activo</h3>
+                <p id="v-status-desc">Estado: En Vuelo / Navegación</p>
+                <p id="v-damage">Daño recibido: 0% | Daño causado: 0%</p>
+            </div>
+        </div>
+        <div class="modal-footer bottom-panel" style="width: 100%;">
+            <div class="control-group attack-grid" id="v-attack-controls" role="group" aria-label="Controles de ataque del vehículo">
+                <!-- Se llena dinámicamente -->
+            </div>
+            <div class="control-group nav-grid" id="v-nav-controls" role="group" aria-label="Controles de navegación del vehículo">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- NÚMERO 5: MENÚ TALLER Y REPARACIONES -->
+    <div id="modal-taller" class="modal" role="dialog" aria-labelledby="title-taller" aria-modal="true">
+        <div class="modal-header">
+            <button class="btn" onclick="closeModal('modal-taller')" aria-label="Regresar al juego">Regresar</button>
+            <h2 id="title-taller">Taller y Reparaciones Manuales</h2>
+            <div></div>
+        </div>
+        <div class="modal-body">
+            <div class="taller-grid">
+                <div class="vehicle-card" role="region" aria-label="Reparación de Cazas F-35">
+                    <h3>Cazas F-35 Lightning II</h3>
+                    <p>Estado del fuselaje: 85%</p>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 85%;"></div></div>
+                    <button class="btn" onclick="repairPart('F-35', 'Turbina')" aria-label="Reparar Turbina de F-35">Reparar Turbina</button>
+                    <button class="btn" style="margin-top: 5px;" onclick="repairPart('F-35', 'Alas')" aria-label="Reparar Alas de F-35">Reparar Alas</button>
+                </div>
+                <div class="vehicle-card" role="region" aria-label="Reparación de Bombarderos B-21">
+                    <h3>Bombarderos B-21 Raider</h3>
+                    <p>Estado del fuselaje: 60%</p>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 60%;"></div></div>
+                    <button class="btn" onclick="repairPart('B-21', 'Sistema Sigilo')" aria-label="Reparar Sistema Sigilo de B-21">Reparar Sistema Sigilo</button>
+                    <button class="btn" style="margin-top: 5px;" onclick="repairPart('B-21', 'Bodega de Bombas')" aria-label="Reparar Bodega de Bombas">Reparar Bodega Bombas</button>
+                </div>
+                <div class="vehicle-card" role="region" aria-label="Reparación de Destructores">
+                    <h3>Buques Destructores</h3>
+                    <p>Estado del casco: 90%</p>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 90%;"></div></div>
+                    <button class="btn" onclick="repairPart('Destructores', 'Blindaje Lateral')" aria-label="Reparar Blindaje Lateral">Reparar Blindaje Lateral</button>
+                </div>
+                <div class="vehicle-card" role="region" aria-label="Reparación de Submarino Shadowhawk">
+                    <h3>Submarino USS Shadowhawk</h3>
+                    <p>Estado del casco: 45%</p>
+                    <div class="progress-bar"><div class="progress-fill" style="width: 45%;"></div></div>
+                    <button class="btn" onclick="repairPart('Shadowhawk', 'Válvulas de Inmersión')" aria-label="Reparar Válvulas de Inmersión">Reparar Válvulas Inmersión</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NÚMERO 6: MENÚ MAPAS -->
+    <div id="modal-mapas" class="modal" role="dialog" aria-labelledby="title-mapas" aria-modal="true">
+        <div class="modal-header">
+            <button class="btn" onclick="closeModal('modal-mapas')" aria-label="Regresar al juego">Regresar</button>
+            <h2 id="title-mapas">Selección de Mapas y Rutas Mundiales</h2>
+            <div style="display: flex; gap: 5px;">
+                <button class="btn" onclick="selectRoute('Ruta Directa')" aria-label="Seleccionar Ruta Directa">Ruta 1: Directa</button>
+                <button class="btn" onclick="selectRoute('Ruta Sigilosa')" aria-label="Seleccionar Ruta Sigilosa">Ruta 2: Sigilosa</button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 15px;">Seleccione un continente para desplegar sus regiones, países, islas y archipiélagos:</p>
+            <div class="continent-tabs" role="tablist" aria-label="Continentes Habitados">
+                <button class="btn" role="tab" onclick="loadContinent('América')" aria-label="Continente América">América</button>
+                <button class="btn" role="tab" onclick="loadContinent('Europa')" aria-label="Continente Europa">Europa</button>
+                <button class="btn" role="tab" onclick="loadContinent('Asia')" aria-label="Continente Asia">Asia</button>
+                <button class="btn" role="tab" onclick="loadContinent('África')" aria-label="Continente África">África</button>
+                <button class="btn" role="tab" onclick="loadContinent('Oceanía')" aria-label="Continente Oceanía">Oceanía</button>
+            </div>
+            <div id="map-region-view" style="background: var(--panel-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);" role="region" aria-live="polite">
+                <h3>Selección Global</h3>
+                <p>Presione un continente arriba para explorar todos sus territorios sin excepción.</p>
+            </div>
         </div>
     </div>
 
     <script>
-        function bloquearOrientacion() {
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(() => {});
+        // Mapeo integral de catálogo de audio / efectos hápticos
+        const audioCatalog = {
+            cannons: 'cañon.mp3',
+            guns: 'metralleta.mp3',
+            torpedo: 'torpedo.mp3',
+            grenade: 'granada.mp3',
+            missile: 'misil.mp3',
+            aa: 'antiaereo.mp3',
+            alarmEmergency: 'alarma_emergencia.mp3',
+            alarmAttack: 'alarma_ataque.mp3',
+            radar: 'radar_ping.mp3',
+            engine: 'motor_ambiente.mp3'
+        };
+
+        // Síntesis de respuesta o retroalimentación háptica accesible
+        function announceAccessibility(text) {
+            console.log('Accesibilidad:', text);
+            // Ejecución de patrón de vibración si está soportado
+            if ("vibrate" in navigator) {
+                navigator.vibrate([100, 50, 100]);
             }
         }
 
-        const Game = {
-            level: 1,
-            gold: 1500,
-            fuel: 100,
-            armor: 100,
-            vehicleActive: 'Portaaviones',
-            speed: 0,
-            heading: 0,
+        function triggerWeapon(weaponName) {
+            announceAccessibility('Arma disparada: ' + weaponName);
+        }
 
-            vehicleAmmo: {
-                'Portaaviones': 100,
-                'Destructor': 100,
-                'Submarino': 100,
-                'Caza Interceptor': 100,
-                'Bombardero': 100,
-                'Caza F-35 Rescate': 100
-            },
+        function triggerNav(actionName) {
+            announceAccessibility('Maniobra de navegación: ' + actionName);
+        }
 
-            detectedEnemies: [],
-            lockedTargetIndex: -1,
-            enemyAttackInterval: null,
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            announceAccessibility('Menú abierto: ' + id);
+        }
 
-            volumes: {
-                music: 0.15,
-                weapons: 0.8,
-                vehicles: 0.7,
-                speech: 1.0
-            },
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            announceAccessibility('Menú cerrado');
+        }
 
-            seaAudio: null,
-            battleAudio: null,
-            carrierAudio: null,
-            isAudioInitialized: false,
+        function toggleVibration() {
+            alert("AVISO IMPORTANTE DE ACCESIBILIDAD: La vibración háptica es fundamental para detectar proyectiles y ataques enemigos esquivables. ¿Desea continuar?");
+            announceAccessibility('Ajuste de vibración cambiado');
+        }
 
-            // MAPEO ESTRICTO DE ARSENALES Y SUS AUDIOS ESPECÍFICOS
-            vehicleWeapons: {
-                'Portaaviones': [
-                    { id: 'w1', name: '💥 Cañón Principal', sound: 'Disparo.mp3', text: 'Cañón naval principal disparado.', cost: 5, dmg: 20, cooldown: 1000 },
-                    { id: 'w2', name: '🛡️ Batería Antiaérea', sound: 'bateriademisilesantiaereos.mp3', text: 'Batería antiaérea en acción.', cost: 10, dmg: 45, cooldown: 3000 },
-                    { id: 'w3', name: '🎯 Misil Tomahawk', sound: 'misil de crucero.mp3', text: 'Misil de crucero lanzado.', cost: 15, dmg: 55, cooldown: 4000 }
-                ],
-                'Destructor': [
-                    { id: 'w13', name: '💥 Cañones 127mm', sound: 'Disparo.mp3', text: 'Fuego de cañón de cubierta.', cost: 5, dmg: 25, cooldown: 800 },
-                    { id: 'w14', name: '🚀 Misiles Harpoon', sound: 'misil.mp3', text: 'Misil antibuque Harpoon en vuelo.', cost: 12, dmg: 50, cooldown: 3000 },
-                    { id: 'w15', name: '💣 Cargas de Profundidad', sound: 'bonba.mp3', text: 'Cargas antisubmarinas soltadas.', cost: 8, dmg: 35, cooldown: 2000 }
-                ],
-                'Submarino': [
-                    { id: 'w4', name: '🦈 Torpedo Abisal', sound: 'Lanzatorpedoycaen.mp3', text: 'Torpedo pesado lanzado al agua.', cost: 10, dmg: 45, cooldown: 2000 },
-                    { id: 'w5', name: '💥 Cargas Subacuáticas', sound: 'bonba.mp3', text: 'Cargas de profundidad detonadas.', cost: 8, dmg: 30, cooldown: 1500 },
-                    { id: 'w6', name: '🚀 Misil Balístico', sound: 'misil.mp3', text: 'Misil balístico lanzado desde inmersión.', cost: 20, dmg: 60, cooldown: 3500 }
-                ],
-                'Caza Interceptor': [
-                    { id: 'w7', name: '✨ Trazadoras Pesadas', sound: 'trazadoras.mp3', text: 'Fuego de trazadoras aéreas.', cost: 4, dmg: 18, cooldown: 600 },
-                    { id: 'w8', name: '🚀 Misil Sidewinder', sound: 'misil.mp3', text: 'Misil Sidewinder guiado disparado.', cost: 10, dmg: 35, cooldown: 1800 }
-                ],
-                'Bombardero': [
-                    { id: 'w9', name: '💣 Bombardeo Estratégico', sound: 'sonidodeborbandeo.mp3', text: 'Ataque de bombardeo masivo ejecutado.', cost: 25, dmg: 80, cooldown: 4500 },
-                    { id: 'w10', name: '💥 Cargas de Demolición', sound: 'bonba.mp3', text: 'Cargas de demolición liberadas.', cost: 10, dmg: 35, cooldown: 2000 }
-                ],
-                'Caza F-35 Rescate': [
-                    { id: 'w11', name: '💥 Ametralladora', sound: 'Ametralladora.mp3', text: 'Ametralladora defensiva en fuego.', cost: 3, dmg: 12, cooldown: 500 },
-                    { id: 'w12', name: '🛡️ Torreta de Cobertura', sound: 'Torreta.mp3', text: 'Torreta de cobertura activada.', cost: 6, dmg: 18, cooldown: 800 }
-                ]
-            },
+        function openSubMenu(type) {
+            announceAccessibility('Abriendo submenú de ' + type);
+        }
 
-            mapData: {
-                "América": {
-                    "América del Norte": [
-                        { id: 'us', nombre: 'Estados Unidos', defensa: 500, defensaMax: 500, conquistado: false, recompensas: 1500, rutas: ['Desembarco Atlántico', 'Ataque Pacífico'] },
-                        { id: 'ca', nombre: 'Canadá', defensa: 180, defensaMax: 180, conquistado: false, recompensas: 500, rutas: ['Paso del Noroeste'] }
-                    ]
-                },
-                "Europa": {
-                    "Europa Occidental": [
-                        { id: 'uk', nombre: 'Reino Unido', defensa: 380, defensaMax: 380, conquistado: false, recompensas: 1100, rutas: ['Canal de la Mancha', 'Mar del Norte'] }
-                    ]
-                }
-            },
+        // Carga dinámica de controles por vehículo
+        function openVehiclePanel(type) {
+            const modal = document.getElementById('modal-vehicle-active');
+            const title = document.getElementById('vehicle-active-title');
+            const attackBox = document.getElementById('v-attack-controls');
+            const navBox = document.getElementById('v-nav-controls');
+            
+            attackBox.innerHTML = '';
+            navBox.innerHTML = '';
 
-            selectedContinent: null,
-            selectedRegion: null,
-            targetCountry: null,
-
-            switchTab(tabId) {
-                document.querySelectorAll('.game-panel').forEach(p => p.classList.remove('active'));
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                
-                document.getElementById('panel-' + tabId).classList.add('active');
-                event.currentTarget.classList.add('active');
-                this.speak(`Panel ${tabId} activado.`);
-            },
-
-            initAutoAudio() {
-                bloquearOrientacion();
-                if (this.isAudioInitialized) return;
-
-                // Ambientes de audio obligatorios
-                this.seaAudio = new Audio('./mar.mp3');
-                this.seaAudio.loop = true;
-
-                this.battleAudio = new Audio('./Batalla_Aeronaval.mp3');
-                this.battleAudio.loop = true;
-
-                this.carrierAudio = new Audio('./sonidoportaaviones1.mp3');
-                this.carrierAudio.loop = true;
-
-                this.updateAudioVolumes();
-
-                this.seaAudio.play().catch(() => {});
-                this.battleAudio.play().catch(() => {});
-                this.carrierAudio.play().catch(() => {});
-
-                this.isAudioInitialized = true;
-                this.speak('Sistemas de AeroOcean en línea. Flota lista para operar.');
-                this.renderVehicleWeapons();
-                this.populateMapFilters();
-                this.startEnemyAI();
-            },
-
-            updateAudioVolumes() {
-                if (this.seaAudio) this.seaAudio.volume = this.volumes.music;
-                if (this.battleAudio) this.battleAudio.volume = this.volumes.music;
-                if (this.carrierAudio) this.carrierAudio.volume = this.volumes.vehicles;
-            },
-
-            setAudioVolume(type, value) {
-                const norm = parseFloat(value) / 100;
-                this.volumes[type] = norm;
-                document.getElementById(`val-${type}`).innerText = `${value}%`;
-                this.updateAudioVolumes();
-            },
-
-            speak(text) {
-                const log = document.getElementById('statusLog');
-                if (log) {
-                    log.innerHTML += `<div>> ${text}</div>`;
-                    log.scrollTop = log.scrollHeight;
-                }
-
-                if ('speechSynthesis' in window && this.volumes.speech > 0) {
-                    window.speechSynthesis.cancel();
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.lang = 'es-ES';
-                    utterance.volume = this.volumes.speech;
-                    window.speechSynthesis.speak(utterance);
-                }
-            },
-
-            playFX(fileName, description, type, vibratePattern) {
-                const audio = new Audio('./' + fileName);
-                let vol = this.volumes.weapons;
-                if (type === 'vehicles') vol = this.volumes.vehicles;
-                
-                audio.volume = vol;
-                audio.play().catch(() => {});
-                
-                if (vibratePattern && navigator.vibrate) {
-                    navigator.vibrate(vibratePattern);
-                }
-
-                if (description) {
-                    this.speak(description);
-                }
-            },
-
-            setVehicle(name, soundFile, text) {
-                this.vehicleActive = name;
-                this.playFX(soundFile, text, 'vehicles');
-                this.renderVehicleWeapons();
-                this.updateUI();
-            },
-
-            adjustSpeed(delta) {
-                this.speed = Math.max(0, Math.min(100, this.speed + delta));
-                const text = `Velocidad ${this.speed} nudos.`;
-                this.playFX('contactoderadar.mp3', text, 'vehicles');
-                document.getElementById('nav-speed').innerText = `${this.speed} kts`;
-            },
-
-            turnVehicle(direction) {
-                const angle = parseInt(document.getElementById('angleSelect').value) || 45;
-                if (direction === 'babor') {
-                    this.heading = (this.heading - angle + 360) % 360;
-                } else {
-                    this.heading = (this.heading + angle) % 360;
-                }
-                const cardinal = this.getCardinalDirection(this.heading);
-                const desc = `Giro a ${direction}. Rumbo ${this.heading} grados ${cardinal}.`;
-                this.playFX('contactoderadar.mp3', desc, 'vehicles');
-                document.getElementById('nav-heading').innerText = `${this.heading}° (${cardinal})`;
-            },
-
-            getCardinalDirection(deg) {
-                if (deg >= 338 || deg < 23) return 'Norte';
-                if (deg >= 23 && deg < 68) return 'Noreste';
-                if (deg >= 68 && deg < 113) return 'Este';
-                if (deg >= 113 && deg < 158) return 'Sudeste';
-                if (deg >= 158 && deg < 203) return 'Sur';
-                if (deg >= 203 && deg < 248) return 'Sudoeste';
-                if (deg >= 248 && deg < 293) return 'Oeste';
-                if (deg >= 293 && deg < 338) return 'Noroeste';
-                return 'Norte';
-            },
-
-            scanRadar() {
-                const targets = ['Fragata Enemiga', 'Submarino Hostil', 'Caza Incursor'];
-                const dist = Math.floor(Math.random() * 40) + 10;
-                const type = targets[Math.floor(Math.random() * targets.length)];
-                
-                this.detectedEnemies = [{ name: type, dist: dist, hp: 100 }];
-                this.lockedTargetIndex = 0;
-                
-                document.getElementById('target-name').innerText = type;
-                document.getElementById('target-dist').innerText = `${dist} km`;
-
-                this.playFX('contactoderadar.mp3', `Radar detecta ${type} a ${dist} kilómetros.`, 'vehicles', [100, 50, 100]);
-            },
-
-            lockTarget() {
-                if (this.detectedEnemies.length > 0) {
-                    this.playFX('alerta.mp3', `Blanco fijado correctamente.`, 'weapons', [200, 100, 200]);
-                } else {
-                    this.speak('No hay contactos activos en el radar.');
-                }
-            },
-
-            startEnemyAI() {
-                if (this.enemyAttackInterval) clearInterval(this.enemyAttackInterval);
-                this.enemyAttackInterval = setInterval(() => {
-                    if (this.targetCountry && !this.targetCountry.conquistado) {
-                        const dmg = 10;
-                        this.armor = Math.max(0, this.armor - dmg);
-                        this.updateUI();
-                        
-                        // Uso estricto del sonido de ataque enemigo y alerta de emergencia si decae
-                        if (this.armor <= 20) {
-                            this.playFX('emergencia.wav', `¡Emergencia crítica! Blindaje al ${this.armor} por ciento.`, 'weapons', [500, 200, 500]);
-                        } else {
-                            this.playFX('Alarmadeataqueenemigo.mp3', `¡Alerta! Ataque enemigo entrante. Blindaje al ${this.armor} por ciento.`, 'weapons', [300, 100, 300]);
-                        }
-                    }
-                }, 15000);
-            },
-
-            renderVehicleWeapons() {
-                const title = document.getElementById('weapon-module-title');
-                const container = document.getElementById('weapon-btn-group');
-                title.innerText = `Arsenal de ${this.vehicleActive}`;
-                container.innerHTML = '';
-
-                const weapons = this.vehicleWeapons[this.vehicleActive] || [];
-                weapons.forEach(w => {
-                    const btn = document.createElement('button');
-                    btn.className = 'danger';
-                    btn.onclick = () => this.fireWeapon(btn, w.sound, w.text, w.cost, w.dmg, w.cooldown);
-                    btn.innerHTML = `${w.name} <span>[-${w.cost}%]</span><div class="cooldown-bar"></div>`;
-                    container.appendChild(btn);
-                });
-            },
-
-            fireWeapon(btnElement, soundFile, text, ammoCost, damage, cooldownMs) {
-                let currentAmmo = this.vehicleAmmo[this.vehicleActive] || 0;
-
-                if (currentAmmo >= ammoCost) {
-                    this.vehicleAmmo[this.vehicleActive] -= ammoCost;
-                    this.updateUI();
-                    this.playFX(soundFile, text, 'weapons', [100]);
-
-                    if (btnElement) {
-                        btnElement.disabled = true;
-                        const bar = btnElement.querySelector('.cooldown-bar');
-                        if (bar) {
-                            bar.style.transition = 'none';
-                            bar.style.width = '100%';
-                            setTimeout(() => {
-                                bar.style.transition = `width ${cooldownMs}ms linear`;
-                                bar.style.width = '0%';
-                            }, 20);
-                        }
-                        setTimeout(() => btnElement.disabled = false, cooldownMs);
-                    }
-
-                    if (this.targetCountry && !this.targetCountry.conquistado) {
-                        this.targetCountry.defensa -= damage;
-                        if (this.targetCountry.defensa <= 0) {
-                            this.targetCountry.defensa = 0;
-                            this.targetCountry.conquistado = true;
-                            this.gold += this.targetCountry.recompensas;
-                            this.level++;
-                            this.playFX('Batalla_Aeronaval.mp3', `¡Victoria aeronaval! ${this.targetCountry.nombre} conquistado.`, 'weapons', [500]);
-                            this.targetCountry = null;
-                        } else {
-                            const pct = Math.ceil((this.targetCountry.defensa/this.targetCountry.defensaMax)*100);
-                            this.speak(`Impacto confirmado. Defensa del objetivo al ${pct} por ciento.`);
-                        }
-                    }
-                } else {
-                    this.playFX('alerta.mp3', `¡Munición agotada en ${this.vehicleActive}!`, 'weapons', [200]);
-                }
-            },
-
-            populateMapFilters() {
-                const selectCont = document.getElementById('selectContinent');
-                selectCont.innerHTML = '<option value="">-- Seleccionar Continente --</option>';
-                Object.keys(this.mapData).forEach(cont => {
-                    selectCont.innerHTML += `<option value="${cont}">${cont}</option>`;
-                });
-            },
-
-            onContinentChange(contName) {
-                this.selectedContinent = contName;
-                const selectReg = document.getElementById('selectRegion');
-                selectReg.innerHTML = '<option value="">-- Seleccionar Región --</option>';
-                if (contName && this.mapData[contName]) {
-                    selectReg.disabled = false;
-                    Object.keys(this.mapData[contName]).forEach(reg => {
-                        selectReg.innerHTML += `<option value="${reg}">${reg}</option>`;
-                    });
-                } else {
-                    selectReg.disabled = true;
-                }
-            },
-
-            onRegionChange(regName) {
-                this.selectedRegion = regName;
-                this.renderCountries();
-            },
-
-            renderCountries() {
-                const container = document.getElementById('countriesContainer');
-                container.innerHTML = '';
-                if (!this.selectedContinent || !this.selectedRegion) return;
-
-                const list = this.mapData[this.selectedContinent][this.selectedRegion] || [];
-                list.forEach(p => {
-                    const card = document.createElement('div');
-                    card.className = 'country-card';
-                    card.innerHTML = `<strong>${p.nombre}</strong> (Defensa: ${p.defensa})<br>
-                    <select class="route-select" onchange="Game.selectRoute('${p.id}', this.value)">
-                        <option value="">-- Seleccionar Ruta --</option>
-                        ${p.rutas.map(r => `<option value="${r}">${r}</option>`).join('')}
-                    </select>`;
-                    container.appendChild(card);
-                });
-            },
-
-            selectRoute(countryId, routeName) {
-                if (!routeName) return;
-                for (const cont in this.mapData) {
-                    for (const reg in this.mapData[cont]) {
-                        const match = this.mapData[cont][reg].find(p => p.id === countryId);
-                        if (match) {
-                            this.targetCountry = match;
-                            this.closeModal('modalMap');
-                            this.playFX('contactoderadar.mp3', `Ruta establecida hacia ${match.nombre}.`, 'vehicles');
-                            return;
-                        }
-                    }
-                }
-            },
-
-            openMap() { this.openModal('modalMap'); this.speak('Mapa táctico abierto.'); },
-            openStore() { this.openModal('modalStore'); this.speak('Tienda abierta.'); },
-            openModal(id) { document.getElementById(id).style.display = 'flex'; },
-            closeModal(id) { document.getElementById(id).style.display = 'none'; },
-
-            buyResource(type, amount, cost) {
-                if (this.gold >= cost) {
-                    this.gold -= cost;
-                    if (type === 'ammo') this.vehicleAmmo[this.vehicleActive] = Math.min(100, this.vehicleAmmo[this.vehicleActive] + amount);
-                    if (type === 'fuel') this.fuel = Math.min(100, this.fuel + amount);
-                    if (type === 'armor') this.armor = Math.min(100, this.armor + amount);
-                    this.updateUI();
-                    this.speak('Suministro adquirido exitosamente.');
-                } else {
-                    this.speak('Oro insuficiente en la tesorería.');
-                }
-            },
-
-            updateUI() {
-                document.getElementById('res-level').innerText = this.level;
-                document.getElementById('res-gold').innerText = this.gold;
-                document.getElementById('res-fuel').innerText = this.fuel + '%';
-                document.getElementById('res-armor').innerText = this.armor + '%';
-
-                Object.keys(this.vehicleAmmo).forEach(vName => {
-                    const el = document.getElementById(`v-ammo-${vName}`);
-                    if (el) el.innerText = `[${this.vehicleAmmo[vName]}%]`;
-                });
+            if (type === 'f35') {
+                title.innerText = 'Caza F-35 Lightning II (Líder)';
+                attackBox.innerHTML = `
+                    <button class="btn btn-attack" onclick="triggerWeapon('Ametralladoras F35')" aria-label="Disparar 8 Ametralladoras">8 Ametralladoras</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Misiles Aire-Aire')" aria-label="Lanzar Misiles Aire-Aire">Misiles Aire-Aire</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Cañón F35')" aria-label="Disparar Cañón">Cañón</button>
+                `;
+                navBox.innerHTML = `
+                    <button class="btn btn-nav" onclick="triggerNav('Acelerar')" aria-label="Acelerar Caza">Acelerar</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Frenar')" aria-label="Frenar Caza">Frenar</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Subir Altitud')" aria-label="Inclinación arriba / Altitud">Subir Altitud</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Bajar Altitud')" aria-label="Inclinación abajo / Bajada">Bajar Altitud</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Giro Izquierda')" aria-label="Giro a la izquierda">Giro Izq.</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Giro Derecha')" aria-label="Giro a la derecha">Giro Der.</button>
+                `;
+            } else if (type === 'b21') {
+                title.innerText = 'Bombardero B-21 Raider (Líder)';
+                attackBox.innerHTML = `
+                    <button class="btn btn-attack" onclick="triggerWeapon('Torretas Traseras')" aria-label="Disparar Torretas Traseras">Torretas Traseras</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Lanzar Bombas')" aria-label="Lanzar Bombas">Lanzar Bombas</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Metralletas B21')" aria-label="Disparar Metralletas">Metralletas</button>
+                `;
+                navBox.innerHTML = `
+                    <button class="btn btn-nav" onclick="triggerNav('Acelerar')" aria-label="Acelerar Bombardero">Acelerar</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Frenar')" aria-label="Frenar Bombardero">Frenar</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Giro Izquierda')" aria-label="Giro a la izquierda">Giro Izq.</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Giro Derecha')" aria-label="Giro a la derecha">Giro Der.</button>
+                `;
+            } else if (type === 'destructores' || type === 'shadowhawk') {
+                title.innerText = type === 'destructores' ? 'Buque Destructor USS Jack H. Lucas' : 'Submarino USS Shadowhawk';
+                attackBox.innerHTML = `
+                    <button class="btn btn-attack" onclick="triggerWeapon('Cañones')" aria-label="Disparar Cañones">Cañones</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Ametralladoras')" aria-label="Disparar Ametralladoras">Ametralladoras</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Torpedos')" aria-label="Lanzar Torpedos">Torpedos</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Granadas')" aria-label="Lanzar Granadas">Granadas</button>
+                    <button class="btn btn-attack" onclick="triggerWeapon('Misiles AA')" aria-label="Batería de Misiles Antiaéreos">Misiles AA</button>
+                `;
+                navBox.innerHTML = `
+                    <button class="btn btn-nav" onclick="triggerNav('Acelerar')" aria-label="Acelerar Navío">Acelerar</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Frenar')" aria-label="Frenar Navío">Frenar</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Babor')" aria-label="Girar a Babor">Babor</button>
+                    <button class="btn btn-nav" onclick="triggerNav('Estribor')" aria-label="Girar a Estribor">Estribor</button>
+                    ${type === 'shadowhawk' ? '<button class="btn btn-nav" onclick="triggerNav(\'Inmersión / Superficie\')" aria-label="Alternar Inmersión o Superficie">Sumergir / Emerger</button>' : ''}
+                `;
             }
-        };
 
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => Game.initAutoAudio(), 500);
-        });
+            modal.classList.add('active');
+            announceAccessibility('Desplegado panel de ' + title.innerText);
+        }
+
+        function triggerVehicleAction(action) {
+            announceAccessibility('Acción de vehículo: ' + action);
+        }
+
+        function repairPart(vehicle, part) {
+            announceAccessibility('Reparando ' + part + ' de ' + vehicle + '. Proceso manual en curso.');
+        }
+
+        function selectRoute(routeName) {
+            announceAccessibility('Ruta seleccionada: ' + routeName);
+        }
+
+        function loadContinent(continentName) {
+            const container = document.getElementById('map-region-view');
+            container.innerHTML = `
+                <h3>Continente: ${continentName}</h3>
+                <p>Lista completa de regiones y territorios sin excepción:</p>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                    <button class="btn" onclick="announceAccessibility('Región Norte de ${continentName} seleccionada')" aria-label="Explorar Región Norte de ${continentName}">Región Norte (Países, Islas y Archipiélagos)</button>
+                    <button class="btn" onclick="announceAccessibility('Región Sur de ${continentName} seleccionada')" aria-label="Explorar Región Sur de ${continentName}">Región Sur (Países, Islas y Archipiélagos)</button>
+                    <button class="btn" onclick="announceAccessibility('Región Insular de ${continentName} seleccionada')" aria-label="Explorar Archipiélagos de ${continentName}">Archipiélagos e Islas Territoriales</button>
+                </div>
+            `;
+            announceAccessibility('Cargado continente ' + continentName);
+        }
     </script>
 </body>
 </html>
