@@ -210,7 +210,7 @@
     <main id="viewport">
         <div id="main-hud">
             <h1 style="text-align: center; color: var(--accent-color);">PORTAAVIONES INSIGNIA (BASE)</h1>
-            <p class="status-display" id="hud-status">Estado: En Navegación | Casco: 100% | Archivos MP3: Conectados</p>
+            <p class="status-display" id="hud-status">Estado: En Navegación | Casco: 100% | Archivos de Sonido Restaurados</p>
         </div>
 
         <!-- 2. MENÚ DE AJUSTES (Desplegable) -->
@@ -319,8 +319,8 @@
                         <button onclick="triggerTTS('Reserva de combustible activada')">Reserva Combustible</button>
                         <button onclick="triggerTTS('Comunicación con Portaaviones establecida')">Com. Portaaviones</button>
                         <button onclick="triggerTTS('Comunicación con Escuadrón Cazas en frecuencia')">Com. Escuadrón Cazas</button>
-                        <button onclick="triggerTTS('Escanear Radar')">Escanear Radar</button>
-                        <button onclick="playSFX('aterrizaje.mp3')">Despegar</button>
+                        <button onclick="playSFX('contactoderadar.mp3')">Escanear Radar</button>
+                        <button onclick="playSFX('sonidodecasaenelaire.wav')">Despegar</button>
                         <button onclick="playSFX('aterrizaje.mp3')">Aterrizar en Base</button>
                     </div>
                 </div>
@@ -328,7 +328,7 @@
                 <div class="bottom-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Ametralladora.mp3')">8 Ametralladoras</button>
-                        <button onclick="playSFX('bateriademisilesymisilcreco.mp3')">Misiles Aire-Aire</button>
+                        <button onclick="playSFX('misil.mp3')">Misiles Aire-Aire</button>
                         <button onclick="playSFX('Disparo.mp3')">Cañón Principal</button>
                     </div>
                     <div class="btn-group-horizontal">
@@ -359,8 +359,8 @@
                 <div class="bottom-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Torreta.mp3')">Torretas Traseras</button>
-                        <button onclick="playSFX('bomba.mp3')">Lanzar Bombas</button>
-                        <button onclick="playSFX('Ametralladora.mp3')">Metralletas</button>
+                        <button onclick="playSFX('sonidodeborbandeo.mp3')">Lanzar Bombas</button>
+                        <button onclick="playSFX('trazadoras.mp3')">Metralletas Trazadoras</button>
                     </div>
                     <div class="btn-group-horizontal">
                         <button onclick="triggerTTS('Acelerar bombardero')">Acelerar</button>
@@ -384,9 +384,9 @@
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Disparo.mp3')">Disparar Cañones</button>
                         <button onclick="playSFX('Ametralladora.mp3')">Ametralladoras</button>
-                        <button onclick="playSFX('Lanzatorpedoycaeenagua.mp3')">Lanzar Torpedos</button>
-                        <button onclick="playSFX('bomba.mp3')">Lanzar Granadas/Bombas</button>
-                        <button onclick="playSFX('bateriademisilesymisilcreco.mp3')">Batería Misiles</button>
+                        <button onclick="playSFX('Lanzatorpedoycaen.mp3')">Lanzar Torpedos</button>
+                        <button onclick="playSFX('bonba.mp3')">Lanzar Granadas/Bombas</button>
+                        <button onclick="playSFX('misil de crucero.mp3')">Batería Misiles</button>
                     </div>
                 </div>
             </div>
@@ -410,8 +410,8 @@
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Disparo.mp3')">Cañones Naval</button>
                         <button onclick="playSFX('Ametralladora.mp3')">Ametralladoras</button>
-                        <button onclick="playSFX('Lanzatorpedoycaeenagua.mp3')">Lanzar Torpedos</button>
-                        <button onclick="playSFX('bateriademisilesymisilcreco.mp3')">Misiles Sub-Superficie</button>
+                        <button onclick="playSFX('Lanzatorpedoycaen.mp3')">Lanzar Torpedos</button>
+                        <button onclick="playSFX('bateriademisilesantiaereos.mp3')">Misiles Sub-Superficie</button>
                     </div>
                 </div>
             </div>
@@ -472,32 +472,34 @@
         <div class="btn-group-horizontal" aria-label="Controles de Ataque">
             <button onclick="playSFX('Disparo.mp3')">1. Cañones</button>
             <button onclick="playSFX('Ametralladora.mp3')">2. Metralletas</button>
-            <button onclick="playSFX('Lanzatorpedoycaeenagua.mp3')">3. Torpedos</button>
-            <button onclick="playSFX('bomba.mp3')">4. Granadas</button>
-            <button onclick="playSFX('bateriademisilesymisilcreco.mp3')">5. Misiles Crucero</button>
-            <button onclick="playSFX('bateriademisilesymisilcreco.mp3')">6. Misiles Antiaéreos</button>
+            <button onclick="playSFX('Lanzatorpedoycaen.mp3')">3. Torpedos</button>
+            <button onclick="playSFX('bonba.mp3')">4. Granadas</button>
+            <button onclick="playSFX('misil de crucero.mp3')">5. Misiles Crucero</button>
+            <button onclick="playSFX('bateriademisilesantiaereos.mp3')">6. Misiles Antiaéreos</button>
         </div>
 
         <div class="btn-group-horizontal" aria-label="Controles de Navegación">
-            <button onclick="playSFX('Sonidoportaaviones.mp3')">Acelerar</button>
-            <button onclick="playSFX('Sonidoportaaviones.mp3')">Frenar</button>
+            <button onclick="playSFX('sonidoportaaviones1.mp3')">Acelerar</button>
+            <button onclick="playSFX('sonidoportaaviones1.mp3')">Frenar</button>
             <button onclick="triggerTTS('Girando a Babor')">Girar Babor</button>
             <button onclick="triggerTTS('Girando a Estribor')">Girar Estribor</button>
         </div>
     </footer>
 
-    <!-- SISTEMA DE REPRODUCCIÓN DIRECTA TRADICIONAL -->
+    <!-- SISTEMA DE REPRODUCCIÓN PROBADO Y RESTAURADO -->
     <script>
         let vibrationEnabled = true;
         
-        // Ruta directa a la carpeta donde están almacenados tus archivos MP3 en GitHub
-        const audioFolder = "./activos/www/";
+        // Pistas de Audio Ambientales
+        let seaAudio = null;
+        let battleAudio = null;
+        let carrierAudio = null;
 
-        // Reproducción de efectos de sonido directos
+        // Función exacta del código funcionando (Ruta directa ./)
         function playSFX(fileName) {
-            let audio = new Audio(audioFolder + fileName);
-            audio.play().catch(function(error) {
-                console.log("Error al reproducir audio: " + fileName, error);
+            const audio = new Audio('./' + fileName);
+            audio.play().catch(e => {
+                console.warn("Audio no encontrado:", fileName, e);
             });
             triggerVibration([80, 40, 80]);
         }
@@ -505,16 +507,26 @@
         // Inicio del juego al hacer clic en la capa inicial
         function startGame() {
             document.getElementById('start-overlay').style.display = 'none';
+
+            // Audios ambientales del motor que ya te funcionaba
+            seaAudio = new Audio('./mar.mp3');
+            seaAudio.loop = true;
+            seaAudio.volume = 0.15;
+
+            battleAudio = new Audio('./Batalla_Aeronaval.mp3');
+            battleAudio.loop = true;
+            battleAudio.volume = 0.15;
+
+            carrierAudio = new Audio('./sonidoportaaviones1.mp3');
+            carrierAudio.loop = true;
+            carrierAudio.volume = 0.20;
+
+            seaAudio.play().catch(() => {});
+            battleAudio.play().catch(() => {});
+            carrierAudio.play().catch(() => {});
+
+            playSFX('mensajedebienvenida.mp3');
             triggerTTS("Bienvenido a bordo, Capitán. Sistema táctico AeroOcean iniciado.");
-
-            // Pistas de fondo en bucle directo
-            let ambientSound = new Audio(audioFolder + "Batalla_Aeronaval.mp3");
-            ambientSound.loop = true;
-            ambientSound.play().catch(function(e) { console.log(e); });
-
-            let engineSound = new Audio(audioFolder + "Sonidoportaaviones.mp3");
-            engineSound.loop = true;
-            engineSound.play().catch(function(e) { console.log(e); });
         }
 
         // Sistema de lector de voz TTS
@@ -590,7 +602,7 @@
             triggerTTS("Reparando " + parte + " al 100 por ciento.");
         }
 
-        // BASE DE DATOS GEOGRÁFICA MUNDIAL
+        // BASE DE DATOS GEOGRÁFICA MUNDIAL MULTINIVEL
         const worldData = {
             "América": {
                 "América del Norte": [
@@ -696,6 +708,20 @@
             triggerTTS("Desplegando flota de combate hacia " + nombre);
             closeScreen('menu-mapas');
         }
+
+        // Manejo de eventos de ciclo de vida (Pausa y Reanudación)
+        document.addEventListener("pause", function() {
+            if (seaAudio) seaAudio.pause();
+            if (battleAudio) battleAudio.pause();
+            if (carrierAudio) carrierAudio.pause();
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        }, false);
+
+        document.addEventListener("resume", function() {
+            if (seaAudio) seaAudio.play().catch(() => {});
+            if (battleAudio) battleAudio.play().catch(() => {});
+            if (carrierAudio) carrierAudio.play().catch(() => {});
+        }, false);
     </script>
 </body>
 </html>
