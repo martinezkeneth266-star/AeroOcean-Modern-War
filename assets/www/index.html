@@ -3,424 +3,681 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego de Conquista Global</title>
+    <title>AeroOcean: Guerra Sobre el Agua</title>
     <style>
+        :root {
+            --bg-color: #0d1b2a;
+            --panel-bg: #1b263b;
+            --btn-bg: #415a77;
+            --btn-active: #778da9;
+            --text-color: #e0e1dd;
+            --accent-color: #00b4d8;
+            --danger-color: #e63946;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1a1e24;
-            color: #ecf0f1;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-        header {
-            background-color: #2c3e50;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #34495e;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        h1 {
-            font-size: 1.5rem;
-            color: #e74c3c;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .stats-bar {
-            display: flex;
-            gap: 20px;
-            font-size: 0.95rem;
-        }
-        .stat-item {
-            background: #34495e;
-            padding: 6px 12px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .stat-value {
-            font-weight: bold;
-            color: #f1c40f;
-        }
-        #main-container {
-            display: flex;
-            flex: 1;
-            height: calc(100vh - 65px);
-        }
-        #map-container {
-            flex: 1;
-            background-color: #0f171e;
-            position: relative;
-            overflow: hidden;
-            cursor: grab;
-        }
-        #map-container:active {
-            cursor: grabbing;
-        }
-        #svg-map {
-            width: 100%;
-            height: 100%;
-            filter: drop-shadow(0px 0px 10px rgba(0,0,0,0.5));
-        }
-        .region {
-            fill: #2b3e50;
-            stroke: #1a252f;
-            stroke-width: 1.5;
-            transition: all 0.25s ease;
-            cursor: pointer;
-        }
-        .region:hover {
-            fill: #34495e;
-            stroke: #3498db;
-            stroke-width: 2.5;
-        }
-        .region.selected {
-            fill: #e67e22 !important;
-            stroke: #f39c12;
-            stroke-width: 3;
-        }
-        .region.player-owned {
-            fill: #27ae60;
-        }
-        .region.enemy-owned {
-            fill: #c0392b;
-        }
-        .region-label {
-            font-size: 11px;
-            font-weight: bold;
-            fill: #ffffff;
-            pointer-events: none;
-            text-anchor: middle;
-            text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000;
             user-select: none;
         }
-        #sidebar {
-            width: 320px;
-            background-color: #2c3e50;
-            border-left: 2px solid #34495e;
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            gap: 20px;
-            box-shadow: -4px 0 6px rgba(0,0,0,0.2);
-            z-index: 10;
+            justify-content: space-between;
+            overflow: hidden;
         }
-        .panel-box {
-            background-color: #1f2d3d;
-            border: 1px solid #34495e;
-            border-radius: 6px;
-            padding: 15px;
+
+        /* Layout UI Accesible - Filas Horizontales Estrictas */
+       .top-bar,.bottom-bar {
+            background-color: var(--panel-bg);
+            padding: 10px;
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            white-space: nowrap;
+            gap: 10px;
+            align-items: center;
         }
-        .panel-title {
-            font-size: 1.1rem;
-            color: #3498db;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #34495e;
-            padding-bottom: 5px;
+
+       .top-bar {
+            border-bottom: 2px solid var(--accent-color);
         }
-        .btn {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            font-size: 1rem;
+
+       .bottom-bar {
+            border-top: 2px solid var(--accent-color);
+            justify-content: space-between;
+        }
+
+       .btn-group-horizontal {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        button {
+            background-color: var(--btn-bg);
+            color: var(--text-color);
+            border: 1px solid var(--accent-color);
+            padding: 12px 16px;
+            font-size: 14px;
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
-            width: 100%;
-            transition: background 0.2s;
-            text-transform: uppercase;
+            white-space: nowrap;
+            display: inline-block;
         }
-        .btn:hover {
-            background-color: #c0392b;
+
+        button:focus, button:hover {
+            background-color: var(--btn-active);
+            outline: 3px solid #fff;
         }
-        .btn:disabled {
-            background-color: #7f8c8d;
-            cursor: not-allowed;
+
+        button:active {
+            background-color: var(--accent-color);
+            color: #000;
         }
-        .btn-secondary {
-            background-color: #3498db;
-        }
-        .btn-secondary:hover {
-            background-color: #2980b9;
-        }
-        #log-box {
-            flex: 1;
-            background-color: #151d24;
-            border-radius: 4px;
-            padding: 10px;
-            font-family: monospace;
-            font-size: 0.85rem;
-            overflow-y: auto;
-            color: #bdc3c7;
+
+        /* Área Principal de Pantalla / Modales */
+        #viewport {
+            flex-grow: 1;
+            position: relative;
             display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: radial-gradient(circle, #1b263b 0%, #0d1b2a 100%);
+        }
+
+       .screen-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            display: none;
             flex-direction: column;
-            gap: 6px;
-            max-height: 250px;
+            padding: 20px;
+            z-index: 10;
+            overflow-y: auto;
         }
-        .log-entry {
-            border-bottom: 1px dashed #2c3e50;
-            padding-bottom: 4px;
+
+       .screen-panel.active {
+            display: flex;
         }
-        .log-entry.combat { color: #e74c3c; }
-        .log-entry.info { color: #3498db; }
-        .log-entry.success { color: #2ecc71; }
+
+       .status-display {
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+        }
+
+       .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        /* ESTILOS DEL MÓDULO DE MAPA INTEGRADO */
+       .full-screen-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #080e14; z-index: 100; display: none; flex-direction: column; padding: 16px; overflow-y: auto; }
+       .menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00ffcc; padding-bottom: 10px; margin-bottom: 15px; }
+       .menu-header h2 { margin: 0; color: #00ffcc; font-size: 18px; }
+       .breadcrumb { color: #ffaa00; font-size: 12px; margin-bottom: 12px; font-weight: bold; }
+       .map-list { display: flex; flex-direction: column; gap: 8px; }
+       .map-card { background: #112233; border: 1px solid #00ffcc; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+       .map-card-info { display: flex; flex-direction: column; gap: 4px; }
+       .reward-tag { color: #ffaa00; font-size: 11px; }
+       .btn-back { border-color: #ffaa00; color: #ffaa00; margin-bottom: 10px; }
+       .btn-close { border-color: #ff5555; color: #ff5555; padding: 6px 12px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Conquista Global</h1>
-        <div class="stats-bar">
-            <div class="stat-item">Turno: <span id="turn-display" class="stat-value">1</span></div>
-            <div class="stat-item">Tropas Disponibles: <span id="reserves-display" class="stat-value">5</span></div>
-            <div class="stat-item">Territorios: <span id="territories-display" class="stat-value">0/6</span></div>
+    <!-- Lector accesible para estado global -->
+    <div id="sr-announcer" class="sr-only" aria-live="assertive"></div>
+
+    <!-- PARTE ALTA: Menús principales en línea horizontal -->
+    <header class="top-bar" role="navigation" aria-label="Menú Principal Superior">
+        <div class="btn-group-horizontal">
+            <button onclick="openScreen('menu-ajustes')">1. Menú de Ajustes</button>
+            <button onclick="openScreen('menu-market')">2. Menú Market Store</button>
+            <button onclick="openScreen('menu-vehiculos')">3. Menú Vehículos</button>
+            <button onclick="openScreen('menu-taller')">4. Menú Taller y Reparaciones</button>
+            <button onclick="openScreen('menu-mapas')">5. Menú Mapas</button>
         </div>
     </header>
 
-    <div id="main-container">
-        <div id="map-container">
-            <svg id="svg-map" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
-                <path id="reg-na" class="region" d="M 150,80 L 320,70 L 380,140 L 300,260 L 220,280 L 120,200 Z" data-name="Norteamérica" />
-                <path id="reg-sa" class="region" d="M 270,300 L 360,320 L 390,420 L 330,520 L 280,480 L 250,370 Z" data-name="Sudamérica" />
-                <path id="reg-eu" class="region" d="M 450,90 L 580,80 L 620,160 L 540,230 L 440,200 L 430,140 Z" data-name="Europa" />
-                <path id="reg-af" class="region" d="M 440,240 L 570,240 L 620,350 L 550,500 L 460,450 L 420,320 Z" data-name="África" />
-                <path id="reg-as" class="region" d="M 600,70 L 900,60 L 950,220 L 820,330 L 650,280 L 590,170 Z" data-name="Asia" />
-                <path id="reg-oc" class="region" d="M 780,380 L 900,370 L 940,480 L 850,540 L 760,470 Z" data-name="Oceanía" />
-
-                <text x="240" y="170" class="region-label" id="label-na">Norteamérica (1)</text>
-                <text x="310" y="410" class="region-label" id="label-sa">Sudamérica (1)</text>
-                <text x="510" y="150" class="region-label" id="label-eu">Europa (1)</text>
-                <text x="510" y="360" class="region-label" id="label-af">África (1)</text>
-                <text x="750" y="180" class="region-label" id="label-as">Asia (1)</text>
-                <text x="850" y="460" class="region-label" id="label-oc">Oceanía (1)</text>
-            </svg>
+    <!-- ÁREA CENTRAL DE PANTALLA -->
+    <main id="viewport">
+        <div id="main-hud">
+            <h1 style="text-align: center; color: var(--accent-color);">PORTAAVIONES INSIGNIA (BASE)</h1>
+            <p class="status-display" id="hud-status">Estado: En Navegación | Casco: 100% | Munición: Lista</p>
         </div>
 
-        <div id="sidebar">
-            <div class="panel-box">
-                <div class="panel-title">Territorio Seleccionado</div>
-                <div id="selected-info">
-                    <p><strong>Nombre:</strong> <span id="info-name">Ninguno</span></p>
-                    <p><strong>Propietario:</strong> <span id="info-owner">-</span></p>
-                    <p><strong>Tropas:</strong> <span id="info-troops">-</span></p>
+        <!-- 2. MENÚ DE AJUSTES -->
+        <section id="menu-ajustes" class="screen-panel" aria-label="Menú de Ajustes">
+            <h2>Ajustes del Juego</h2>
+            <div class="top-bar">
+                <div class="btn-group-horizontal">
+                    <button onclick="closeScreen('menu-ajustes')">Regresar</button>
+                </div>
+            </div>
+            <br>
+            <div class="btn-group-horizontal">
+                <button onclick="openSubMenu('ajustes-cuenta')">Opción 1: Cuenta</button>
+                <button onclick="openSubMenu('ajustes-sonido')">Opción 2: Sonido y Vibración</button>
+                <button onclick="openSubMenu('ajustes-notificaciones')">Opción 3: Notificaciones</button>
+                <button onclick="openSubMenu('ajustes-privacidad')">Opción 4: Política de Privacidad</button>
+            </div>
+
+            <!-- Submenús de Ajustes -->
+            <div id="ajustes-cuenta" class="screen-panel">
+                <h3>Ajustes de Cuenta</h3>
+                <div class="top-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="closeSubMenu('ajustes-cuenta')">Regresar</button>
+                        <button onclick="triggerTTS('Elegir nombre de usuario')">1. Elegir Usuario</button>
+                        <button onclick="triggerTTS('Iniciar sesión con Google')">2. Sesión Google</button>
+                        <button onclick="triggerTTS('Iniciar sesión con Facebook')">3. Sesión Facebook</button>
+                        <button onclick="triggerTTS('Iniciar sesión con Correo')">4. Sesión Correo</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="panel-box">
-                <div class="panel-title">Acciones Tácticas</div>
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <button id="btn-deploy" class="btn btn-secondary" disabled>Desplegar Tropa</button>
-                    <button id="btn-attack" class="btn" disabled>Atacar / Conquistar</button>
-                    <button id="btn-end-turn" class="btn btn-secondary" style="background-color: #27ae60;">Finalizar Turno</button>
+            <div id="ajustes-sonido" class="screen-panel">
+                <h3>Sonido y Vibración</h3>
+                <div class="top-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="closeSubMenu('ajustes-sonido')">Regresar</button>
+                        <button onclick="adjustVolume('disparos')">Volumen Disparos</button>
+                        <button onclick="adjustVolume('vehiculos')">Volumen Vehículos</button>
+                        <button onclick="adjustVolume('fondo')">Volumen Fondo</button>
+                        <button onclick="toggleVibration()">Activar/Desactivar Vibración</button>
+                    </div>
                 </div>
             </div>
 
-            <div class="panel-box" style="flex: 1; display: flex; flex-direction: column;">
-                <div class="panel-title">Registro de Guerra</div>
-                <div id="log-box">
-                    <div class="log-entry info">¡Bienvenido a Conquista Global!</div>
-                    <div class="log-entry info">Selecciona un territorio para comenzar.</div>
+            <div id="ajustes-notificaciones" class="screen-panel">
+                <h3>Notificaciones</h3>
+                <div class="top-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="closeSubMenu('ajustes-notificaciones')">Regresar</button>
+                        <button onclick="triggerTTS('Notificaciones activadas o desactivadas')">1. Estado Notificaciones</button>
+                        <button onclick="triggerTTS('Auxilio a países aliados activado. Código de auxilio recibido.')">2. Auxiliar Aliados</button>
+                        <button onclick="triggerTTS('Notificaciones en tiempo real activas')">3. Tiempo Real</button>
+                        <button onclick="triggerTTS('Países conquistados: Ninguno recientemente.')">4. Territorios Conquistados</button>
+                        <button onclick="triggerTTS('Niveles superados: Nivel 1 completado.')">5. Niveles Superados</button>
+                    </div>
                 </div>
             </div>
+
+            <div id="ajustes-privacidad" class="screen-panel">
+                <h3>Política de Privacidad</h3>
+                <div class="top-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="closeSubMenu('ajustes-privacidad')">Regresar</button>
+                    </div>
+                </div>
+                <p style="margin-top: 20px;">Tus datos de combate y navegación están protegidos por el protocolo militar del Portaaviones Insignia.</p>
+            </div>
+        </section>
+
+        <!-- 3. MENÚ MARKET STORE -->
+        <section id="menu-market" class="screen-panel" aria-label="Market Store">
+            <h2>Market Store</h2>
+            <div class="top-bar">
+                <div class="btn-group-horizontal">
+                    <button onclick="closeScreen('menu-market')">Regresar</button>
+                    <button onclick="openSubMenu('market-recursos')">1. Recursos</button>
+                    <button onclick="openSubMenu('market-mercado')">2. Mercado</button>
+                </div>
+            </div>
+
+            <div id="market-recursos" class="screen-panel">
+                <h3>Inventario de Recursos</h3>
+                <div class="top-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="closeSubMenu('market-recursos')">Regresar</button>
+                        <button onclick="triggerTTS('Combustible: 100%')">Combustible</button>
+                        <button onclick="triggerTTS('Municiones: 5000 rondas')">Municiones</button>
+                        <button onclick="triggerTTS('Oro: 500 barras')">Oro</button>
+                        <button onclick="triggerTTS('Dólares: 50,000 USD')">Dólares</button>
+                        <button onclick="triggerTTS('Metales: Hierro y Titanio listos')">Metales</button>
+                        <button onclick="triggerTTS('Impuestos recolectados: 12,000 USD')">Impuestos</button>
+                        <button onclick="triggerTTS('Víveres: 90 días')">Víveres</button>
+                        <button onclick="triggerTTS('Reserva de emergencia: Completa')">Reserva Emergencia</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="market-mercado" class="screen-panel">
+                <h3>Mercado de Insumos</h3>
+                <div class="top-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="closeSubMenu('market-mercado')">Regresar</button>
+                        <button onclick="buySupplies('Combustible')">Comprar Combustible (Dólares)</button>
+                        <button onclick="buySupplies('Munición')">Comprar Munición (Minerales)</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. MENÚ VEHÍCULOS -->
+        <section id="menu-vehiculos" class="screen-panel" aria-label="Menú Vehículos">
+            <h2>Escuadrones y Fleet Maneuver</h2>
+            <div class="top-bar">
+                <div class="btn-group-horizontal">
+                    <button onclick="closeScreen('menu-vehiculos')">Regresar</button>
+                    <button onclick="openSubMenu('v-f35')">1. Cazas F-35 Lightning II</button>
+                    <button onclick="openSubMenu('v-b21')">2. Bombarderos B-21 Raider</button>
+                    <button onclick="openSubMenu('v-destructores')">3. Buques Destructores</button>
+                    <button onclick="openSubMenu('v-submarino')">4. Submarino USS Shadowhawk</button>
+                </div>
+            </div>
+
+            <!-- Vehículo 1: F-35 -->
+            <div id="v-f35" class="screen-panel">
+                <h3>Escuadrón Cazas F-35 (50 Cazas)</h3>
+                <div class="top-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="closeSubMenu('v-f35')">Regresar</button>
+                        <button onclick="playSFX('radar')">Fijar Objetivo</button>
+                        <button onclick="playSFX('radar')">Bloquear Objetivo</button>
+                        <button onclick="triggerTTS('Reserva de combustible activada')">Reserva Combustible</button>
+                        <button onclick="playSFX('voice')">Com. Portaaviones</button>
+                        <button onclick="playSFX('voice')">Com. Escuadrón Cazas</button>
+                        <button onclick="playSFX('radar')">Escanear Radar</button>
+                        <button onclick="triggerTTS('Despegando caza líder')">Despegar</button>
+                        <button onclick="playSFX('voice')">Aterrizar en Base</button>
+                    </div>
+                </div>
+                <div style="flex-grow: 1;"></div>
+                <div class="bottom-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="playSFX('ametralladora')">8 Ametralladoras</button>
+                        <button onclick="playSFX('misil')">Misiles Aire-Aire</button>
+                        <button onclick="playSFX('disparo')">Cañón Principal</button>
+                    </div>
+                    <div class="btn-group-horizontal">
+                        <button onclick="playSFX('motor')">Acelerar</button>
+                        <button onclick="playSFX('motor')">Frenar</button>
+                        <button onclick="triggerTTS('Altitud ajustada')">Altitud</button>
+                        <button onclick="triggerTTS('Velocidad máxima')">Velocidad</button>
+                        <button onclick="triggerTTS('Giro a la izquierda')">Giro Izq</button>
+                        <button onclick="triggerTTS('Giro a la derecha')">Giro Der</button>
+                        <button onclick="triggerTTS('Inclinación arriba')">Inc Arriba</button>
+                        <button onclick="triggerTTS('Inclinación abajo')">Inc Abajo</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehículo 2: B-21 Raider -->
+            <div id="v-b21" class="screen-panel">
+                <h3>Escuadrón Bombarderos B-21 Raider</h3>
+                <div class="top-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="closeSubMenu('v-b21')">Regresar</button>
+                        <button onclick="playSFX('radar')">Fijar Objetivo</button>
+                        <button onclick="playSFX('radar')">Bloquear Objetivo</button>
+                        <button onclick="triggerTTS('Reserva combustible activada')">Reserva Combustible</button>
+                        <button onclick="playSFX('voice')">Comunicación Base</button>
+                        <button onclick="playSFX('voice')">Comunicación Escuadrón</button>
+                        <button onclick="playSFX('radar')">Fijar Blanco</button>
+                        <button onclick="triggerTTS('Solicitando eyectar e rescate')">Eyectar / Pedir Ayuda</button>
+                    </div>
+                </div>
+                <div style="flex-grow: 1;"></div>
+                <div class="bottom-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="playSFX('disparo')">Torretas Traseras</button>
+                        <button onclick="playSFX('granada')">Lanzar Bombas</button>
+                        <button onclick="playSFX('ametralladora')">Metralletas</button>
+                    </div>
+                    <div class="btn-group-horizontal">
+                        <button onclick="playSFX('motor')">Acelerar</button>
+                        <button onclick="playSFX('motor')">Frenar</button>
+                        <button onclick="triggerTTS('Girar bombardero')">Girar</button>
+                        <button onclick="triggerTTS('Control de altitud')">Control Altitud</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehículo 3: Buques Destructores -->
+            <div id="v-destructores" class="screen-panel">
+                <h3>Buques Destructores (Líder: USS Jack H. Lucas)</h3>
+                <div class="top-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="closeSubMenu('v-destructores')">Regresar</button>
+                        <button onclick="playSFX('radar')">Seleccionar Objetivos</button>
+                        <button onclick="triggerTTS('Reflectores encendidos/apagados')">Encender/Apagar Reflectores</button>
+                        <button onclick="playSFX('voice')">Radio Portaaviones</button>
+                        <button onclick="playSFX('voice')">Radio Instrucción Flota Destructores</button>
+                        <button onclick="playSFX('radar')">Radar Activo</button>
+                    </div>
+                </div>
+                <div style="flex-grow: 1;"></div>
+                <div class="bottom-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="playSFX('disparo')">Disparar Cañones</button>
+                        <button onclick="playSFX('ametralladora')">Ametralladoras</button>
+                        <button onclick="playSFX('torpedo')">Lanzar Torpedos</button>
+                        <button onclick="playSFX('granada')">Lanzar Granadas</button>
+                        <button onclick="playSFX('misil')">Batería Misiles Antiaéreos</button>
+                    </div>
+                    <div class="btn-group-horizontal">
+                        <button onclick="playSFX('motor')">Acelerar</button>
+                        <button onclick="playSFX('motor')">Frenar</button>
+                        <button onclick="triggerTTS('Giro a Babor')">Girar Babor</button>
+                        <button onclick="triggerTTS('Giro a Estribor')">Girar Estribor</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehículo 4: Submarino USS Shadowhawk -->
+            <div id="v-submarino" class="screen-panel">
+                <h3>Submarino USS Shadowhawk</h3>
+                <div class="top-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="closeSubMenu('v-submarino')">Regresar</button>
+                        <button onclick="triggerTTS('Sumergiéndose bajo el agua'); playSFX('motor');">Sumergirse</button>
+                        <button onclick="triggerTTS('Navegando en superficie'); playSFX('motor');">Navegar Superficie</button>
+                        <button onclick="playSFX('radar')">Radar Sonar</button>
+                        <button onclick="playSFX('voice')">Radio Emergencia</button>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <p id="submarino-status">Estado Submarino: Superficie | Daño Recibido: 0% | Daño Causado: 0</p>
+                </div>
+                <div style="flex-grow: 1;"></div>
+                <div class="bottom-bar">
+                    <div class="btn-group-horizontal">
+                        <button onclick="playSFX('disparo')">Cañones Naval</button>
+                        <button onclick="playSFX('ametralladora')">Ametralladoras</button>
+                        <button onclick="playSFX('torpedo')">Lanzar Torpedos</button>
+                        <button onclick="playSFX('granada')">Granadas</button>
+                        <button onclick="playSFX('misil')">Misiles Sub-Superficie</button>
+                    </div>
+                    <div class="btn-group-horizontal">
+                        <button onclick="playSFX('motor')">Acelerar</button>
+                        <button onclick="playSFX('motor')">Frenar</button>
+                        <button onclick="triggerTTS('Girar Babor')">Girar Babor</button>
+                        <button onclick="triggerTTS('Girar Estribor')">Girar Estribor</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. MENÚ TALLER Y REPARACIONES -->
+        <section id="menu-taller" class="screen-panel" aria-label="Taller y Reparaciones">
+            <h2>Taller y Reparaciones</h2>
+            <div class="top-bar">
+                <div class="btn-group-horizontal">
+                    <button onclick="closeScreen('menu-taller')">Regresar</button>
+                </div>
+            </div>
+            <p style="margin: 15px 0;">Selecciona el vehículo y la parte a reparar manualmente:</p>
+            <div class="btn-group-horizontal">
+                <button onclick="repararParte('Portaaviones - Motor')">Reparar Motor Portaaviones</button>
+                <button onclick="repararParte('Portaaviones - Casco')">Reparar Casco Portaaviones</button>
+                <button onclick="repararParte('F-35 - Alas')">Reparar Alas F-35</button>
+                <button onclick="repararParte('B-21 - Sistemas')">Reparar Sistemas B-21</button>
+                <button onclick="repararParte('Destructor - Cañones')">Reparar Cañones Destructor</button>
+                <button onclick="repararParte('Submarino - Casco')">Reparar Casco Submarino</button>
+            </div>
+        </section>
+
+        <!-- 6. MENÚ MAPAS - INTEGRADO -->
+        <section id="menu-mapas" class="screen-panel" aria-label="Menú Mapas">
+            <div class="menu-header">
+                <h2 id="mapTitle">🌍 MAPA MUNDIAL</h2>
+                <button class="btn-close" onclick="closeScreen('menu-mapas')" aria-label="Volver al juego">✖ Volver</button>
+            </div>
+
+            <div id="breadcrumb" class="breadcrumb" aria-live="polite">Ubicación: Continentes Habitados</div>
+
+            <button id="btnMapBack" class="btn-back" style="display:none;" onclick="retrocederNivel()" aria-label="Regresar al nivel anterior">⬅ Regresar Nivel</button>
+
+            <div id="mapList" class="map-list" role="region" aria-live="polite"></div>
+        </section>
+    </main>
+
+    <!-- PARTE BAJA: Controles base del Portaaviones -->
+    <footer class="bottom-bar" role="navigation" aria-label="Controles Base del Portaaviones">
+        <div class="btn-group-horizontal" aria-label="Controles de Ataque">
+            <button onclick="playSFX('disparo')">1. Cañones</button>
+            <button onclick="playSFX('ametralladora')">2. Metralletas</button>
+            <button onclick="playSFX('torpedo')">3. Torpedos</button>
+            <button onclick="playSFX('granada')">4. Granadas</button>
+            <button onclick="playSFX('misil')">5. Misiles Crucero</button>
+            <button onclick="playSFX('misil')">6. Misiles Antiaéreos</button>
         </div>
-    </div>
 
+        <div class="btn-group-horizontal" aria-label="Controles de Navegación">
+            <button onclick="playSFX('motor')">Acelerar</button>
+            <button onclick="playSFX('motor')">Frenar</button>
+            <button onclick="triggerTTS('Girando a Babor')">Girar Babor</button>
+            <button onclick="triggerTTS('Girando a Estribor')">Girar Estribor</button>
+        </div>
+    </footer>
+
+    <!-- SISTEMA DE AUDIO WEB AUDIO API Y HÁPTICO INTEGRADO -->
     <script>
-        const gameState = {
-            turn: 1,
-            reserves: 5,
-            selectedRegionId: null,
-            regions: {
-                'reg-na': { name: 'Norteamérica', owner: 'Jugador 1', troops: 3, labelId: 'label-na' },
-                'reg-sa': { name: 'Sudamérica', owner: 'Neutro', troops: 2, labelId: 'label-sa' },
-                'reg-eu': { name: 'Europa', owner: 'Enemigo', troops: 3, labelId: 'label-eu' },
-                'reg-af': { name: 'África', owner: 'Neutro', troops: 2, labelId: 'label-af' },
-                'reg-as': { name: 'Asia', owner: 'Enemigo', troops: 4, labelId: 'label-as' },
-                'reg-oc': { name: 'Oceanía', owner: 'Neutro', troops: 1, labelId: 'label-oc' }
-            }
-        };
+        // Inicialización de contexto de audio
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
 
-        function speak(text) {
+        let vibrationEnabled = true;
+
+        // Anuncio por voz accesible (TTS)
+        function triggerTTS(text) {
+            const announcer = document.getElementById('sr-announcer');
+            if (announcer) {
+                announcer.innerText = text;
+            }
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'es-ES';
-                utterance.rate = 1.0;
                 window.speechSynthesis.speak(utterance);
             }
         }
 
-        const turnDisplay = document.getElementById('turn-display');
-        const reservesDisplay = document.getElementById('reserves-display');
-        const territoriesDisplay = document.getElementById('territories-display');
-        const infoName = document.getElementById('info-name');
-        const infoOwner = document.getElementById('info-owner');
-        const infoTroops = document.getElementById('info-troops');
-        const btnDeploy = document.getElementById('btn-deploy');
-        const btnAttack = document.getElementById('btn-attack');
-        const btnEndTurn = document.getElementById('btn-end-turn');
-        const logBox = document.getElementById('log-box');
-
-        function initGame() {
-            updateVisuals();
-            
-            document.querySelectorAll('.region').forEach(regionEl => {
-                regionEl.addEventListener('click', () => selectRegion(regionEl.id));
-            });
-
-            btnDeploy.addEventListener('click', handleDeploy);
-            btnAttack.addEventListener('click', handleAttack);
-            btnEndTurn.addEventListener('click', handleEndTurn);
+        // Sistema de Vibración Táctil para Usuarios Ciegos
+        function triggerVibration(pattern) {
+            if (vibrationEnabled && 'vibrate' in navigator) {
+                navigator.vibrate(pattern);
+            }
         }
 
-        function updateVisuals() {
-            let playerTerritories = 0;
-            const totalTerritories = Object.keys(gameState.regions).length;
+        function toggleVibration() {
+            vibrationEnabled =!vibrationEnabled;
+            triggerTTS(vibrationEnabled? "Vibración activada" : "Vibración desactivada");
+        }
 
-            for (const [id, data] of Object.entries(gameState.regions)) {
-                const el = document.getElementById(id);
-                const labelEl = document.getElementById(data.labelId);
-
-                el.classList.remove('player-owned', 'enemy-owned');
-                if (data.owner === 'Jugador 1') {
-                    el.classList.add('player-owned');
-                    playerTerritories++;
-                } else if (data.owner === 'Enemigo') {
-                    el.classList.add('enemy-owned');
+        // Generador Integrado de Todos los Sonidos Carga mediante Web Audio API
+        function playSFX(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const now = audioCtx.currentTime;
+            if (type === 'disparo') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.4);
+                gain.gain.setValueAtTime(1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.4);
+                triggerVibration([100, 50, 100]);
+            }
+            else if (type === 'ametralladora') {
+                for (let i = 0; i < 4; i++) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(400, now + (i * 0.08));
+                    gain.gain.setValueAtTime(0.5, now + (i * 0.08));
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + (i * 0.08) + 0.05);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + (i * 0.08));
+                    osc.stop(now + (i * 0.08) + 0.05);
                 }
-
-                labelEl.textContent = `${data.name} (${data.troops})`;
+                triggerVibration([40, 40, 40, 40]);
             }
-
-            turnDisplay.textContent = gameState.turn;
-            reservesDisplay.textContent = gameState.reserves;
-            territoriesDisplay.textContent = `${playerTerritories}/${totalTerritories}`;
-
-            if (gameState.selectedRegionId) {
-                const reg = gameState.regions[gameState.selectedRegionId];
-                infoName.textContent = reg.name;
-                infoOwner.textContent = reg.owner;
-                infoTroops.textContent = reg.troops;
-
-                btnDeploy.disabled = (reg.owner !== 'Jugador 1' || gameState.reserves <= 0);
-                btnAttack.disabled = (reg.owner !== 'Jugador 1' || reg.troops <= 1);
-            } else {
-                infoName.textContent = 'Ninguno';
-                infoOwner.textContent = '-';
-                infoTroops.textContent = '-';
-                btnDeploy.disabled = true;
-                btnAttack.disabled = true;
+            else if (type === 'torpedo') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(80, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.8);
+                gain.gain.setValueAtTime(0.8, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.8);
+                triggerVibration([200, 100, 200]);
+            }
+            else if (type === 'granada') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.exponentialRampToValueAtTime(20, now + 0.6);
+                gain.gain.setValueAtTime(1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.6);
+                triggerVibration([300]);
+            }
+            else if (type === 'misil') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(800, now + 0.5);
+                gain.gain.setValueAtTime(0.6, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.5);
+                triggerVibration([150, 50, 150, 50, 150]);
+            }
+            else if (type === 'radar') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1000, now);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.15);
+                triggerVibration([50, 50]);
+            }
+            else if (type === 'motor') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(60, now);
+                osc.frequency.linearRampToValueAtTime(120, now + 0.3);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+            else if (type === 'voice') {
+                triggerTTS("Mensaje de radio recibido del comando");
+            }
+            else if (type === 'alarma') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.setValueAtTime(440, now + 0.2);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.4);
+                triggerVibration([500, 200, 500]);
             }
         }
 
-        function selectRegion(id) {
-            document.querySelectorAll('.region').forEach(el => el.classList.remove('selected'));
-            
-            if (gameState.selectedRegionId === id) {
-                gameState.selectedRegionId = null;
-            } else {
-                gameState.selectedRegionId = id;
-                document.getElementById(id).classList.add('selected');
-                const reg = gameState.regions[id];
-                speak(`${reg.name}. Controlado por ${reg.owner}. ${reg.troops} tropas.`);
-            }
-
-            updateVisuals();
-        }
-
-        function handleDeploy() {
-            if (!gameState.selectedRegionId || gameState.reserves <= 0) return;
-
-            const reg = gameState.regions[gameState.selectedRegionId];
-            if (reg.owner === 'Jugador 1') {
-                reg.troops++;
-                gameState.reserves--;
-                logMessage(`Desplegada 1 tropa en ${reg.name}.`, 'success');
-                speak(`Tropa desplegada en ${reg.name}`);
-                updateVisuals();
+        // Gestión de Navegación de Modales e Interfaz
+        function openScreen(id) {
+            const target = document.getElementById(id);
+            if (target) {
+                target.classList.add('active');
+                triggerTTS("Abriendo " + id.replace('-', ' '));
+                if(id === 'menu-mapas') { mostrarContinentes(); }
             }
         }
 
-        function handleAttack() {
-            if (!gameState.selectedRegionId) return;
-
-            const attacker = gameState.regions[gameState.selectedRegionId];
-            if (attacker.owner !== 'Jugador 1' || attacker.troops <= 1) {
-                logMessage('Necesitas más de 1 tropa para atacar.', 'combat');
-                return;
+        function closeScreen(id) {
+            const target = document.getElementById(id);
+            if (target) {
+                target.classList.remove('active');
+                triggerTTS("Regresando al menú base");
             }
-
-            const enemyIds = Object.keys(gameState.regions).filter(id => gameState.regions[id].owner !== 'Jugador 1');
-            if (enemyIds.length === 0) {
-                logMessage('¡Has dominado todo el mapa!', 'success');
-                speak('¡Felicidades! Has dominado todo el mundo.');
-                return;
-            }
-
-            const targetId = enemyIds[Math.floor(Math.random() * enemyIds.length)];
-            const defender = gameState.regions[targetId];
-
-            logMessage(`Atacando ${defender.name} desde ${attacker.name}...`, 'combat');
-            speak(`Atacando ${defender.name}`);
-
-            const attackRoll = Math.floor(Math.random() * 6) + 1 + Math.floor(attacker.troops / 2);
-            const defenseRoll = Math.floor(Math.random() * 6) + 1 + Math.floor(defender.troops / 2);
-
-            if (attackRoll > defenseRoll) {
-                defender.troops--;
-                if (defender.troops <= 0) {
-                    defender.owner = 'Jugador 1';
-                    defender.troops = Math.floor(attacker.troops / 2);
-                    attacker.troops -= defender.troops;
-                    logMessage(`¡Victoria! Has conquistado ${defender.name}.`, 'success');
-                    speak(`¡Victoria! Has conquistado ${defender.name}.`);
-                } else {
-                    logMessage(`Ataque con éxito. ${defender.name} pierde 1 tropa.`, 'success');
-                }
-            } else {
-                attacker.troops--;
-                logMessage(`El ataque falló. Perdiste 1 tropa en ${attacker.name}.`, 'combat');
-                speak(`El ataque a ${defender.name} falló.`);
-            }
-
-            updateVisuals();
         }
 
-        function handleEndTurn() {
-            gameState.turn++;
-            gameState.reserves += 3;
-            
-            const enemyIds = Object.keys(gameState.regions).filter(id => gameState.regions[id].owner === 'Enemigo');
-            enemyIds.forEach(id => {
-                gameState.regions[id].troops += 1;
-            });
-
-            logMessage(`--- Turno ${gameState.turn} iniciado ---`, 'info');
-            logMessage('Recibes +3 tropas de refuerzo.', 'info');
-            speak(`Turno ${gameState.turn}. Recibes 3 tropas de refuerzo.`);
-
-            updateVisuals();
+        function openSubMenu(id) {
+            const target = document.getElementById(id);
+            if (target) {
+                target.classList.add('active');
+                triggerTTS("Entrando en submenú");
+            }
         }
 
-        function logMessage(msg, type = 'info') {
-            const entry = document.createElement('div');
-            entry.className = `log-entry ${type}`;
-            entry.textContent = `[${new Date().toLocaleTimeString().slice(0,5)}] ${msg}`;
-            logBox.appendChild(entry);
-            logBox.scrollTop = logBox.scrollHeight;
+        function closeSubMenu(id) {
+            const target = document.getElementById(id);
+            if (target) {
+                target.classList.remove('active');
+                triggerTTS("Regresando");
+            }
         }
 
-        window.onload = initGame;
-    </script>
-</body>
-</html>
+        // Simulación de Mecánicas y Recursos
+        function adjustVolume(tipo) {
+            triggerTTS("Ajustando volumen de " + tipo + ". Configuración guardada sin alterar el sonido conjunto.");
+        }
+
+        function buySupplies(item) {
+            triggerTTS("Abasteciendo " + item + " en el mercado.");
+        }
+
+        function repararParte(parte) {
+            playSFX('motor');
+            triggerTTS("Reparando " + parte + " manualmente al 100 por ciento.");
+        }
+
+        // BASE DE DATOS GEOGRÁFICA MUNDIAL COMPLETA - INTEGRADA
+        const worldData = {
+            "América": {"América del Norte": [{ nombre: "Canadá", tipo: "País", dinero: 800, minerales: 350 },{ nombre: "Estados Unidos", tipo: "País", dinero: 1200, minerales: 500 },{ nombre: "México", tipo: "País", dinero: 700, minerales: 300 },{ nombre: "Groenlandia", tipo: "Isla", dinero: 500, minerales: 600 },{ nombre: "Bermudas", tipo: "Archipiélago", dinero: 450, minerales: 200 },{ nombre: "San Pedro y Miquelón", tipo: "Archipiélago", dinero: 300, minerales: 150 }],"América Central": [{ nombre: "Belice", tipo: "País", dinero: 400, minerales: 180 },{ nombre: "Costa Rica", tipo: "País", dinero: 550, minerales: 220 },{ nombre: "El Salvador", tipo: "País", dinero: 450, minerales: 190 },{ nombre: "Guatemala", tipo: "País", dinero: 500, minerales: 230 },{ nombre: "Honduras", tipo: "País", dinero: 500, minerales: 250 },{ nombre: "Nicaragua", tipo: "País", dinero: 450, minerales: 210 },{ nombre: "Panamá", tipo: "País", dinero: 650, minerales: 280 }],"El Caribe": [{ nombre: "Antigua y Barbuda", tipo: "Isla", dinero: 350, minerales: 150 },{ nombre: "Bahamas", tipo: "Archipiélago", dinero: 500, minerales: 200 },{ nombre: "Barbados", tipo: "Isla", dinero: 400, minerales: 160 },{ nombre: "Cuba", tipo: "Isla", dinero: 550, minerales: 240 },{ nombre: "Dominica", tipo: "Isla", dinero: 300, minerales: 140 },{ nombre: "Granada", tipo: "Isla", dinero: 320, minerales: 150 },{ nombre: "Haití", tipo: "País", dinero: 350, minerales: 180 },{ nombre: "Jama
