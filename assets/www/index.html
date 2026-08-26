@@ -227,9 +227,10 @@
                 <summary onclick="triggerTTS('Opción 1: Cuenta desplegado')">Opción 1: Cuenta (Desplegar)</summary>
                 <div class="dropdown-content">
                     <button onclick="triggerTTS('Elegir nombre de usuario')">1. Elegir Usuario</button>
-                    <button onclick="triggerTTS('Iniciar sesión con Google')">2. Sesión Google</button>
-                    <button onclick="triggerTTS('Iniciar sesión con Facebook')">3. Sesión Facebook</button>
+                    <button onclick="loginGoogle()">2. Sesión Google</button>
+                    <button onclick="loginFacebook()">3. Sesión Facebook</button>
                     <button onclick="triggerTTS('Iniciar sesión con Correo')">4. Sesión Correo</button>
+                    <button onclick="triggerTTS('Iniciar sesión con Teléfono')">5. Sesión Teléfono</button>
                 </div>
             </details>
 
@@ -541,6 +542,18 @@
                 utterance.lang = 'es-ES';
                 window.speechSynthesis.speak(utterance);
             }
+        }
+
+        // Funciones de Inicio de Sesión integradas con el Client ID de Google Cloud
+        function loginGoogle() {
+            triggerTTS("Iniciando sesión con Google");
+            const googleClientId = "35640679870-ep1skjdicfgqi30n38i6722kr52sicjh.apps.googleusercontent.com";
+            console.log("Autenticando con Google Client ID:", googleClientId);
+        }
+
+        function loginFacebook() {
+            triggerTTS("Iniciando sesión con Facebook");
+            console.log("Iniciando sesión con Facebook");
         }
 
         // Sistema de Vibración Táctil
