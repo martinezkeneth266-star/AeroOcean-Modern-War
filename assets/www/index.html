@@ -34,7 +34,7 @@
         }
 
         /* Layout UI Accesible - Filas Horizontales Estrictas */
-       .top-bar,.bottom-bar {
+        .top-bar, .bottom-bar {
             background-color: var(--panel-bg);
             padding: 10px;
             display: flex;
@@ -45,16 +45,16 @@
             align-items: center;
         }
 
-       .top-bar {
+        .top-bar {
             border-bottom: 2px solid var(--accent-color);
         }
 
-       .bottom-bar {
+        .bottom-bar {
             border-top: 2px solid var(--accent-color);
             justify-content: space-between;
         }
 
-       .btn-group-horizontal {
+        .btn-group-horizontal {
             display: flex;
             flex-direction: row;
             gap: 8px;
@@ -62,7 +62,7 @@
             white-space: nowrap;
         }
 
-        button {
+        button, summary {
             background-color: var(--btn-bg);
             color: var(--text-color);
             border: 1px solid var(--accent-color);
@@ -73,16 +73,39 @@
             cursor: pointer;
             white-space: nowrap;
             display: inline-block;
+            list-style: none;
         }
 
-        button:focus, button:hover {
+        button:focus, button:hover, summary:focus, summary:hover {
             background-color: var(--btn-active);
             outline: 3px solid #fff;
         }
 
-        button:active {
+        button:active, summary:active {
             background-color: var(--accent-color);
             color: #000;
+        }
+
+        /* Menús desplegables estilitzados */
+        details {
+            background-color: rgba(27, 38, 59, 0.6);
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+
+        summary {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 5px;
+        }
+
+        .dropdown-content {
+            padding: 10px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
         }
 
         /* Área Principal de Pantalla / Modales */
@@ -96,7 +119,7 @@
             background: radial-gradient(circle, #1b263b 0%, #0d1b2a 100%);
         }
 
-       .screen-panel {
+        .screen-panel {
             position: absolute;
             top: 0;
             left: 0;
@@ -110,18 +133,18 @@
             overflow-y: auto;
         }
 
-       .screen-panel.active {
+        .screen-panel.active {
             display: flex;
         }
 
-       .status-display {
+        .status-display {
             font-size: 18px;
             text-align: center;
             margin-bottom: 20px;
             color: var(--accent-color);
         }
 
-       .sr-only {
+        .sr-only {
             position: absolute;
             width: 1px;
             height: 1px;
@@ -132,20 +155,43 @@
             border: 0;
         }
 
+        /* Capa de Inicio de Audio Obligatoria por los Navegadores */
+        #start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(13, 27, 42, 0.98);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
         /* ESTILOS DEL MÓDULO DE MAPA INTEGRADO */
-       .full-screen-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #080e14; z-index: 100; display: none; flex-direction: column; padding: 16px; overflow-y: auto; }
-       .menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00ffcc; padding-bottom: 10px; margin-bottom: 15px; }
-       .menu-header h2 { margin: 0; color: #00ffcc; font-size: 18px; }
-       .breadcrumb { color: #ffaa00; font-size: 12px; margin-bottom: 12px; font-weight: bold; }
-       .map-list { display: flex; flex-direction: column; gap: 8px; }
-       .map-card { background: #112233; border: 1px solid #00ffcc; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
-       .map-card-info { display: flex; flex-direction: column; gap: 4px; }
-       .reward-tag { color: #ffaa00; font-size: 11px; }
-       .btn-back { border-color: #ffaa00; color: #ffaa00; margin-bottom: 10px; }
-       .btn-close { border-color: #ff5555; color: #ff5555; padding: 6px 12px; }
+        .full-screen-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #080e14; z-index: 100; display: none; flex-direction: column; padding: 16px; overflow-y: auto; }
+        .menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00ffcc; padding-bottom: 10px; margin-bottom: 15px; }
+        .menu-header h2 { margin: 0; color: #00ffcc; font-size: 18px; }
+        .breadcrumb { color: #ffaa00; font-size: 12px; margin-bottom: 12px; font-weight: bold; }
+        .map-list { display: flex; flex-direction: column; gap: 8px; }
+        .map-card { background: #112233; border: 1px solid #00ffcc; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .map-card-info { display: flex; flex-direction: column; gap: 4px; }
+        .reward-tag { color: #ffaa00; font-size: 11px; }
+        .btn-back { border-color: #ffaa00; color: #ffaa00; margin-bottom: 10px; }
+        .btn-close { border-color: #ff5555; color: #ff5555; padding: 6px 12px; }
     </style>
 </head>
 <body>
+
+    <!-- Capa de Iniciar Juego y Activar Audio -->
+    <div id="start-overlay">
+        <h1 style="color: var(--accent-color); text-align: center;">AEROOCEAN: GUERRA SOBRE EL AGUA</h1>
+        <p style="text-align: center; max-width: 80%;">Presiona el botón para iniciar los sistemas tácticos y activar los motores, la música de batalla y el ambiente del mar.</p>
+        <button onclick="startGame()" style="font-size: 18px; padding: 18px 36px; background-color: var(--accent-color); color: #000;">INICIAR JUEGO Y AUDIO GLOBAL</button>
+    </div>
 
     <!-- Lector accesible para estado global -->
     <div id="sr-announcer" class="sr-only" aria-live="assertive"></div>
@@ -165,10 +211,10 @@
     <main id="viewport">
         <div id="main-hud">
             <h1 style="text-align: center; color: var(--accent-color);">PORTAAVIONES INSIGNIA (BASE)</h1>
-            <p class="status-display" id="hud-status">Estado: En Navegación | Casco: 100% | Munición: Lista</p>
+            <p class="status-display" id="hud-status">Estado: En Navegación | Casco: 100% | Audio Ambiente: Activo</p>
         </div>
 
-        <!-- 2. MENÚ DE AJUSTES -->
+        <!-- 2. MENÚ DE AJUSTES (Desplegable) -->
         <section id="menu-ajustes" class="screen-panel" aria-label="Menú de Ajustes">
             <h2>Ajustes del Juego</h2>
             <div class="top-bar">
@@ -177,103 +223,77 @@
                 </div>
             </div>
             <br>
-            <div class="btn-group-horizontal">
-                <button onclick="openSubMenu('ajustes-cuenta')">Opción 1: Cuenta</button>
-                <button onclick="openSubMenu('ajustes-sonido')">Opción 2: Sonido y Vibración</button>
-                <button onclick="openSubMenu('ajustes-notificaciones')">Opción 3: Notificaciones</button>
-                <button onclick="openSubMenu('ajustes-privacidad')">Opción 4: Política de Privacidad</button>
-            </div>
-
-            <!-- Submenús de Ajustes -->
-            <div id="ajustes-cuenta" class="screen-panel">
-                <h3>Ajustes de Cuenta</h3>
-                <div class="top-bar">
-                    <div class="btn-group-horizontal">
-                        <button onclick="closeSubMenu('ajustes-cuenta')">Regresar</button>
-                        <button onclick="triggerTTS('Elegir nombre de usuario')">1. Elegir Usuario</button>
-                        <button onclick="triggerTTS('Iniciar sesión con Google')">2. Sesión Google</button>
-                        <button onclick="triggerTTS('Iniciar sesión con Facebook')">3. Sesión Facebook</button>
-                        <button onclick="triggerTTS('Iniciar sesión con Correo')">4. Sesión Correo</button>
-                    </div>
+            
+            <details>
+                <summary onclick="triggerTTS('Opción 1: Cuenta desplegado')">Opción 1: Cuenta (Desplegar)</summary>
+                <div class="dropdown-content">
+                    <button onclick="triggerTTS('Elegir nombre de usuario')">1. Elegir Usuario</button>
+                    <button onclick="triggerTTS('Iniciar sesión con Google')">2. Sesión Google</button>
+                    <button onclick="triggerTTS('Iniciar sesión con Facebook')">3. Sesión Facebook</button>
+                    <button onclick="triggerTTS('Iniciar sesión con Correo')">4. Sesión Correo</button>
                 </div>
-            </div>
+            </details>
 
-            <div id="ajustes-sonido" class="screen-panel">
-                <h3>Sonido y Vibración</h3>
-                <div class="top-bar">
-                    <div class="btn-group-horizontal">
-                        <button onclick="closeSubMenu('ajustes-sonido')">Regresar</button>
-                        <button onclick="adjustVolume('disparos')">Volumen Disparos</button>
-                        <button onclick="adjustVolume('vehiculos')">Volumen Vehículos</button>
-                        <button onclick="adjustVolume('fondo')">Volumen Fondo</button>
-                        <button onclick="toggleVibration()">Activar/Desactivar Vibración</button>
-                    </div>
+            <details>
+                <summary onclick="triggerTTS('Opción 2: Sonido y Vibración desplegado')">Opción 2: Sonido y Vibración (Desplegar)</summary>
+                <div class="dropdown-content">
+                    <button onclick="adjustVolume('disparos')">Volumen Disparos</button>
+                    <button onclick="adjustVolume('vehiculos')">Volumen Vehículos</button>
+                    <button onclick="adjustVolume('fondo')">Volumen Fondo</button>
+                    <button onclick="toggleVibration()">Activar/Desactivar Vibración</button>
                 </div>
-            </div>
+            </details>
 
-            <div id="ajustes-notificaciones" class="screen-panel">
-                <h3>Notificaciones</h3>
-                <div class="top-bar">
-                    <div class="btn-group-horizontal">
-                        <button onclick="closeSubMenu('ajustes-notificaciones')">Regresar</button>
-                        <button onclick="triggerTTS('Notificaciones activadas o desactivadas')">1. Estado Notificaciones</button>
-                        <button onclick="triggerTTS('Auxilio a países aliados activado. Código de auxilio recibido.')">2. Auxiliar Aliados</button>
-                        <button onclick="triggerTTS('Notificaciones en tiempo real activas')">3. Tiempo Real</button>
-                        <button onclick="triggerTTS('Países conquistados: Ninguno recientemente.')">4. Territorios Conquistados</button>
-                        <button onclick="triggerTTS('Niveles superados: Nivel 1 completado.')">5. Niveles Superados</button>
-                    </div>
+            <details>
+                <summary onclick="triggerTTS('Opción 3: Notificaciones desplegado')">Opción 3: Notificaciones (Desplegar)</summary>
+                <div class="dropdown-content">
+                    <button onclick="triggerTTS('Notificaciones activadas o desactivadas')">1. Estado Notificaciones</button>
+                    <button onclick="triggerTTS('Auxilio a países aliados activado. Código de auxilio recibido.')">2. Auxiliar Aliados</button>
+                    <button onclick="triggerTTS('Notificaciones en tiempo real activas')">3. Tiempo Real</button>
+                    <button onclick="triggerTTS('Países conquistados: Ninguno recientemente.')">4. Territorios Conquistados</button>
+                    <button onclick="triggerTTS('Niveles superados: Nivel 1 completado.')">5. Niveles Superados</button>
                 </div>
-            </div>
+            </details>
 
-            <div id="ajustes-privacidad" class="screen-panel">
-                <h3>Política de Privacidad</h3>
-                <div class="top-bar">
-                    <div class="btn-group-horizontal">
-                        <button onclick="closeSubMenu('ajustes-privacidad')">Regresar</button>
-                    </div>
+            <details>
+                <summary onclick="triggerTTS('Opción 4: Política de Privacidad desplegado')">Opción 4: Política de Privacidad (Desplegar)</summary>
+                <div class="dropdown-content">
+                    <p style="padding: 10px;">Tus datos de combate y navegación están protegidos por el protocolo militar del Portaaviones Insignia.</p>
                 </div>
-                <p style="margin-top: 20px;">Tus datos de combate y navegación están protegidos por el protocolo militar del Portaaviones Insignia.</p>
-            </div>
+            </details>
         </section>
 
-        <!-- 3. MENÚ MARKET STORE -->
+        <!-- 3. MENÚ MARKET STORE (Desplegable) -->
         <section id="menu-market" class="screen-panel" aria-label="Market Store">
             <h2>Market Store</h2>
             <div class="top-bar">
                 <div class="btn-group-horizontal">
                     <button onclick="closeScreen('menu-market')">Regresar</button>
-                    <button onclick="openSubMenu('market-recursos')">1. Recursos</button>
-                    <button onclick="openSubMenu('market-mercado')">2. Mercado</button>
                 </div>
             </div>
+            <br>
 
-            <div id="market-recursos" class="screen-panel">
-                <h3>Inventario de Recursos</h3>
-                <div class="top-bar">
-                    <div class="btn-group-horizontal">
-                        <button onclick="closeSubMenu('market-recursos')">Regresar</button>
-                        <button onclick="triggerTTS('Combustible: 100%')">Combustible</button>
-                        <button onclick="triggerTTS('Municiones: 5000 rondas')">Municiones</button>
-                        <button onclick="triggerTTS('Oro: 500 barras')">Oro</button>
-                        <button onclick="triggerTTS('Dólares: 50,000 USD')">Dólares</button>
-                        <button onclick="triggerTTS('Metales: Hierro y Titanio listos')">Metales</button>
-                        <button onclick="triggerTTS('Impuestos recolectados: 12,000 USD')">Impuestos</button>
-                        <button onclick="triggerTTS('Víveres: 90 días')">Víveres</button>
-                        <button onclick="triggerTTS('Reserva de emergencia: Completa')">Reserva Emergencia</button>
-                    </div>
+            <details>
+                <summary onclick="triggerTTS('Sección de recursos desplegada')">1. Inventario de Recursos (Desplegar)</summary>
+                <div class="dropdown-content">
+                    <button onclick="triggerTTS('Combustible: 100%')">Combustible</button>
+                    <button onclick="triggerTTS('Municiones: 5000 rondas')">Municiones</button>
+                    <button onclick="triggerTTS('Oro: 500 barras')">Oro</button>
+                    <button onclick="triggerTTS('Dólares: 50,000 USD')">Dólares</button>
+                    <button onclick="triggerTTS('Metales: Hierro y Titanio listos')">Metales</button>
+                    <button onclick="triggerTTS('Impuestos recolectados: 12,000 USD')">Impuestos</button>
+                    <button onclick="triggerTTS('Víveres: 90 días')">Víveres</button>
+                    <button onclick="triggerTTS('Reserva de emergencia: Completa')">Reserva Emergencia</button>
                 </div>
-            </div>
+            </details>
 
-            <div id="market-mercado" class="screen-panel">
-                <h3>Mercado de Insumos</h3>
-                <div class="top-bar">
-                    <div class="btn-group-horizontal">
-                        <button onclick="closeSubMenu('market-mercado')">Regresar</button>
-                        <button onclick="buySupplies('Combustible')">Comprar Combustible (Dólares)</button>
-                        <button onclick="buySupplies('Munición')">Comprar Munición (Minerales)</button>
-                    </div>
+            <details>
+                <summary onclick="triggerTTS('Sección de mercado desplegada')">2. Mercado de Insumos (Desplegar)</summary>
+                <div class="dropdown-content">
+                    <button onclick="buySupplies('Combustible')">Comprar Combustible (Dólares)</button>
+                    <button onclick="buySupplies('Munición')">Comprar Munición (Minerales)</button>
                 </div>
-            </div>
+            </details>
         </section>
 
         <!-- 4. MENÚ VEHÍCULOS -->
@@ -295,26 +315,26 @@
                 <div class="top-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="closeSubMenu('v-f35')">Regresar</button>
-                        <button onclick="playSFX('radar')">Fijar Objetivo</button>
-                        <button onclick="playSFX('radar')">Bloquear Objetivo</button>
+                        <button onclick="playSFX('radar.wav')">Fijar Objetivo</button>
+                        <button onclick="playSFX('radar.wav')">Bloquear Objetivo</button>
                         <button onclick="triggerTTS('Reserva de combustible activada')">Reserva Combustible</button>
-                        <button onclick="playSFX('voice')">Com. Portaaviones</button>
-                        <button onclick="playSFX('voice')">Com. Escuadrón Cazas</button>
-                        <button onclick="playSFX('radar')">Escanear Radar</button>
-                        <button onclick="triggerTTS('Despegando caza líder')">Despegar</button>
-                        <button onclick="playSFX('voice')">Aterrizar en Base</button>
+                        <button onclick="playSFX('voz_confirmacion.wav')">Com. Portaaviones</button>
+                        <button onclick="playSFX('voz_confirmacion.wav')">Com. Escuadrón Cazas</button>
+                        <button onclick="playSFX('radar.wav')">Escanear Radar</button>
+                        <button onclick="playSFX('caza_f35.wav')">Despegar</button>
+                        <button onclick="playSFX('aterrizaje.wav')">Aterrizar en Base</button>
                     </div>
                 </div>
                 <div style="flex-grow: 1;"></div>
                 <div class="bottom-bar">
                     <div class="btn-group-horizontal">
-                        <button onclick="playSFX('ametralladora')">8 Ametralladoras</button>
-                        <button onclick="playSFX('misil')">Misiles Aire-Aire</button>
-                        <button onclick="playSFX('disparo')">Cañón Principal</button>
+                        <button onclick="playSFX('ametralladora.wav')">8 Ametralladoras</button>
+                        <button onclick="playSFX('misil.wav')">Misiles Aire-Aire</button>
+                        <button onclick="playSFX('disparo_canon.wav')">Cañón Principal</button>
                     </div>
                     <div class="btn-group-horizontal">
-                        <button onclick="playSFX('motor')">Acelerar</button>
-                        <button onclick="playSFX('motor')">Frenar</button>
+                        <button onclick="playSFX('caza_f35.wav')">Acelerar</button>
+                        <button onclick="playSFX('caza_f35.wav')">Frenar</button>
                         <button onclick="triggerTTS('Altitud ajustada')">Altitud</button>
                         <button onclick="triggerTTS('Velocidad máxima')">Velocidad</button>
                         <button onclick="triggerTTS('Giro a la izquierda')">Giro Izq</button>
@@ -331,25 +351,25 @@
                 <div class="top-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="closeSubMenu('v-b21')">Regresar</button>
-                        <button onclick="playSFX('radar')">Fijar Objetivo</button>
-                        <button onclick="playSFX('radar')">Bloquear Objetivo</button>
+                        <button onclick="playSFX('radar.wav')">Fijar Objetivo</button>
+                        <button onclick="playSFX('radar.wav')">Bloquear Objetivo</button>
                         <button onclick="triggerTTS('Reserva combustible activada')">Reserva Combustible</button>
-                        <button onclick="playSFX('voice')">Comunicación Base</button>
-                        <button onclick="playSFX('voice')">Comunicación Escuadrón</button>
-                        <button onclick="playSFX('radar')">Fijar Blanco</button>
+                        <button onclick="playSFX('voz_confirmacion.wav')">Comunicación Base</button>
+                        <button onclick="playSFX('voz_confirmacion.wav')">Comunicación Escuadrón</button>
+                        <button onclick="playSFX('radar.wav')">Fijar Blanco</button>
                         <button onclick="triggerTTS('Solicitando eyectar e rescate')">Eyectar / Pedir Ayuda</button>
                     </div>
                 </div>
                 <div style="flex-grow: 1;"></div>
                 <div class="bottom-bar">
                     <div class="btn-group-horizontal">
-                        <button onclick="playSFX('disparo')">Torretas Traseras</button>
-                        <button onclick="playSFX('granada')">Lanzar Bombas</button>
-                        <button onclick="playSFX('ametralladora')">Metralletas</button>
+                        <button onclick="playSFX('torreta.wav')">Torretas Traseras</button>
+                        <button onclick="playSFX('bomba.wav')">Lanzar Bombas</button>
+                        <button onclick="playSFX('ametralladora.wav')">Metralletas</button>
                     </div>
                     <div class="btn-group-horizontal">
-                        <button onclick="playSFX('motor')">Acelerar</button>
-                        <button onclick="playSFX('motor')">Frenar</button>
+                        <button onclick="playSFX('bombardero.wav')">Acelerar</button>
+                        <button onclick="playSFX('bombardero.wav')">Frenar</button>
                         <button onclick="triggerTTS('Girar bombardero')">Girar</button>
                         <button onclick="triggerTTS('Control de altitud')">Control Altitud</button>
                     </div>
@@ -362,25 +382,25 @@
                 <div class="top-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="closeSubMenu('v-destructores')">Regresar</button>
-                        <button onclick="playSFX('radar')">Seleccionar Objetivos</button>
+                        <button onclick="playSFX('radar.wav')">Seleccionar Objetivos</button>
                         <button onclick="triggerTTS('Reflectores encendidos/apagados')">Encender/Apagar Reflectores</button>
-                        <button onclick="playSFX('voice')">Radio Portaaviones</button>
-                        <button onclick="playSFX('voice')">Radio Instrucción Flota Destructores</button>
-                        <button onclick="playSFX('radar')">Radar Activo</button>
+                        <button onclick="playSFX('voz_confirmacion.wav')">Radio Portaaviones</button>
+                        <button onclick="playSFX('voz_confirmacion.wav')">Radio Instrucción Flota Destructores</button>
+                        <button onclick="playSFX('radar.wav')">Radar Activo</button>
                     </div>
                 </div>
                 <div style="flex-grow: 1;"></div>
                 <div class="bottom-bar">
                     <div class="btn-group-horizontal">
-                        <button onclick="playSFX('disparo')">Disparar Cañones</button>
-                        <button onclick="playSFX('ametralladora')">Ametralladoras</button>
-                        <button onclick="playSFX('torpedo')">Lanzar Torpedos</button>
-                        <button onclick="playSFX('granada')">Lanzar Granadas</button>
-                        <button onclick="playSFX('misil')">Batería Misiles Antiaéreos</button>
+                        <button onclick="playSFX('disparo_canon.wav')">Disparar Cañones</button>
+                        <button onclick="playSFX('ametralladora.wav')">Ametralladoras</button>
+                        <button onclick="playSFX('torpedo.wav')">Lanzar Torpedos</button>
+                        <button onclick="playSFX('granada.wav')">Lanzar Granadas</button>
+                        <button onclick="playSFX('misil.wav')">Batería Misiles Antiaéreos</button>
                     </div>
                     <div class="btn-group-horizontal">
-                        <button onclick="playSFX('motor')">Acelerar</button>
-                        <button onclick="playSFX('motor')">Frenar</button>
+                        <button onclick="playSFX('destructor_motor.wav')">Acelerar</button>
+                        <button onclick="playSFX('destructor_motor.wav')">Frenar</button>
                         <button onclick="triggerTTS('Giro a Babor')">Girar Babor</button>
                         <button onclick="triggerTTS('Giro a Estribor')">Girar Estribor</button>
                     </div>
@@ -393,10 +413,10 @@
                 <div class="top-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="closeSubMenu('v-submarino')">Regresar</button>
-                        <button onclick="triggerTTS('Sumergiéndose bajo el agua'); playSFX('motor');">Sumergirse</button>
-                        <button onclick="triggerTTS('Navegando en superficie'); playSFX('motor');">Navegar Superficie</button>
-                        <button onclick="playSFX('radar')">Radar Sonar</button>
-                        <button onclick="playSFX('voice')">Radio Emergencia</button>
+                        <button onclick="triggerTTS('Sumergiéndose bajo el agua'); playSFX('submarino_motor.wav');">Sumergirse</button>
+                        <button onclick="triggerTTS('Navegando en superficie'); playSFX('submarino_motor.wav');">Navegar Superficie</button>
+                        <button onclick="playSFX('radar.wav')">Radar Sonar</button>
+                        <button onclick="playSFX('voz_confirmacion.wav')">Radio Emergencia</button>
                     </div>
                 </div>
                 <div style="text-align: center; margin-top: 20px;">
@@ -405,15 +425,15 @@
                 <div style="flex-grow: 1;"></div>
                 <div class="bottom-bar">
                     <div class="btn-group-horizontal">
-                        <button onclick="playSFX('disparo')">Cañones Naval</button>
-                        <button onclick="playSFX('ametralladora')">Ametralladoras</button>
-                        <button onclick="playSFX('torpedo')">Lanzar Torpedos</button>
-                        <button onclick="playSFX('granada')">Granadas</button>
-                        <button onclick="playSFX('misil')">Misiles Sub-Superficie</button>
+                        <button onclick="playSFX('disparo_canon.wav')">Cañones Naval</button>
+                        <button onclick="playSFX('ametralladora.wav')">Ametralladoras</button>
+                        <button onclick="playSFX('torpedo.wav')">Lanzar Torpedos</button>
+                        <button onclick="playSFX('granada.wav')">Granadas</button>
+                        <button onclick="playSFX('misil.wav')">Misiles Sub-Superficie</button>
                     </div>
                     <div class="btn-group-horizontal">
-                        <button onclick="playSFX('motor')">Acelerar</button>
-                        <button onclick="playSFX('motor')">Frenar</button>
+                        <button onclick="playSFX('submarino_motor.wav')">Acelerar</button>
+                        <button onclick="playSFX('submarino_motor.wav')">Frenar</button>
                         <button onclick="triggerTTS('Girar Babor')">Girar Babor</button>
                         <button onclick="triggerTTS('Girar Estribor')">Girar Estribor</button>
                     </div>
@@ -421,7 +441,7 @@
             </div>
         </section>
 
-        <!-- 5. MENÚ TALLER Y REPARACIONES -->
+        <!-- 5. MENÚ TALLER Y REPARACIONES (Desplegable) -->
         <section id="menu-taller" class="screen-panel" aria-label="Taller y Reparaciones">
             <h2>Taller y Reparaciones</h2>
             <div class="top-bar">
@@ -429,15 +449,31 @@
                     <button onclick="closeScreen('menu-taller')">Regresar</button>
                 </div>
             </div>
-            <p style="margin: 15px 0;">Selecciona el vehículo y la parte a reparar manualmente:</p>
-            <div class="btn-group-horizontal">
-                <button onclick="repararParte('Portaaviones - Motor')">Reparar Motor Portaaviones</button>
-                <button onclick="repararParte('Portaaviones - Casco')">Reparar Casco Portaaviones</button>
-                <button onclick="repararParte('F-35 - Alas')">Reparar Alas F-35</button>
-                <button onclick="repararParte('B-21 - Sistemas')">Reparar Sistemas B-21</button>
-                <button onclick="repararParte('Destructor - Cañones')">Reparar Cañones Destructor</button>
-                <button onclick="repararParte('Submarino - Casco')">Reparar Casco Submarino</button>
-            </div>
+            <br>
+            
+            <details>
+                <summary onclick="triggerTTS('Reparaciones de portaaviones desplegadas')">Portaaviones Insignia (Desplegar)</summary>
+                <div class="dropdown-content">
+                    <button onclick="repararParte('Portaaviones - Motor')">Reparar Motor Portaaviones</button>
+                    <button onclick="repararParte('Portaaviones - Casco')">Reparar Casco Portaaviones</button>
+                </div>
+            </details>
+
+            <details>
+                <summary onclick="triggerTTS('Reparaciones de escuadrones aéreos desplegadas')">Escuadrones Aéreos (Desplegar)</summary>
+                <div class="dropdown-content">
+                    <button onclick="repararParte('F-35 - Alas')">Reparar Alas F-35</button>
+                    <button onclick="repararParte('B-21 - Sistemas')">Reparar Sistemas B-21</button>
+                </div>
+            </details>
+
+            <details>
+                <summary onclick="triggerTTS('Reparaciones de flota marítima desplegadas')">Flota Marítima (Desplegar)</summary>
+                <div class="dropdown-content">
+                    <button onclick="repararParte('Destructor - Cañones')">Reparar Cañones Destructor</button>
+                    <button onclick="repararParte('Submarino - Casco')">Reparar Casco Submarino</button>
+                </div>
+            </details>
         </section>
 
         <!-- 6. MENÚ MAPAS - INTEGRADO -->
@@ -458,29 +494,160 @@
     <!-- PARTE BAJA: Controles base del Portaaviones -->
     <footer class="bottom-bar" role="navigation" aria-label="Controles Base del Portaaviones">
         <div class="btn-group-horizontal" aria-label="Controles de Ataque">
-            <button onclick="playSFX('disparo')">1. Cañones</button>
-            <button onclick="playSFX('ametralladora')">2. Metralletas</button>
-            <button onclick="playSFX('torpedo')">3. Torpedos</button>
-            <button onclick="playSFX('granada')">4. Granadas</button>
-            <button onclick="playSFX('misil')">5. Misiles Crucero</button>
-            <button onclick="playSFX('misil')">6. Misiles Antiaéreos</button>
+            <button onclick="playSFX('disparo_canon.wav')">1. Cañones</button>
+            <button onclick="playSFX('ametralladora.wav')">2. Metralletas</button>
+            <button onclick="playSFX('torpedo.wav')">3. Torpedos</button>
+            <button onclick="playSFX('granada.wav')">4. Granadas</button>
+            <button onclick="playSFX('misil.wav')">5. Misiles Crucero</button>
+            <button onclick="playSFX('misil.wav')">6. Misiles Antiaéreos</button>
         </div>
 
         <div class="btn-group-horizontal" aria-label="Controles de Navegación">
-            <button onclick="playSFX('motor')">Acelerar</button>
-            <button onclick="playSFX('motor')">Frenar</button>
+            <button onclick="playSFX('portaaviones_motor.wav')">Acelerar</button>
+            <button onclick="playSFX('portaaviones_motor.wav')">Frenar</button>
             <button onclick="triggerTTS('Girando a Babor')">Girar Babor</button>
             <button onclick="triggerTTS('Girando a Estribor')">Girar Estribor</button>
         </div>
     </footer>
 
-    <!-- SISTEMA DE AUDIO WEB AUDIO API Y HÁPTICO INTEGRADO -->
+    <!-- SISTEMA DE AUDIO Y LÓGICA DE ARCHIVOS -->
     <script>
-        // Inicialización de contexto de audio
         const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-
+        let audioCtx;
         let vibrationEnabled = true;
+
+        // Ruta de la carpeta de sonidos local / repositorio GitHub
+        const audioFolder = "./sonidos/";
+
+        // 1. INICIAR AUDIO Y REPRODUCCIÓN AUTOMÁTICA OBLIGATORIA
+        function startGame() {
+            document.getElementById('start-overlay').style.display = 'none';
+            audioCtx = new AudioContext();
+
+            // Mensaje de bienvenida inicial de la tripulación
+            playSFX('mensaje_bienvenida.wav');
+            triggerTTS("Bienvenido a bordo, Capitán. Sistema táctico AeroOcean iniciado.");
+
+            // Sonidos en bucle continuo habilitados desde el principio:
+            startLoopSound("mar_ambiente.wav", 40);
+            startLoopSound("batalla_naval.wav", 110);
+            startLoopSound("portaaviones_motor.wav", 55);
+        }
+
+        // Función para reproducir sonidos de fondo continuos con respaldo Web Audio API
+        function startLoopSound(fileName, fallbackFreq) {
+            const audio = new Audio(audioFolder + fileName);
+            audio.loop = true;
+            audio.play().catch(() => {
+                if (audioCtx) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(fallbackFreq, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                }
+            });
+        }
+
+        // Función universal para reproducir todos los efectos de sonido por nombre de archivo
+        function playSFX(fileName) {
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const audio = new Audio(audioFolder + fileName);
+            audio.play().catch(() => {
+                // Sintetizador automático de respaldo si el archivo .wav no está en la carpeta
+                playSyntheticSFX(fileName);
+            });
+        }
+
+        // Sintetizador de Web Audio API (Respaldo técnico)
+        function playSyntheticSFX(type) {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            if (type.includes('disparo') || type.includes('canon')) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.4);
+                gain.gain.setValueAtTime(1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.4);
+                triggerVibration([100, 50, 100]);
+            } else if (type.includes('ametralladora') || type.includes('trazadoras')) {
+                for (let i = 0; i < 4; i++) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(400, now + (i * 0.08));
+                    gain.gain.setValueAtTime(0.5, now + (i * 0.08));
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + (i * 0.08) + 0.05);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + (i * 0.08));
+                    osc.stop(now + (i * 0.08) + 0.05);
+                }
+                triggerVibration([40, 40, 40, 40]);
+            } else if (type.includes('torpedo')) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(80, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.8);
+                gain.gain.setValueAtTime(0.8, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.8);
+                triggerVibration([200, 100, 200]);
+            } else if (type.includes('misil')) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(800, now + 0.5);
+                gain.gain.setValueAtTime(0.6, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.5);
+                triggerVibration([150, 50, 150]);
+            } else if (type.includes('radar')) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1000, now);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.15);
+                triggerVibration([50, 50]);
+            } else {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(100, now);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+        }
 
         // Anuncio por voz accesible (TTS)
         function triggerTTS(text) {
@@ -496,7 +663,7 @@
             }
         }
 
-        // Sistema de Vibración Táctil para Usuarios Ciegos
+        // Sistema de Vibración Táctil
         function triggerVibration(pattern) {
             if (vibrationEnabled && 'vibrate' in navigator) {
                 navigator.vibrate(pattern);
@@ -504,130 +671,8 @@
         }
 
         function toggleVibration() {
-            vibrationEnabled =!vibrationEnabled;
-            triggerTTS(vibrationEnabled? "Vibración activada" : "Vibración desactivada");
-        }
-
-        // Generador Integrado de Todos los Sonidos Carga mediante Web Audio API
-        function playSFX(type) {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            const now = audioCtx.currentTime;
-            if (type === 'disparo') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(30, now + 0.4);
-                gain.gain.setValueAtTime(1, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.4);
-                triggerVibration([100, 50, 100]);
-            }
-            else if (type === 'ametralladora') {
-                for (let i = 0; i < 4; i++) {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(400, now + (i * 0.08));
-                    gain.gain.setValueAtTime(0.5, now + (i * 0.08));
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + (i * 0.08) + 0.05);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(now + (i * 0.08));
-                    osc.stop(now + (i * 0.08) + 0.05);
-                }
-                triggerVibration([40, 40, 40, 40]);
-            }
-            else if (type === 'torpedo') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(80, now);
-                osc.frequency.linearRampToValueAtTime(40, now + 0.8);
-                gain.gain.setValueAtTime(0.8, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.8);
-                triggerVibration([200, 100, 200]);
-            }
-            else if (type === 'granada') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(100, now);
-                osc.frequency.exponentialRampToValueAtTime(20, now + 0.6);
-                gain.gain.setValueAtTime(1, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.6);
-                triggerVibration([300]);
-            }
-            else if (type === 'misil') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(300, now);
-                osc.frequency.linearRampToValueAtTime(800, now + 0.5);
-                gain.gain.setValueAtTime(0.6, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.5);
-                triggerVibration([150, 50, 150, 50, 150]);
-            }
-            else if (type === 'radar') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(1000, now);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.15);
-                triggerVibration([50, 50]);
-            }
-            else if (type === 'motor') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(60, now);
-                osc.frequency.linearRampToValueAtTime(120, now + 0.3);
-                gain.gain.setValueAtTime(0.4, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            }
-            else if (type === 'voice') {
-                triggerTTS("Mensaje de radio recibido del comando");
-            }
-            else if (type === 'alarma') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(880, now);
-                osc.frequency.setValueAtTime(440, now + 0.2);
-                gain.gain.setValueAtTime(0.5, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.4);
-                triggerVibration([500, 200, 500]);
-            }
+            vibrationEnabled = !vibrationEnabled;
+            triggerTTS(vibrationEnabled ? "Vibración activada" : "Vibración desactivada");
         }
 
         // Gestión de Navegación de Modales e Interfaz
@@ -674,10 +719,116 @@
         }
 
         function repararParte(parte) {
-            playSFX('motor');
+            playSFX('danos_estructurales.wav');
             triggerTTS("Reparando " + parte + " manualmente al 100 por ciento.");
         }
 
-        // BASE DE DATOS GEOGRÁFICA MUNDIAL COMPLETA - INTEGRADA
+        // BASE DE DATOS GEOGRÁFICA MUNDIAL COMPLETA
         const worldData = {
-            "América": {"América del Norte": [{ nombre: "Canadá", tipo: "País", dinero: 800, minerales: 350 },{ nombre: "Estados Unidos", tipo: "País", dinero: 1200, minerales: 500 },{ nombre: "México", tipo: "País", dinero: 700, minerales: 300 },{ nombre: "Groenlandia", tipo: "Isla", dinero: 500, minerales: 600 },{ nombre: "Bermudas", tipo: "Archipiélago", dinero: 450, minerales: 200 },{ nombre: "San Pedro y Miquelón", tipo: "Archipiélago", dinero: 300, minerales: 150 }],"América Central": [{ nombre: "Belice", tipo: "País", dinero: 400, minerales: 180 },{ nombre: "Costa Rica", tipo: "País", dinero: 550, minerales: 220 },{ nombre: "El Salvador", tipo: "País", dinero: 450, minerales: 190 },{ nombre: "Guatemala", tipo: "País", dinero: 500, minerales: 230 },{ nombre: "Honduras", tipo: "País", dinero: 500, minerales: 250 },{ nombre: "Nicaragua", tipo: "País", dinero: 450, minerales: 210 },{ nombre: "Panamá", tipo: "País", dinero: 650, minerales: 280 }],"El Caribe": [{ nombre: "Antigua y Barbuda", tipo: "Isla", dinero: 350, minerales: 150 },{ nombre: "Bahamas", tipo: "Archipiélago", dinero: 500, minerales: 200 },{ nombre: "Barbados", tipo: "Isla", dinero: 400, minerales: 160 },{ nombre: "Cuba", tipo: "Isla", dinero: 550, minerales: 240 },{ nombre: "Dominica", tipo: "Isla", dinero: 300, minerales: 140 },{ nombre: "Granada", tipo: "Isla", dinero: 320, minerales: 150 },{ nombre: "Haití", tipo: "País", dinero: 350, minerales: 180 },{ nombre: "Jama
+            "América": {
+                "América del Norte": [
+                    { nombre: "Canadá", tipo: "País", dinero: 800, minerales: 350 },
+                    { nombre: "Estados Unidos", tipo: "País", dinero: 1200, minerales: 500 },
+                    { nombre: "México", tipo: "País", dinero: 700, minerales: 300 }
+                ],
+                "América Central": [
+                    { nombre: "Costa Rica", tipo: "País", dinero: 550, minerales: 220 },
+                    { nombre: "Honduras", tipo: "País", dinero: 500, minerales: 250 },
+                    { nombre: "Guatemala", tipo: "País", dinero: 500, minerales: 230 }
+                ]
+            },
+            "Europa": {
+                "Europa Occidental": [
+                    { nombre: "España", tipo: "País", dinero: 900, minerales: 400 },
+                    { nombre: "Francia", tipo: "País", dinero: 1000, minerales: 450 }
+                ]
+            }
+        };
+
+        let currentLevel = 'continentes';
+        let selectedContinent = '';
+
+        function mostrarContinentes() {
+            currentLevel = 'continentes';
+            document.getElementById('mapTitle').innerText = "🌍 MAPA MUNDIAL";
+            document.getElementById('breadcrumb').innerText = "Ubicación: Continentes Habitados";
+            document.getElementById('btnMapBack').style.display = 'none';
+
+            const mapList = document.getElementById('mapList');
+            mapList.innerHTML = '';
+
+            Object.keys(worldData).forEach(continente => {
+                const card = document.createElement('div');
+                card.className = 'map-card';
+                card.innerHTML = `
+                    <div class="map-card-info">
+                        <strong>${continente}</strong>
+                        <span class="reward-tag">Región Estratégica</span>
+                    </div>
+                    <button onclick="mostrarSubregiones('${continente}')">Explorar</button>
+                `;
+                mapList.appendChild(card);
+            });
+        }
+
+        function mostrarSubregiones(continente) {
+            currentLevel = 'subregiones';
+            selectedContinent = continente;
+            document.getElementById('mapTitle').innerText = `🌍 ${continente.toUpperCase()}`;
+            document.getElementById('breadcrumb').innerText = `Ubicación: ${continente} > Subregiones`;
+            document.getElementById('btnMapBack').style.display = 'inline-block';
+
+            const mapList = document.getElementById('mapList');
+            mapList.innerHTML = '';
+
+            Object.keys(worldData[continente]).forEach(subregión => {
+                const card = document.createElement('div');
+                card.className = 'map-card';
+                card.innerHTML = `
+                    <div class="map-card-info">
+                        <strong>${subregión}</strong>
+                        <span class="reward-tag">Territorio de Combate</span>
+                    </div>
+                    <button onclick="mostrarTerritorios('${subregión}')">Ver Objetivos</button>
+                `;
+                mapList.appendChild(card);
+            });
+        }
+
+        function mostrarTerritorios(subregion) {
+            currentLevel = 'territorios';
+            document.getElementById('breadcrumb').innerText = `Ubicación: ${selectedContinent} > ${subregion} > Objetivos`;
+
+            const mapList = document.getElementById('mapList');
+            mapList.innerHTML = '';
+
+            worldData[selectedContinent][subregion].forEach(territorio => {
+                const card = document.createElement('div');
+                card.className = 'map-card';
+                card.innerHTML = `
+                    <div class="map-card-info">
+                        <strong>${territorio.nombre} (${territorio.tipo})</strong>
+                        <span class="reward-tag">Recompensa: $${territorio.dinero} USD | ${territorio.minerales} Minerales</span>
+                    </div>
+                    <button onclick="iniciarMision('${territorio.nombre}')">Atacar</button>
+                `;
+                mapList.appendChild(card);
+            });
+        }
+
+        function retrocederNivel() {
+            if (currentLevel === 'territorios') {
+                mostrarSubregiones(selectedContinent);
+            } else if (currentLevel === 'subregiones') {
+                mostrarContinentes();
+            }
+        }
+
+        function iniciarMision(nombre) {
+            playSFX('alerta_ataque.wav');
+            triggerTTS("Desplegando flota de combate hacia " + nombre);
+            closeScreen('menu-mapas');
+        }
+    </script>
+</body>
+</html>
