@@ -155,7 +155,7 @@
             border: 0;
         }
 
-        /* Capa de Inicio de Audio Obligatoria */
+        /* Capa de Inicio de Audio */
         #start-overlay {
             position: fixed;
             top: 0;
@@ -185,11 +185,11 @@
 </head>
 <body>
 
-    <!-- Capa de Iniciar Juego y Activar Audio -->
+    <!-- Capa de Iniciar Juego -->
     <div id="start-overlay">
         <h1 style="color: var(--accent-color); text-align: center;">AEROOCEAN: GUERRA SOBRE EL AGUA</h1>
-        <p style="text-align: center; max-width: 80%;">Presiona el botón para conectar con el repositorio de GitHub y cargar tus archivos MP3 reales.</p>
-        <button onclick="startGame()" style="font-size: 18px; padding: 18px 36px; background-color: var(--accent-color); color: #000;">INICIAR JUEGO Y AUDIO GLOBAL</button>
+        <p style="text-align: center; max-width: 80%;">Presiona el botón para iniciar la interfaz táctil y activar los sistemas de combate.</p>
+        <button onclick="startGame()" style="font-size: 18px; padding: 18px 36px; background-color: var(--accent-color); color: #000;">INICIAR JUEGO</button>
     </div>
 
     <!-- Lector accesible para estado global -->
@@ -210,7 +210,7 @@
     <main id="viewport">
         <div id="main-hud">
             <h1 style="text-align: center; color: var(--accent-color);">PORTAAVIONES INSIGNIA (BASE)</h1>
-            <p class="status-display" id="hud-status">Estado: En Navegación | Casco: 100% | Archivos MP3 GitHub: Conectados</p>
+            <p class="status-display" id="hud-status">Estado: En Navegación | Casco: 100% | Archivos MP3: Conectados</p>
         </div>
 
         <!-- 2. MENÚ DE AJUSTES (Desplegable) -->
@@ -486,78 +486,38 @@
         </div>
     </footer>
 
-    <!-- SISTEMA DE AUDIO VINCULADO A TUS ARCHIVOS MP3 DE GITHUB -->
+    <!-- SISTEMA DE REPRODUCCIÓN DIRECTA TRADICIONAL -->
     <script>
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        let audioCtx;
         let vibrationEnabled = true;
-
-        // Ruta exacta apuntando a tu subcarpeta 'activos/www/' donde están los archivos MP3
+        
+        // Ruta directa a la carpeta donde están almacenados tus archivos MP3 en GitHub
         const audioFolder = "./activos/www/";
 
-        // 1. INICIAR AUDIO Y REPRODUCCIÓN EN BUCLE
+        // Reproducción de efectos de sonido directos
+        function playSFX(fileName) {
+            let audio = new Audio(audioFolder + fileName);
+            audio.play().catch(function(error) {
+                console.log("Error al reproducir audio: " + fileName, error);
+            });
+            triggerVibration([80, 40, 80]);
+        }
+
+        // Inicio del juego al hacer clic en la capa inicial
         function startGame() {
             document.getElementById('start-overlay').style.display = 'none';
-            audioCtx = new AudioContext();
-
             triggerTTS("Bienvenido a bordo, Capitán. Sistema táctico AeroOcean iniciado.");
 
-            // Reproducción continua de tus archivos MP3 de fondo:
-            startLoopSound("Batalla_Aeronaval.mp3", 110);
-            startLoopSound("Sonidoportaaviones.mp3", 55);
+            // Pistas de fondo en bucle directo
+            let ambientSound = new Audio(audioFolder + "Batalla_Aeronaval.mp3");
+            ambientSound.loop = true;
+            ambientSound.play().catch(function(e) { console.log(e); });
+
+            let engineSound = new Audio(audioFolder + "Sonidoportaaviones.mp3");
+            engineSound.loop = true;
+            engineSound.play().catch(function(e) { console.log(e); });
         }
 
-        // Función para reproducir sonidos de fondo continuos (.mp3)
-        function startLoopSound(fileName, fallbackFreq) {
-            const audio = new Audio(audioFolder + fileName);
-            audio.loop = true;
-            audio.play().catch(() => {
-                if (audioCtx) {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(fallbackFreq, audioCtx.currentTime);
-                    gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start();
-                }
-            });
-        }
-
-        // Función universal para reproducir todos tus efectos de sonido MP3
-        function playSFX(fileName) {
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-
-            const audio = new Audio(audioFolder + fileName);
-            audio.play().catch((err) => {
-                console.log("Error cargando archivo " + fileName + ", usando sintetizador auxiliar.", err);
-                playSyntheticSFX(fileName);
-            });
-        }
-
-        // Sintetizador de Web Audio API (Respaldo en caso de fallo de red)
-        function playSyntheticSFX(type) {
-            if (!audioCtx) return;
-            const now = audioCtx.currentTime;
-
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, now);
-            osc.frequency.exponentialRampToValueAtTime(30, now + 0.4);
-            gain.gain.setValueAtTime(1, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(now);
-            osc.stop(now + 0.4);
-            triggerVibration([100, 50, 100]);
-        }
-
-        // Anuncio por voz accesible (TTS)
+        // Sistema de lector de voz TTS
         function triggerTTS(text) {
             const announcer = document.getElementById('sr-announcer');
             if (announcer) {
@@ -583,7 +543,7 @@
             triggerTTS(vibrationEnabled ? "Vibración activada" : "Vibración desactivada");
         }
 
-        // Gestión de Navegación de Modales e Interfaz
+        // Navegación de interfaces
         function openScreen(id) {
             const target = document.getElementById(id);
             if (target) {
@@ -617,9 +577,8 @@
             }
         }
 
-        // Simulación de Mecánicas y Recursos
         function adjustVolume(tipo) {
-            triggerTTS("Ajustando volumen de " + tipo + ". Configuración guardada sin alterar el sonido conjunto.");
+            triggerTTS("Ajustando volumen de " + tipo + ". Configuración guardada.");
         }
 
         function buySupplies(item) {
@@ -628,7 +587,7 @@
 
         function repararParte(parte) {
             playSFX('alarmadeemergencia.mp3');
-            triggerTTS("Reparando " + parte + " manualmente al 100 por ciento.");
+            triggerTTS("Reparando " + parte + " al 100 por ciento.");
         }
 
         // BASE DE DATOS GEOGRÁFICA MUNDIAL
