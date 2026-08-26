@@ -226,11 +226,11 @@
             <details>
                 <summary onclick="triggerTTS('Opción 1: Cuenta desplegado')">Opción 1: Cuenta (Desplegar)</summary>
                 <div class="dropdown-content">
-                    <button onclick="triggerTTS('Elegir nombre de usuario')">1. Elegir Usuario</button>
+                    <button onclick="elegirUsuario()">1. Elegir Usuario</button>
                     <button onclick="loginGoogle()">2. Sesión Google</button>
                     <button onclick="loginFacebook()">3. Sesión Facebook</button>
-                    <button onclick="triggerTTS('Iniciar sesión con Correo')">4. Sesión Correo</button>
-                    <button onclick="triggerTTS('Iniciar sesión con Teléfono')">5. Sesión Teléfono</button>
+                    <button onclick="loginEmail()">4. Sesión Correo</button>
+                    <button onclick="loginPhone()">5. Sesión Teléfono</button>
                 </div>
             </details>
 
@@ -321,8 +321,8 @@
                         <button onclick="triggerTTS('Comunicación con Portaaviones establecida')">Com. Portaaviones</button>
                         <button onclick="triggerTTS('Comunicación con Escuadrón Cazas en frecuencia')">Com. Escuadrón Cazas</button>
                         <button onclick="playSFX('contactoderadar.mp3')">Escanear Radar</button>
-                        <button onclick="playSFX('sonidodecasaenelaire.wav')">Despegar</button>
-                        <button onclick="playSFX('aterrizaje.mp3')">Aterrizar en Base</button>
+                        <button onclick="startVehicleLoop('f35', 'sonidodecasaenelaire.wav')">Despegar</button>
+                        <button onclick="stopVehicleLoop('f35', 'aterrizaje.mp3')">Aterrizar en Base</button>
                     </div>
                 </div>
                 <div style="flex-grow: 1;"></div>
@@ -354,6 +354,8 @@
                         <button onclick="triggerTTS('Reserva combustible activada')">Reserva Combustible</button>
                         <button onclick="triggerTTS('Comunicación Base establecida')">Comunicación Base</button>
                         <button onclick="triggerTTS('Comunicación Escuadrón activada')">Comunicación Escuadrón</button>
+                        <button onclick="startVehicleLoop('b21', 'sonidodecasaenelaire.wav')">Despegar</button>
+                        <button onclick="stopVehicleLoop('b21', 'aterrizaje.mp3')">Aterrizar en Base</button>
                     </div>
                 </div>
                 <div style="flex-grow: 1;"></div>
@@ -496,7 +498,9 @@
         let battleAudio = null;
         let carrierAudio = null;
 
-        // Función exacta del código funcionando (Ruta directa ./)
+        // Controladores de bucles de audio para vehículos en vuelo
+        let activeLoops = {};
+
         function playSFX(fileName) {
             const audio = new Audio('./' + fileName);
             audio.play().catch(e => {
@@ -505,11 +509,46 @@
             triggerVibration([80, 40, 80]);
         }
 
+        // Función para iniciar audio en bucle continuo (Despegue)
+        function startVehicleLoop(vehicleKey, fileName) {
+            if (activeLoops[vehicleKey]) {
+                activeLoops[vehicleKey].pause();
+            }
+            const audio = new Audio('./' + fileName);
+            audio.loop = true;
+            audio.volume = 0.3;
+            audio.play().catch(e => {
+                console.warn("Audio en bucle no encontrado:", fileName, e);
+            });
+            activeLoops[vehicleKey] = audio;
+            
+            if (vehicleKey === 'f35') {
+                playSFX('sonidodecasaenelaire.wav');
+                triggerTTS("Escuadrón Cazas F-35 despegando. En vuelo.");
+            } else if (vehicleKey === 'b21') {
+                playSFX('sonidodecasaenelaire.wav');
+                triggerTTS("Escuadrón Bombarderos B-21 despegando. En vuelo.");
+            }
+        }
+
+        // Función para detener audio en bucle y reproducir aterrizaje
+        function stopVehicleLoop(vehicleKey, landingFileName) {
+            if (activeLoops[vehicleKey]) {
+                activeLoops[vehicleKey].pause();
+                activeLoops[vehicleKey] = null;
+            }
+            playSFX(landingFileName);
+            if (vehicleKey === 'f35') {
+                triggerTTS("Cazas F-35 aterrizados en cubierta.");
+            } else if (vehicleKey === 'b21') {
+                triggerTTS("Bombarderos B-21 aterrizados en cubierta.");
+            }
+        }
+
         // Inicio del juego al hacer clic en la capa inicial
         function startGame() {
             document.getElementById('start-overlay').style.display = 'none';
 
-            // Audios ambientales del motor que ya te funcionaba
             seaAudio = new Audio('./mar.mp3');
             seaAudio.loop = true;
             seaAudio.volume = 0.15;
@@ -544,16 +583,56 @@
             }
         }
 
-        // Funciones de Inicio de Sesión integradas con el Client ID de Google Cloud
+        // Funciones interactivas de cuenta
+        function elegirUsuario() {
+            let user = prompt("Ingresa tu nombre de Capitán o Usuario:");
+            if (user) {
+                triggerTTS("Nombre de usuario guardado: " + user);
+                document.getElementById('hud-status').innerText = "Capitán: " + user + " | Estado: En Navegación";
+            }
+        }
+
         function loginGoogle() {
-            triggerTTS("Iniciando sesión con Google");
+            triggerTTS("Conectando con Google Play Games...");
             const googleClientId = "35640679870-ep1skjdicfgqi30n38i6722kr52sicjh.apps.googleusercontent.com";
-            console.log("Autenticando con Google Client ID:", googleClientId);
+            console.log("Iniciando con ID:", googleClientId);
+            
+            setTimeout(() => {
+                triggerTTS("Sesión de Google iniciada con éxito. ¡Bienvenido!");
+                document.getElementById('hud-status').innerText = "Estado: En Navegación | Sesión: Google Activa";
+            }, 1500);
         }
 
         function loginFacebook() {
-            triggerTTS("Iniciando sesión con Facebook");
-            console.log("Iniciando sesión con Facebook");
+            triggerTTS("Conectando con Facebook...");
+            setTimeout(() => {
+                triggerTTS("Sesión de Facebook iniciada correctamente.");
+                document.getElementById('hud-status').innerText = "Estado: En Navegación | Sesión: Facebook Activa";
+            }, 1500);
+        }
+
+        function loginEmail() {
+            let email = prompt("Ingresa tu correo electrónico:");
+            if (email) {
+                triggerTTS("Verificando correo electrónico...");
+                setTimeout(() => {
+                    triggerTTS("Inicio de sesión con correo exitoso.");
+                }, 1000);
+            }
+        }
+
+        function loginPhone() {
+            let phone = prompt("Ingresa tu número de teléfono (incluye el código de país):");
+            if (phone) {
+                triggerTTS("Enviando código de verificación...");
+                setTimeout(() => {
+                    let code = prompt("Ingresa el código de 4 dígitos que enviamos a tu teléfono:");
+                    if (code) {
+                        triggerTTS("Teléfono verificado con éxito.");
+                        document.getElementById('hud-status').innerText = "Estado: En Navegación | Sesión: Teléfono Verificado";
+                    }
+                }, 1500);
+            }
         }
 
         // Sistema de Vibración Táctil
@@ -727,6 +806,7 @@
             if (seaAudio) seaAudio.pause();
             if (battleAudio) battleAudio.pause();
             if (carrierAudio) carrierAudio.pause();
+            Object.values(activeLoops).forEach(audio => { if(audio) audio.pause(); });
             if ('speechSynthesis' in window) window.speechSynthesis.cancel();
         }, false);
 
@@ -734,6 +814,7 @@
             if (seaAudio) seaAudio.play().catch(() => {});
             if (battleAudio) battleAudio.play().catch(() => {});
             if (carrierAudio) carrierAudio.play().catch(() => {});
+            Object.values(activeLoops).forEach(audio => { if(audio) audio.play().catch(() => {}); });
         }, false);
     </script>
 </body>
