@@ -233,17 +233,6 @@
                     <button onclick="toggleVibration()">Activar/Desactivar Vibración</button>
                 </div>
             </details>
-
-            <details>
-                <summary onclick="triggerTTS('Opción 3: Notificaciones desplegado')">Opción 3: Notificaciones (Desplegar)</summary>
-                <div class="dropdown-content">
-                    <button onclick="triggerTTS('Notificaciones activadas o desactivadas')">1. Estado Notificaciones</button>
-                    <button onclick="playSFX('alarmadeemergencia.mp3'); triggerTTS('Auxilio a países aliados activado. Código de auxilio recibido.');">2. Auxiliar Aliados</button>
-                    <button onclick="triggerTTS('Notificaciones en tiempo real activas')">3. Tiempo Real</button>
-                    <button onclick="triggerTTS('Países conquistados: Ninguno recientemente.')">4. Territorios Conquistados</button>
-                    <button onclick="triggerTTS('Niveles superados: Nivel 1 completado.')">5. Niveles Superados</button>
-                </div>
-            </details>
         </section>
 
         <section id="menu-market" class="screen-panel" aria-label="Market Store">
@@ -254,14 +243,11 @@
                 </div>
             </div>
             <br>
-
             <details>
                 <summary onclick="triggerTTS('Sección de recursos desplegada')">1. Inventario de Recursos (Desplegar)</summary>
                 <div class="dropdown-content">
                     <button onclick="triggerTTS('Combustible: 100%')">Combustible</button>
                     <button onclick="triggerTTS('Municiones: 5000 rondas')">Municiones</button>
-                    <button onclick="triggerTTS('Oro: 500 barras')">Oro</button>
-                    <button onclick="triggerTTS('Dólares: 50,000 USD')">Dólares</button>
                 </div>
             </details>
         </section>
@@ -352,7 +338,7 @@
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Disparo.mp3')">Disparar Cañones</button>
                         <button onclick="playSFX('Ametralladora.mp3')">Ametralladoras</button>
-                        <button onclick="playSFX('Lanzatorpedoycaen.mp3')">Lanzar Torpedos</button>
+                        <button onclick="playSFX('sonidodetorpedo.mp3')">Lanzar Torpedos</button>
                         <button onclick="playSFX('bonba.mp3')">Lanzar Granadas/Bombas</button>
                         <button onclick="playSFX('misil de crucero.mp3')">Batería Misiles</button>
                     </div>
@@ -374,7 +360,7 @@
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Disparo.mp3')">Cañones Naval</button>
                         <button onclick="playSFX('Ametralladora.mp3')">Ametralladoras</button>
-                        <button onclick="playSFX('Lanzatorpedoycaen.mp3')">Lanzar Torpedos</button>
+                        <button onclick="playSFX('sonidodetorpedo.mp3')">Lanzar Torpedos</button>
                     </div>
                 </div>
             </div>
@@ -387,13 +373,6 @@
                     <button onclick="closeScreen('menu-taller')">Regresar</button>
                 </div>
             </div>
-            <br>
-            <details>
-                <summary onclick="triggerTTS('Reparaciones de portaaviones desplegadas')">Portaaviones Insignia (Desplegar)</summary>
-                <div class="dropdown-content">
-                    <button onclick="repararParte('Portaaviones - Motor')">Reparar Motor</button>
-                </div>
-            </details>
         </section>
 
         <section id="menu-mapas" class="screen-panel" aria-label="Menú Mapas">
@@ -407,11 +386,12 @@
         </section>
     </main>
 
+    <!-- Controles base del Portaaviones (Incluye el torpedo actualizado) -->
     <footer class="bottom-bar" role="navigation" aria-label="Controles Base del Portaaviones">
         <div class="btn-group-horizontal">
             <button onclick="playSFX('Disparo.mp3')">1. Cañones</button>
             <button onclick="playSFX('Ametralladora.mp3')">2. Metralletas</button>
-            <button onclick="playSFX('Lanzatorpedoycaen.mp3')">3. Torpedos</button>
+            <button onclick="playSFX('sonidodetorpedo.mp3')">3. Torpedos</button>
             <button onclick="playSFX('bonba.mp3')">4. Granadas</button>
             <button onclick="playSFX('misil de crucero.mp3')">5. Misiles Crucero</button>
         </div>
@@ -436,7 +416,6 @@
             triggerVibration([80, 40, 80]);
         }
 
-        // Corrección de controles de vuelo y lectura de estado
         function controlAccion(vehiculo, accion) {
             const nombreVehiculo = vehiculo === 'f35' ? 'Caza F-35' : 'Bombardero B-21';
             let mensaje = accion + " de " + nombreVehiculo;
@@ -449,7 +428,6 @@
             triggerVibration([50, 30, 50]);
         }
 
-        // Corrección del sonido específico para bombarderos y cazas en el aire
         function startVehicleLoop(vehicleKey, fileName) {
             if (activeLoops[vehicleKey]) {
                 activeLoops[vehicleKey].pause();
@@ -469,6 +447,7 @@
 
         function stopVehicleLoop(vehicleKey, landingFileName) {
             if (activeLoops[vehicleKey]) {
+                activeNavLoop = activeLoops[vehicleKey];
                 activeLoops[vehicleKey].pause();
                 activeLoops[vehicleKey] = null;
             }
@@ -545,11 +524,6 @@
 
         function adjustVolume(tipo) {
             triggerTTS("Ajustando volumen de " + tipo);
-        }
-
-        function repararParte(parte) {
-            playSFX('alarmadeemergencia.mp3');
-            triggerTTS("Reparando " + parte);
         }
     </script>
 </body>
