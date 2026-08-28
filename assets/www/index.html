@@ -333,12 +333,12 @@
                         <button onclick="playSFX('Disparo.mp3')">Cañón Principal</button>
                     </div>
                     <div class="btn-group-horizontal">
-                        <button onclick="triggerTTS('Acelerar caza')">Acelerar</button>
-                        <button onclick="triggerTTS('Frenar caza')">Frenar</button>
-                        <button onclick="triggerTTS('Altitud ajustada')">Altitud</button>
-                        <button onclick="triggerTTS('Velocidad máxima')">Velocidad</button>
-                        <button onclick="triggerTTS('Giro a la izquierda')">Giro Izq</button>
-                        <button onclick="triggerTTS('Giro a la derecha')">Giro Der</button>
+                        <button onclick="controlAccion('f35', 'Acelerar')">Acelerar</button>
+                        <button onclick="controlAccion('f35', 'Frenar')">Frenar</button>
+                        <button onclick="controlAccion('f35', 'Altitud')">Altitud</button>
+                        <button onclick="controlAccion('f35', 'Velocidad')">Velocidad</button>
+                        <button onclick="controlAccion('f35', 'Giro Izq')">Giro Izq</button>
+                        <button onclick="controlAccion('f35', 'Giro Der')">Giro Der</button>
                     </div>
                 </div>
             </div>
@@ -366,8 +366,12 @@
                         <button onclick="playSFX('trazadoras.mp3')">Metralletas Trazadoras</button>
                     </div>
                     <div class="btn-group-horizontal">
-                        <button onclick="triggerTTS('Acelerar bombardero')">Acelerar</button>
-                        <button onclick="triggerTTS('Frenar bombardero')">Frenar</button>
+                        <button onclick="controlAccion('b21', 'Acelerar')">Acelerar</button>
+                        <button onclick="controlAccion('b21', 'Frenar')">Frenar</button>
+                        <button onclick="controlAccion('b21', 'Altitud')">Altitud</button>
+                        <button onclick="controlAccion('b21', 'Velocidad')">Velocidad</button>
+                        <button onclick="controlAccion('b21', 'Giro Izq')">Giro Izq</button>
+                        <button onclick="controlAccion('b21', 'Giro Der')">Giro Der</button>
                     </div>
                 </div>
             </div>
@@ -507,6 +511,19 @@
                 console.warn("Audio no encontrado:", fileName, e);
             });
             triggerVibration([80, 40, 80]);
+        }
+
+        // Función para manejar controles de vuelo (acelerar, frenar, altitud, velocidad, giros)
+        function controlAccion(vehiculo, accion) {
+            const nombreVehiculo = vehiculo === 'f35' ? 'Caza F 35' : 'Bombardero B 21';
+            let mensaje = accion + " de " + nombreVehiculo;
+            if (accion === 'Altitud') mensaje = "Altitud ajustada para " + nombreVehiculo;
+            if (accion === 'Velocidad') mensaje = "Velocidad máxima de " + nombreVehiculo;
+            if (accion === 'Giro Izq') mensaje = "Virando a la izquierda con " + nombreVehiculo;
+            if (accion === 'Giro Der') mensaje = "Virando a la derecha con " + nombreVehiculo;
+            
+            triggerTTS(mensaje);
+            triggerVibration([50, 30, 50]);
         }
 
         // Función para iniciar audio en bucle continuo (Despegue)
