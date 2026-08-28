@@ -104,6 +104,7 @@
             display: flex;
             gap: 8px;
             overflow-x: auto;
+            flex-wrap: wrap;
         }
 
         #viewport {
@@ -169,12 +170,11 @@
 
         .menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00ffcc; padding-bottom: 10px; margin-bottom: 15px; }
         .menu-header h2 { margin: 0; color: #00ffcc; font-size: 18px; }
-        .breadcrumb { color: #ffaa00; font-size: 12px; margin-bottom: 12px; font-weight: bold; }
-        .map-list { display: flex; flex-direction: column; gap: 8px; }
-        .map-card { background: #112233; border: 1px solid #00ffcc; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
-        .map-card-info { display: flex; flex-direction: column; gap: 4px; }
-        .reward-tag { color: #ffaa00; font-size: 11px; }
-        .btn-back { border-color: #ffaa00; color: #ffaa00; margin-bottom: 10px; }
+        .breadcrumb { color: #ffaa00; font-size: 13px; margin-bottom: 12px; font-weight: bold; }
+        .map-list { display: flex; flex-direction: column; gap: 8px; max-height: 70vh; overflow-y: auto; padding-right: 5px; }
+        .map-card { background: #112233; border: 1px solid #00ffcc; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; text-align: left; width: 100%; }
+        .map-card:hover { background: #1b334f; }
+        .btn-back { border-color: #ffaa00; color: #ffaa00; margin-bottom: 10px; width: fit-content; }
         .btn-close { border-color: #ff5555; color: #ff5555; padding: 6px 12px; }
     </style>
 </head>
@@ -205,7 +205,7 @@
         </div>
 
         <section id="menu-ajustes" class="screen-panel" aria-label="Menú de Ajustes">
-            <h2>Ajustes del Juego</h2>
+            <h2>Ajustes del Juego y Sistemas de Alarma</h2>
             <div class="top-bar">
                 <div class="btn-group-horizontal">
                     <button onclick="closeScreen('menu-ajustes')">Regresar</button>
@@ -214,7 +214,7 @@
             <br>
             
             <details>
-                <summary onclick="triggerTTS('Opción 1: Cuenta desplegado')">Opción 1: Cuenta (Desplegar)</summary>
+                <summary onclick="triggerTTS('Opción 1: Cuenta desplegada')">Opción 1: Cuenta (Desplegar)</summary>
                 <div class="dropdown-content">
                     <button onclick="elegirUsuario()">1. Elegir Usuario</button>
                     <button onclick="loginGoogle()">2. Sesión Google</button>
@@ -225,11 +225,12 @@
             </details>
 
             <details>
-                <summary onclick="triggerTTS('Opción 2: Sonido y Vibración desplegado')">Opción 2: Sonido y Vibración (Desplegar)</summary>
+                <summary onclick="triggerTTS('Opción 2: Sistemas de Alarma desplegado')">Opción 2: Sistemas de Alarma y Sonidos (Desplegar)</summary>
                 <div class="dropdown-content">
+                    <button onclick="playSFX('alarmadeemergencia.mp3'); triggerTTS('Alarma de emergencia general activada.');">Alarma de Emergencia</button>
+                    <button onclick="playSFX('alarma.mp3'); triggerTTS('Alarma táctica de combate activada.');">Alarma Táctica</button>
                     <button onclick="adjustVolume('disparos')">Volumen Disparos</button>
                     <button onclick="adjustVolume('vehiculos')">Volumen Vehículos</button>
-                    <button onclick="adjustVolume('fondo')">Volumen Fondo</button>
                     <button onclick="toggleVibration()">Activar/Desactivar Vibración</button>
                 </div>
             </details>
@@ -294,7 +295,7 @@
                 </div>
             </div>
 
-            <!-- Vehículo 2: B-21 Raider -->
+            <!-- Vehículo 2: B-21 Raider (Usando borbanderoenelaire.mp3) -->
             <div id="v-b21" class="screen-panel">
                 <h3>Escuadrón Bombarderos B-21 Raider</h3>
                 <div class="top-bar">
@@ -302,7 +303,7 @@
                         <button onclick="closeSubMenu('v-b21')">Regresar</button>
                         <button onclick="triggerTTS('Objetivo fijado')">Fijar Objetivo</button>
                         <button onclick="triggerTTS('Objetivo bloqueado')">Bloquear Objetivo</button>
-                        <button onclick="startVehicleLoop('b21', 'sonidodecasaenelaire.wav')">Despegar</button>
+                        <button onclick="startVehicleLoop('b21', 'borbanderoenelaire.mp3')">Despegar</button>
                         <button onclick="stopVehicleLoop('b21', 'aterrizaje.mp3')">Aterrizar en Base</button>
                     </div>
                 </div>
@@ -375,18 +376,18 @@
             </div>
         </section>
 
+        <!-- SECCIÓN DE MAPAS AMPLIADA: CONTINENTES, REGIONES, PAÍSES, ISLAS Y ARCHIPIÉLAGOS -->
         <section id="menu-mapas" class="screen-panel" aria-label="Menú Mapas">
             <div class="menu-header">
                 <h2 id="mapTitle">🌍 MAPA MUNDIAL</h2>
                 <button class="btn-close" onclick="closeScreen('menu-mapas')">✖ Volver</button>
             </div>
-            <div id="breadcrumb" class="breadcrumb">Ubicación: Continentes Habitados</div>
-            <button id="btnMapBack" class="btn-back" style="display:none;" onclick="retrocederNivel()">⬅ Regresar Nivel</button>
+            <div id="breadcrumb" class="breadcrumb">Ubicación: Selección de Continentes</div>
+            <button id="btnMapBack" class="btn-back" style="display:none;" onclick="reiniciarMapa()">⬅ Regresar a Continentes</button>
             <div id="mapList" class="map-list"></div>
         </section>
     </main>
 
-    <!-- Controles base del Portaaviones (Incluye el torpedo actualizado) -->
     <footer class="bottom-bar" role="navigation" aria-label="Controles Base del Portaaviones">
         <div class="btn-group-horizontal">
             <button onclick="playSFX('Disparo.mp3')">1. Cañones</button>
@@ -394,6 +395,7 @@
             <button onclick="playSFX('sonidodetorpedo.mp3')">3. Torpedos</button>
             <button onclick="playSFX('bonba.mp3')">4. Granadas</button>
             <button onclick="playSFX('misil de crucero.mp3')">5. Misiles Crucero</button>
+            <button onclick="playSFX('misil.mp3')">6. Misiles Antiaéreos</button>
         </div>
         <div class="btn-group-horizontal">
             <button onclick="playSFX('sonidoportaaviones1.mp3')">Acelerar</button>
@@ -406,9 +408,138 @@
     <script>
         let vibrationEnabled = true;
         let seaAudio = null;
-        let battleAudio = null;
-        let carrierAudio = null;
         let activeLoops = {};
+
+        // Base de datos completa del mapa mundial jerárquico
+        const worldMapData = {
+            "América": {
+                "Regiones": {
+                    "América del Norte": { "Paises": ["Estados Unidos", "Canadá", "México"], "Islas/Archipiélagos": ["Groenlandia", "Archipiélago Ártico Canadiense", "Bermudas"] },
+                    "América Central": { "Paises": ["Honduras", "Guatemala", "Costa Rica", "Panamá", "Nicaragua", "El Salvador", "Belice"], "Islas/Archipiélagos": ["Islas de la Bahía", "Cayos Miskitos", "Archipiélago de Bocas del Toro"] },
+                    "América del Sur": { "Paises": ["Brasil", "Argentina", "Colombia", "Chile", "Perú", "Venezuela"], "Islas/Archipiélagos": ["Islas Galápagos", "Islas Malvinas", "Tierra del Fuego", "Archipiélago de Chiloé"] },
+                    "Caribe": { "Paises": ["Cuba", "República Dominicana", "Haití", "Jamaica"], "Islas/Archipiélagos": ["Antillas Mayores", "Antillas Menores", "Bahamas", "Islas Caimán"] }
+                }
+            },
+            "Europa": {
+                "Regiones": {
+                    "Europa Occidental": { "Paises": ["Reino Unido", "Francia", "Alemania", "Países Bajos", "Bélgica"], "Islas/Archipiélagos": ["Islas Británicas", "Córcega", "Cerdeña", "Baleares"] },
+                    "Europa Meridional": { "Paises": ["España", "Italia", "Grecia", "Portugal"], "Islas/Archipiélagos": ["Sicilia", "Creta", "Archipiélago Toscano", "Islasut Jónicas"] },
+                    "Europa Septentrional y Oriental": { "Paises": ["Noruega", "Suecia", "Polonia", "Ucrania", "Finlandia"], "Islas/Archipiélagos": ["Svalbard", "Islas Lofoten", "Archipiélago de Estocolmo"] }
+                }
+            },
+            "Asia": {
+                "Regiones": {
+                    "Asia Oriental": { "Paises": ["China", "Japón", "Corea del Sur", "Corea del Norte"], "Islas/Archipiélagos": ["Archipiélago Japonés (Honshu/Hokkaido)", "Islas Ryukyu", "Taiwán"] },
+                    "Sudeste Asiático": { "Paises": ["Vietnam", "Tailandia", "Indonesia", "Filipinas", "Singapur"], "Islas/Archipiélagos": ["Archipiélago Malayo", "Islas Filipinas", "Sumatra", "Java"] },
+                    "Asia Meridional y Occidental": { "Paises": ["India", "Arabia Saudita", "Emiratos Árabes Unidos", "Turquía"], "Islas/Archipiélagos": ["Islas Maldivas", "Andamán y Nicobar", "Chipre"] }
+                }
+            },
+            "África": {
+                "Regiones": {
+                    "África del Norte y Occidental": { "Paises": ["Egipto", "Marruecos", "Nigeria", "Ghana"], "Islas/Archipiélagos": ["Islas Canarias", "Madeira", "Cabo Verde"] },
+                    "África Oriental y Austral": { "Paises": ["Sudáfrica", "Kenia", "Etiopía", "Tanzania"], "Islas/Archipiélagos": ["Madagascar", "Seychelles", "Mauricio", "Archipiélago de Zanzíbar"] }
+                }
+            },
+            "Oceanía": {
+                "Regiones": {
+                    "Australasia y Pacífico": { "Paises": ["Australia", "Nueva Zelanda", "Fiyi", "Papúa Nueva Guinea"], "Islas/Archipiélagos": ["Gran Barrera de Coral", "Tasmania", "Polinesia", "Micronesia", "Melanesia"] }
+                }
+            }
+        };
+
+        let currentMapState = { continent: null, region: null };
+
+        function renderMapRoot() {
+            currentMapState = { continent: null, region: null };
+            document.getElementById('breadcrumb').innerText = "Ubicación: Selección de Continentes";
+            document.getElementById('btnMapBack').style.display = 'none';
+            const list = document.getElementById('mapList');
+            list.innerHTML = '';
+
+            for (let continent in worldMapData) {
+                let card = document.createElement('div');
+                card.className = 'map-card';
+                card.innerHTML = `<span> continente: <strong>${continent}</strong></span> <button>Explorar Regiones ➡</button>`;
+                card.onclick = () => selectContinent(continent);
+                list.appendChild(card);
+            }
+            triggerTTS("Mostrando continentes del mundo.");
+        }
+
+        function selectContinent(continent) {
+            currentMapState.continent = continent;
+            document.getElementById('breadcrumb').innerText = `Ubicación: ${continent} ➔ Seleccione Región`;
+            document.getElementById('btnMapBack').style.display = 'block';
+            const list = document.getElementById('mapList');
+            list.innerHTML = '';
+
+            const regions = worldMapData[continent].Regiones;
+            for (let region in regions) {
+                let card = document.createElement('div');
+                card.className = 'map-card';
+                card.innerHTML = `<span>Región: <strong>${region}</strong></span> <button>Ver Países e Islas ➡</button>`;
+                card.onclick = () => selectRegion(continent, region);
+                list.appendChild(card);
+            }
+            triggerTTS(`Explorando ${continent}. Seleccione región.`);
+        }
+
+        function selectRegion(continent, region) {
+            currentMapState.region = region;
+            document.getElementById('breadcrumb').innerText = `Ubicación: ${continent} ➔ ${region}`;
+            const list = document.getElementById('mapList');
+            list.innerHTML = '';
+
+            const data = worldMapData[continent].Regiones[region];
+
+            // Sección Países
+            let headerP = document.createElement('div');
+            headerP.style.color = '#00ffcc';
+            headerP.style.fontWeight = 'bold';
+            headerP.innerText = "--- PAÍSES ESTRATÉGICOS ---";
+            list.appendChild(headerP);
+
+            data.Paises.forEach(pais => {
+                let card = document.createElement('div');
+                card.className = 'map-card';
+                card.style.borderLeft = '4px solid #00ffcc';
+                card.innerHTML = `<span>País: <strong>${pais}</strong></span> <button onclick="desplegarZona('${pais}')">Desplegar Operación</button>`;
+                list.appendChild(card);
+            });
+
+            // Sección Islas y Archipiélagos
+            let headerI = document.createElement('div');
+            headerI.style.color = '#ffaa00';
+            headerI.style.fontWeight = 'bold';
+            headerI.style.marginTop = '10px';
+            headerI.innerText = "--- ISLAS Y ARCHIPIÉLAGOS ---";
+            list.appendChild(headerI);
+
+            data["Islas/Archipiélagos"].forEach( isla => {
+                let card = document.createElement('div');
+                card.className = 'map-card';
+                card.style.borderLeft = '4px solid #ffaa00';
+                card.innerHTML = `<span>Zona Marítima/Isla: <strong>${isla}</strong></span> <button onclick="desplegarZona('${isla}')">Desplegar Base</button>`;
+                list.appendChild(card);
+            });
+
+            triggerTTS(`Región ${region} seleccionada. Países, islas y archipiélagos listados.`);
+        }
+
+        function reiniciarMapa() {
+            if (currentMapState.continent && currentMapState.region) {
+                selectContinent(currentMapState.continent);
+            } else {
+                renderMapRoot();
+            }
+        }
+
+        function desplegarZona(nombre) {
+            playSFX('alarma.mp3');
+            triggerTTS("Desplegando fuerzas de combate en zona: " + nombre);
+            document.getElementById('hud-status').innerText = `Estado: Operación Activa en ${nombre} | Casco: 100%`;
+            closeScreen('menu-mapas');
+        }
 
         function playSFX(fileName) {
             const audio = new Audio('./' + fileName);
@@ -447,7 +578,6 @@
 
         function stopVehicleLoop(vehicleKey, landingFileName) {
             if (activeLoops[vehicleKey]) {
-                activeNavLoop = activeLoops[vehicleKey];
                 activeLoops[vehicleKey].pause();
                 activeLoops[vehicleKey] = null;
             }
@@ -467,8 +597,9 @@
             seaAudio.volume = 0.15;
             seaAudio.play().catch(() => {});
 
-            playSFX('mensajedebienvenida.mp3');
-            triggerTTS("Bienvenido a bordo, Capitán. Sistemas en línea.");
+            playSFX('alarmadeemergencia.mp3');
+            triggerTTS("Bienvenido a bordo, Capitán. Alarma general inicializada. Sistemas en línea.");
+            renderMapRoot();
         }
 
         function triggerTTS(text) {
@@ -495,7 +626,11 @@
 
         function openScreen(id) {
             document.getElementById(id).classList.add('active');
-            triggerTTS("Abriendo " + id.replace('-', ' '));
+            if(id === 'menu-mapas') {
+                renderMapRoot();
+            } else {
+                triggerTTS("Abriendo " + id.replace('-', ' '));
+            }
         }
 
         function closeScreen(id) {
