@@ -33,6 +33,7 @@
             overflow: hidden;
         }
 
+        /* Layout UI Accesible - Filas Horizontales Estrictas */
         .top-bar, .bottom-bar {
             background-color: var(--panel-bg);
             padding: 10px;
@@ -85,6 +86,7 @@
             color: #000;
         }
 
+        /* Menús desplegables estilizados */
         details {
             background-color: rgba(27, 38, 59, 0.6);
             border: 1px solid var(--accent-color);
@@ -104,9 +106,9 @@
             display: flex;
             gap: 8px;
             overflow-x: auto;
-            flex-wrap: wrap;
         }
 
+        /* Área Principal de Pantalla / Modales */
         #viewport {
             flex-grow: 1;
             position: relative;
@@ -153,20 +155,27 @@
             border: 0;
         }
 
+        /* ESTILOS DEL MÓDULO DE MAPA Y COMPETITIVO */
         .menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00ffcc; padding-bottom: 10px; margin-bottom: 15px; }
         .menu-header h2 { margin: 0; color: #00ffcc; font-size: 18px; }
-        .breadcrumb { color: #ffaa00; font-size: 13px; margin-bottom: 12px; font-weight: bold; }
-        .map-list { display: flex; flex-direction: column; gap: 8px; max-height: 70vh; overflow-y: auto; padding-right: 5px; }
-        .map-card { background: #112233; border: 1px solid #00ffcc; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; text-align: left; width: 100%; }
-        .map-card:hover { background: #1b334f; }
-        .btn-back { border-color: #ffaa00; color: #ffaa00; margin-bottom: 10px; width: fit-content; }
+        .breadcrumb { color: #ffaa00; font-size: 12px; margin-bottom: 12px; font-weight: bold; }
+        .map-list { display: flex; flex-direction: column; gap: 8px; }
+        .map-card { background: #112233; border: 1px solid #00ffcc; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .map-card-info { display: flex; flex-direction: column; gap: 4px; }
+        .reward-tag { color: #ffaa00; font-size: 11px; }
+        .btn-back { border-color: #ffaa00; color: #ffaa00; margin-bottom: 10px; }
         .btn-close { border-color: #ff5555; color: #ff5555; padding: 6px 12px; }
+
+        /* Estilos del panel de combate competitivo */
+        .combat-box { background: #1b263b; border: 2px solid var(--danger-color); border-radius: 8px; padding: 15px; margin-top: 10px; display: flex; flex-direction: column; gap: 12px; }
     </style>
 </head>
 <body>
 
+    <!-- Lector accesible para estado global -->
     <div id="sr-announcer" class="sr-only" aria-live="assertive"></div>
 
+    <!-- PARTE ALTA: Menús principales en línea horizontal -->
     <header class="top-bar" role="navigation" aria-label="Menú Principal Superior">
         <div class="btn-group-horizontal">
             <button onclick="openScreen('menu-ajustes')">1. Menú de Ajustes</button>
@@ -174,17 +183,20 @@
             <button onclick="openScreen('menu-vehiculos')">3. Menú Vehículos</button>
             <button onclick="openScreen('menu-taller')">4. Menú Taller y Reparaciones</button>
             <button onclick="openScreen('menu-mapas')">5. Menú Mapas</button>
+            <button onclick="openScreen('menu-ranking')">6. Ranking Global</button>
         </div>
     </header>
 
+    <!-- ÁREA CENTRAL DE PANTALLA -->
     <main id="viewport">
         <div id="main-hud">
             <h1 style="text-align: center; color: var(--accent-color);">PORTAAVIONES INSIGNIA (BASE)</h1>
-            <p class="status-display" id="hud-status">Estado: En Navegación | Casco: 100%</p>
+            <p class="status-display" id="hud-status">Estado: En Navegación | Casco: 100% | Sistema Competitivo con Alarmas Activas</p>
         </div>
 
+        <!-- 2. MENÚ DE AJUSTES (Desplegable) -->
         <section id="menu-ajustes" class="screen-panel" aria-label="Menú de Ajustes">
-            <h2>Ajustes del Juego y Sistemas de Alarma</h2>
+            <h2>Ajustes del Juego</h2>
             <div class="top-bar">
                 <div class="btn-group-horizontal">
                     <button onclick="closeScreen('menu-ajustes')">Regresar</button>
@@ -193,31 +205,45 @@
             <br>
             
             <details>
-                <summary onclick="triggerTTS('Opción 1: Cuenta desplegada')">Opción 1: Cuenta (Desplegar)</summary>
+                <summary onclick="triggerTTS('Opción 1: Cuenta desplegado')">Opción 1: Cuenta (Desplegar)</summary>
                 <div class="dropdown-content">
-                    <button onclick="elegirUsuario()">1. Elegir Usuario</button>
-                    <button onclick="loginGoogle()">2. Sesión Google</button>
-                    <button onclick="loginFacebook()">3. Sesión Facebook</button>
-                    <button onclick="loginEmail()">4. Sesión Correo</button>
-                    <button onclick="loginPhone()">5. Sesión Teléfono</button>
+                    <button onclick="triggerTTS('Elegir nombre de usuario')">1. Elegir Usuario</button>
+                    <button onclick="triggerTTS('Iniciar sesión con Google')">2. Sesión Google</button>
+                    <button onclick="triggerTTS('Iniciar sesión con Facebook')">3. Sesión Facebook</button>
+                    <button onclick="triggerTTS('Iniciar sesión con Correo')">4. Sesión Correo</button>
                 </div>
             </details>
 
             <details>
-                <summary onclick="triggerTTS('Opción 2: Sistemas de Alarma desplegado')">Opción 2: Sistemas de Alarma y Sonidos (Desplegar)</summary>
+                <summary onclick="triggerTTS('Opción 2: Sonido y Vibración desplegado')">Opción 2: Sonido y Vibración (Desplegar)</summary>
                 <div class="dropdown-content">
-                    <button onclick="playSFX('Alarmadeataqueenemigo.mp3'); triggerTTS('¡Alerta! Enemigo atacando el portaaviones.');">Alerta Ataque Enemigo</button>
-                    <button onclick="playSFX('alarmadeemergencia.mp3'); triggerTTS('Alarma de emergencia general activada.');">Alarma de Emergencia</button>
-                    <button onclick="playSFX('alerta.mp3'); triggerTTS('Alerta: Aeronave bloqueada por enemigo.');">Alerta de Bloqueo</button>
-                    <button onclick="playSFX('contactoderadar.mp3'); triggerTTS('Radar activado: Contacto enemigo detectado.');">Radar: Contacto Enemigo</button>
-                    <button onclick="playSFX('emergencia.wav'); triggerTTS('¡Emergencia crítica! Aeronave dañada, pilotos en paracaídas.');">Emergencia / Eyección</button>
-                    <button onclick="playSFX('defensa antiaerea.mp3'); triggerTTS('Defensa antiaérea activada.');">Defensa Antiaérea</button>
                     <button onclick="adjustVolume('disparos')">Volumen Disparos</button>
+                    <button onclick="adjustVolume('vehiculos')">Volumen Vehículos</button>
+                    <button onclick="adjustVolume('fondo')">Volumen Fondo</button>
                     <button onclick="toggleVibration()">Activar/Desactivar Vibración</button>
+                </div>
+            </details>
+
+            <details>
+                <summary onclick="triggerTTS('Opción 3: Notificaciones desplegado')">Opción 3: Notificaciones (Desplegar)</summary>
+                <div class="dropdown-content">
+                    <button onclick="triggerTTS('Notificaciones activadas o desactivadas')">1. Estado Notificaciones</button>
+                    <button onclick="playSFX('alarmadeemergencia.mp3'); triggerTTS('Auxilio a países aliados activado. Código de auxilio recibido.');">2. Auxiliar Aliados</button>
+                    <button onclick="triggerTTS('Notificaciones en tiempo real activas')">3. Tiempo Real</button>
+                    <button onclick="triggerTTS('Territorios conquistados registrados.')">4. Territorios Conquistados</button>
+                    <button onclick="triggerTTS('Niveles superados en curso.')">5. Niveles Superados</button>
+                </div>
+            </details>
+
+            <details>
+                <summary onclick="triggerTTS('Opción 4: Política de Privacidad desplegado')">Opción 4: Política de Privacidad (Desplegar)</summary>
+                <div class="dropdown-content">
+                    <p style="padding: 10px;">Tus datos de combate y navegación están protegidos por el protocolo militar del Portaaviones Insignia.</p>
                 </div>
             </details>
         </section>
 
+        <!-- 3. MENÚ MARKET STORE (Desplegable) -->
         <section id="menu-market" class="screen-panel" aria-label="Market Store">
             <h2>Market Store</h2>
             <div class="top-bar">
@@ -226,15 +252,28 @@
                 </div>
             </div>
             <br>
+
             <details>
                 <summary onclick="triggerTTS('Sección de recursos desplegada')">1. Inventario de Recursos (Desplegar)</summary>
                 <div class="dropdown-content">
-                    <button onclick="triggerTTS('Combustible: 100%')">Combustible</button>
+                    <button onclick="triggerTTS('Combustible: 100 por ciento')">Combustible</button>
                     <button onclick="triggerTTS('Municiones: 5000 rondas')">Municiones</button>
+                    <button onclick="triggerTTS('Oro: 500 barras')">Oro</button>
+                    <button id="player-score-display" onclick="triggerTTS('Puntuación de combate actual')">Puntuación: 1200 Puntos</button>
+                    <button id="player-money-display" onclick="triggerTTS('Dólares acumulados')">Dólares: $50,000 USD</button>
+                </div>
+            </details>
+
+            <details>
+                <summary onclick="triggerTTS('Sección de mercado desplegada')">2. Mercado de Insumos (Desplegar)</summary>
+                <div class="dropdown-content">
+                    <button onclick="buySupplies('Combustible')">Comprar Combustible (Dólares)</button>
+                    <button onclick="buySupplies('Munición')">Comprar Munición (Minerales)</button>
                 </div>
             </details>
         </section>
 
+        <!-- 4. MENÚ VEHÍCULOS -->
         <section id="menu-vehiculos" class="screen-panel" aria-label="Menú Vehículos">
             <h2>Escuadrones y Fleet Maneuver</h2>
             <div class="top-bar">
@@ -253,27 +292,17 @@
                 <div class="top-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="closeSubMenu('v-f35')">Regresar</button>
-                        <button onclick="playSFX('contactoderadar.mp3'); triggerTTS('Radar F35: Contacto enemigo identificado.')">Radar (Detectar Enemigo)</button>
-                        <button onclick="playSFX('alerta.mp3'); triggerTTS('¡Alerta! F35 bloqueado por caza enemigo.')">Simular Bloqueo Enemigo</button>
-                        <button onclick="playSFX('emergencia.wav'); triggerTTS('¡F35 gravemente dañado! Piloto eyectado en paracaídas.')">Daño Crítico / Eyección</button>
-                        <button onclick="startVehicleLoop('f35', 'sonidodecasaenelaire.wav')">Despegar</button>
-                        <button onclick="stopVehicleLoop('f35', 'aterrizaje.mp3')">Aterrizar en Base</button>
+                        <button onclick="playSFX('contactoderadar.mp3')">Escanear Radar</button>
+                        <button onclick="playSFX('sonidodecasaenelaire.wav')">Despegar</button>
+                        <button onclick="playSFX('aterrizaje.mp3')">Aterrizar en Base</button>
                     </div>
                 </div>
                 <div style="flex-grow: 1;"></div>
                 <div class="bottom-bar">
                     <div class="btn-group-horizontal">
-                        <button onclick="playSFX('Ametralladora.mp3')">Ametralladoras</button>
+                        <button onclick="playSFX('Ametralladora.mp3')">8 Ametralladoras</button>
                         <button onclick="playSFX('misil.mp3')">Misiles Aire-Aire</button>
-                        <button onclick="playSFX('defensa antiaerea.mp3')">Defensa Antiaérea</button>
-                    </div>
-                    <div class="btn-group-horizontal">
-                        <button onclick="controlAccion('f35', 'Acelerar')">Acelerar</button>
-                        <button onclick="controlAccion('f35', 'Frenar')">Frenar</button>
-                        <button onclick="controlAccion('f35', 'Altitud')">Altitud</button>
-                        <button onclick="controlAccion('f35', 'Velocidad')">Velocidad</button>
-                        <button onclick="controlAccion('f35', 'Giro Izq')">Giro Izq</button>
-                        <button onclick="controlAccion('f35', 'Giro Der')">Giro Der</button>
+                        <button onclick="playSFX('Disparo.mp3')">Cañón Principal</button>
                     </div>
                 </div>
             </div>
@@ -284,11 +313,7 @@
                 <div class="top-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="closeSubMenu('v-b21')">Regresar</button>
-                        <button onclick="playSFX('contactoderadar.mp3'); triggerTTS('Radar B21: Contacto enemigo identificado.')">Radar (Detectar Enemigo)</button>
-                        <button onclick="playSFX('alerta.mp3'); triggerTTS('¡Alerta! B21 bloqueado por radar enemigo.')">Simular Bloqueo Enemigo</button>
-                        <button onclick="playSFX('emergencia.wav'); triggerTTS('¡B21 gravemente dañado! Tripulación eyectada en paracaídas.')">Daño Crítico / Eyección</button>
-                        <button onclick="startVehicleLoop('b21', 'borbanderoenelaire.mp3')">Despegar</button>
-                        <button onclick="stopVehicleLoop('b21', 'aterrizaje.mp3')">Aterrizar en Base</button>
+                        <button onclick="triggerTTS('Objetivo fijado')">Fijar Objetivo</button>
                     </div>
                 </div>
                 <div style="flex-grow: 1;"></div>
@@ -296,15 +321,7 @@
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Torreta.mp3')">Torretas Traseras</button>
                         <button onclick="playSFX('sonidodeborbandeo.mp3')">Lanzar Bombas</button>
-                        <button onclick="playSFX('defensa antiaerea.mp3')">Defensa Antiaérea</button>
-                    </div>
-                    <div class="btn-group-horizontal">
-                        <button onclick="controlAccion('b21', 'Acelerar')">Acelerar</button>
-                        <button onclick="controlAccion('b21', 'Frenar')">Frenar</button>
-                        <button onclick="controlAccion('b21', 'Altitud')">Altitud</button>
-                        <button onclick="controlAccion('b21', 'Velocidad')">Velocidad</button>
-                        <button onclick="controlAccion('b21', 'Giro Izq')">Giro Izq</button>
-                        <button onclick="controlAccion('b21', 'Giro Der')">Giro Der</button>
+                        <button onclick="playSFX('trazadoras.mp3')">Metralletas Trazadoras</button>
                     </div>
                 </div>
             </div>
@@ -315,17 +332,15 @@
                 <div class="top-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="closeSubMenu('v-destructores')">Regresar</button>
-                        <button onclick="playSFX('contactoderadar.mp3'); triggerTTS('Radar Destructor: Contacto naval enemigo detectado.')">Radar (Detectar Enemigo)</button>
-                        <button onclick="playSFX('alarmadeemergencia.mp3'); triggerTTS('¡Emergencia en destructor! Daño estructural detectado.')">Emergencia en Destructor</button>
+                        <button onclick="triggerTTS('Seleccionando objetivos')">Seleccionar Objetivos</button>
                     </div>
                 </div>
                 <div style="flex-grow: 1;"></div>
                 <div class="bottom-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Disparo.mp3')">Disparar Cañones</button>
-                        <button onclick="playSFX('defensa antiaerea.mp3')">Defensa Antiaérea</button>
-                        <button onclick="playSFX('sonidodetorpedo.mp3')">Lanzar Torpedos</button>
-                        <button onclick="playSFX('misil de crucero.mp3')">Batería Misiles</button>
+                        <button onclick="playSFX('Ametralladora.mp3')">Ametralladoras</button>
+                        <button onclick="playSFX('Lanzatorpedoycaen.mp3')">Lanzar Torpedos</button>
                     </div>
                 </div>
             </div>
@@ -336,23 +351,20 @@
                 <div class="top-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="closeSubMenu('v-submarino')">Regresar</button>
-                        <button onclick="playSFX('contactoderadar.mp3'); triggerTTS('Sonar / Radar Submarino: Contacto enemigo detectado.')">Radar / Sonar (Detectar Enemigo)</button>
-                        <button onclick="playSFX('alarmadeemergencia.mp3'); triggerTTS('¡Emergencia en submarino! Falla en compartimento.')">Emergencia en Submarino</button>
-                        <button onclick="triggerTTS('Sumergiéndose bajo el agua');">Sumergirse</button>
-                        <button onclick="triggerTTS('Navegando en superficie');">Navegar Superficie</button>
+                        <button onclick="playSFX('alarmadeemergencia.mp3')">Radio Emergencia</button>
                     </div>
                 </div>
                 <div style="flex-grow: 1;"></div>
                 <div class="bottom-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Disparo.mp3')">Cañones Naval</button>
-                        <button onclick="playSFX('sonidodetorpedo.mp3')">Lanzar Torpedos</button>
-                        <button onclick="playSFX('defensa antiaerea.mp3')">Defensa Antiaérea</button>
+                        <button onclick="playSFX('Lanzatorpedoycaen.mp3')">Lanzar Torpedos</button>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- 5. MENÚ TALLER Y REPARACIONES -->
         <section id="menu-taller" class="screen-panel" aria-label="Taller y Reparaciones">
             <h2>Taller y Reparaciones</h2>
             <div class="top-bar">
@@ -360,31 +372,57 @@
                     <button onclick="closeScreen('menu-taller')">Regresar</button>
                 </div>
             </div>
+            <br>
+            
+            <details>
+                <summary onclick="triggerTTS('Reparaciones de portaaviones desplegadas')">Portaaviones Insignia (Desplegar)</summary>
+                <div class="dropdown-content">
+                    <button onclick="repararParte('Portaaviones - Motor')">Reparar Motor Portaaviones</button>
+                    <button onclick="repararParte('Portaaviones - Casco')">Reparar Casco Portaaviones</button>
+                </div>
+            </details>
         </section>
 
-        <!-- SECCIÓN DE MAPAS -->
+        <!-- 6. MENÚ MAPAS Y COMPETITIVO POR FASES -->
         <section id="menu-mapas" class="screen-panel" aria-label="Menú Mapas">
             <div class="menu-header">
-                <h2 id="mapTitle">🌍 MAPA MUNDIAL</h2>
-                <button class="btn-close" onclick="closeScreen('menu-mapas')">✖ Volver</button>
+                <h2 id="mapTitle">🌍 MAPA MUNDIAL Y COMBATE</h2>
+                <button class="btn-close" onclick="closeScreen('menu-mapas')" aria-label="Volver al juego">✖ Volver</button>
             </div>
-            <div id="breadcrumb" class="breadcrumb">Ubicación: Selección de Continentes</div>
-            <button id="btnMapBack" class="btn-back" style="display:none;" onclick="reiniciarMapa()">⬅ Regresar a Continentes</button>
-            <div id="mapList" class="map-list"></div>
+
+            <div id="breadcrumb" class="breadcrumb" aria-live="polite">Ubicación: Continentes Habitados</div>
+
+            <button id="btnMapBack" class="btn-back" style="display:none;" onclick="retrocederNivel()" aria-label="Regresar al nivel anterior">⬅ Regresar Nivel</button>
+
+            <!-- Contenedor dinámico para mapas o consola de combate por fases -->
+            <div id="mapList" class="map-list" role="region" aria-live="polite"></div>
+        </section>
+
+        <!-- 7. MENÚ RANKING GLOBAL -->
+        <section id="menu-ranking" class="screen-panel" aria-label="Ranking Global de Capitanes">
+            <div class="menu-header">
+                <h2>🏆 RANKING GLOBAL DE CAPITANES</h2>
+                <button class="btn-close" onclick="closeScreen('menu-ranking')" aria-label="Volver">✖ Volver</button>
+            </div>
+            <p class="breadcrumb">Tabla de clasificación competitiva frente a IA rivales</p>
+            <div id="rankingList" class="map-list" role="region" aria-live="polite">
+                <!-- Se llena por JavaScript -->
+            </div>
         </section>
     </main>
 
+    <!-- PARTE BAJA: Controles base del Portaaviones -->
     <footer class="bottom-bar" role="navigation" aria-label="Controles Base del Portaaviones">
-        <div class="btn-group-horizontal">
-            <button onclick="playSFX('contactoderadar.mp3'); triggerTTS('Radar Portaaviones: Contacto enemigo detectado.');">Radar Base</button>
-            <button onclick="playSFX('Alarmadeataqueenemigo.mp3'); triggerTTS('¡Alerta! Enemigo atacando directamente el portaaviones.');">Simular Ataque Base</button>
-            <button onclick="playSFX('Disparo.mp3')">Cañones</button>
-            <button onclick="playSFX('Ametralladora.mp3')">Metralletas</button>
-            <button onclick="playSFX('sonidodetorpedo.mp3')">Torpedos</button>
-            <button onclick="playSFX('defensa antiaerea.mp3')">Defensa Antiaérea</button>
-            <button onclick="playSFX('misil de crucero.mp3')">Misiles Crucero</button>
+        <div class="btn-group-horizontal" aria-label="Controles de Ataque">
+            <button onclick="playSFX('Disparo.mp3')">1. Cañones</button>
+            <button onclick="playSFX('Ametralladora.mp3')">2. Metralletas</button>
+            <button onclick="playSFX('Lanzatorpedoycaen.mp3')">3. Torpedos</button>
+            <button onclick="playSFX('bonba.mp3')">4. Granadas</button>
+            <button onclick="playSFX('misil de crucero.mp3')">5. Misiles Crucero</button>
+            <button onclick="playSFX('bateriademisilesantiaereos.mp3')">6. Misiles Antiaéreos</button>
         </div>
-        <div class="btn-group-horizontal">
+
+        <div class="btn-group-horizontal" aria-label="Controles de Navegación">
             <button onclick="playSFX('sonidoportaaviones1.mp3')">Acelerar</button>
             <button onclick="playSFX('sonidoportaaviones1.mp3')">Frenar</button>
             <button onclick="triggerTTS('Girando a Babor')">Girar Babor</button>
@@ -392,212 +430,61 @@
         </div>
     </footer>
 
+    <!-- SISTEMA DE REPRODUCCIÓN Y COMPETITIVO CON ALARMAS CORRECTAS -->
     <script>
         let vibrationEnabled = true;
+        
         let seaAudio = null;
+        let battleAudio = null;
         let carrierAudio = null;
-        let activeLoops = {};
 
-        const worldMapData = {
-            "América": {
-                "Regiones": {
-                    "América del Norte": { "Paises": ["Estados Unidos", "Canadá", "México"], "Islas/Archipiélagos": ["Groenlandia", "Archipiélago Ártico Canadiense", "Bermudas"] },
-                    "América Central": { "Paises": ["Honduras", "Guatemala", "Costa Rica", "Panamá", "Nicaragua", "El Salvador", "Belice"], "Islas/Archipiélagos": ["Islas de la Bahía", "Cayos Miskitos", "Archipiélago de Bocas del Toro"] },
-                    "América del Sur": { "Paises": ["Brasil", "Argentina", "Colombia", "Chile", "Perú", "Venezuela"], "Islas/Archipiélagos": ["Islas Galápagos", "Islas Malvinas", "Tierra del Fuego", "Archipiélago de Chiloé"] },
-                    "Caribe": { "Paises": ["Cuba", "República Dominicana", "Haití", "Jamaica"], "Islas/Archipiélagos": ["Antillas Mayores", "Antillas Menores", "Bahamas", "Islas Caimán"] }
-                }
-            },
-            "Europa": {
-                "Regiones": {
-                    "Europa Occidental": { "Paises": ["Reino Unido", "Francia", "Alemania", "Países Bajos", "Bélgica"], "Islas/Archipiélagos": ["Islas Británicas", "Córcega", "Cerdeña", "Baleares"] },
-                    "Europa Meridional": { "Paises": ["España", "Italia", "Grecia", "Portugal"], "Islas/Archipiélagos": ["Sicilia", "Creta", "Archipiélago Toscano", "Islas Jónicas"] },
-                    "Europa Septentrional y Oriental": { "Paises": ["Noruega", "Suecia", "Polonia", "Ucrania", "Finlandia"], "Islas/Archipiélagos": ["Svalbard", "Islas Lofoten", "Archipiélago de Estocolmo"] }
-                }
-            },
-            "Asia": {
-                "Regiones": {
-                    "Asia Oriental": { "Paises": ["China", "Japón", "Corea del Sur", "Corea del Norte"], "Islas/Archipiélagos": ["Archipiélago Japonés", "Islas Ryukyu", "Taiwán"] },
-                    "Sudeste Asiático": { "Paises": ["Vietnam", "Tailandia", "Indonesia", "Filipinas", "Singapur"], "Islas/Archipiélagos": ["Archipiélago Malayo", "Islas Filipinas", "Sumatra", "Java"] },
-                    "Asia Meridional y Occidental": { "Paises": ["India", "Arabia Saudita", "Emiratos Árabes Unidos", "Turquía"], "Islas/Archipiélagos": ["Islas Maldivas", "Andamán y Nicobar", "Chipre"] }
-                }
-            },
-            "África": {
-                "Regiones": {
-                    "África del Norte y Occidental": { "Paises": ["Egipto", "Marruecos", "Nigeria", "Ghana"], "Islas/Archipiélagos": ["Islas Canarias", "Madeira", "Cabo Verde"] },
-                    "África Oriental y Austral": { "Paises": ["Sudáfrica", "Kenia", "Etiopía", "Tanzania"], "Islas/Archipiélagos": ["Madagascar", "Seychelles", "Mauricio", "Archipiélago de Zanzíbar"] }
-                }
-            },
-            "Oceanía": {
-                "Regiones": {
-                    "Australasia y Pacífico": { "Paises": ["Australia", "Nueva Zelanda", "Fiyi", "Papúa Nueva Guinea"], "Islas/Archipiélagos": ["Gran Barrera de Coral", "Tasmania", "Polinesia", "Micronesia", "Melanesia"] }
-                }
-            }
-        };
+        let playerScore = 1200;
+        let playerMoney = 50000;
 
-        let currentMapState = { continent: null, region: null };
-
-        function renderMapRoot() {
-            currentMapState = { continent: null, region: null };
-            document.getElementById('breadcrumb').innerText = "Ubicación: Selección de Continentes";
-            document.getElementById('btnMapBack').style.display = 'none';
-            const list = document.getElementById('mapList');
-            list.innerHTML = '';
-
-            for (let continent in worldMapData) {
-                let card = document.createElement('div');
-                card.className = 'map-card';
-                card.innerHTML = `<span>Continente: <strong>${continent}</strong></span> <button>Explorar Regiones ➡</button>`;
-                card.onclick = () => selectContinent(continent);
-                list.appendChild(card);
-            }
-        }
-
-        function selectContinent(continent) {
-            currentMapState.continent = continent;
-            document.getElementById('breadcrumb').innerText = `Ubicación: ${continent} ➔ Seleccione Región`;
-            document.getElementById('btnMapBack').style.display = 'block';
-            const list = document.getElementById('mapList');
-            list.innerHTML = '';
-
-            const regions = worldMapData[continent].Regiones;
-            for (let region in regions) {
-                let card = document.createElement('div');
-                card.className = 'map-card';
-                card.innerHTML = `<span>Región: <strong>${region}</strong></span> <button>Ver Países e Islas ➡</button>`;
-                card.onclick = () => selectRegion(continent, region);
-                list.appendChild(card);
-            }
-            triggerTTS(`Explorando ${continent}. Seleccione región.`);
-        }
-
-        function selectRegion(continent, region) {
-            currentMapState.region = region;
-            document.getElementById('breadcrumb').innerText = `Ubicación: ${continent} ➔ ${region}`;
-            const list = document.getElementById('mapList');
-            list.innerHTML = '';
-
-            const data = worldMapData[continent].Regiones[region];
-
-            let headerP = document.createElement('div');
-            headerP.style.color = '#00ffcc';
-            headerP.style.fontWeight = 'bold';
-            headerP.innerText = "--- PAÍSES ESTRATÉGICOS ---";
-            list.appendChild(headerP);
-
-            data.Paises.forEach(pais => {
-                let card = document.createElement('div');
-                card.className = 'map-card';
-                card.style.borderLeft = '4px solid #00ffcc';
-                card.innerHTML = `<span>País: <strong>${pais}</strong></span> <button onclick="desplegarZona('${pais}')">Desplegar Operación</button>`;
-                list.appendChild(card);
-            });
-
-            let headerI = document.createElement('div');
-            headerI.style.color = '#ffaa00';
-            headerI.style.fontWeight = 'bold';
-            headerI.style.marginTop = '10px';
-            headerI.innerText = "--- ISLAS Y ARCHIPIÉLAGOS ---";
-            list.appendChild(headerI);
-
-            data["Islas/Archipiélagos"].forEach(isla => {
-                let card = document.createElement('div');
-                card.className = 'map-card';
-                card.style.borderLeft = '4px solid #ffaa00';
-                card.innerHTML = `<span>Zona Marítima/Isla: <strong>${isla}</strong></span> <button onclick="desplegarZona('${isla}')">Desplegar Base</button>`;
-                list.appendChild(card);
-            });
-
-            triggerTTS(`Región ${region} seleccionada.`);
-        }
-
-        function reiniciarMapa() {
-            if (currentMapState.continent && currentMapState.region) {
-                selectContinent(currentMapState.continent);
-            } else {
-                renderMapRoot();
-            }
-        }
-
-        function desplegarZona(nombre) {
-            playSFX('Alarmadeataqueenemigo.mp3');
-            triggerTTS("Desplegando fuerzas de combate en zona: " + nombre);
-            document.getElementById('hud-status').innerText = `Estado: Operación Activa en ${nombre} | Casco: 100%`;
-            closeScreen('menu-mapas');
-        }
+        // Ranking de Capitanes IA Rival
+        let rankingData = [
+            { nombre: "Capitán Insignia (Tú)", puntos: 1200, territorios: 0 },
+            { nombre: "Almirante Vance (IA)", puntos: 2500, territorios: 4 },
+            { nombre: "Comandante Zhao (IA)", puntos: 2100, territorios: 3 },
+            { nombre: "Capitana Sorenson (IA)", puntos: 1800, territorios: 2 }
+        ];
 
         function playSFX(fileName) {
             const audio = new Audio('./' + fileName);
-            audio.play().catch(e => console.warn("Audio no encontrado:", fileName, e));
+            audio.play().catch(e => {
+                console.warn("Audio no encontrado:", fileName, e);
+            });
             triggerVibration([80, 40, 80]);
         }
 
-        function controlAccion(vehiculo, accion) {
-            const nombreVehiculo = vehiculo === 'f35' ? 'Caza F-35' : 'Bombardero B-21';
-            let mensaje = accion + " de " + nombreVehiculo;
-            if (accion === 'Altitud') mensaje = "Ajustando altitud para " + nombreVehiculo;
-            if (accion === 'Velocidad') mensaje = "Modificando velocidad de " + nombreVehiculo;
-            if (accion === 'Giro Izq') mensaje = "Virando a la izquierda con " + nombreVehiculo;
-            if (accion === 'Giro Der') mensaje = "Virando a la derecha con " + nombreVehiculo;
-            
-            triggerTTS(mensaje);
-            triggerVibration([50, 30, 50]);
-        }
-
-        function startVehicleLoop(vehicleKey, fileName) {
-            if (activeLoops[vehicleKey]) {
-                activeLoops[vehicleKey].pause();
-            }
-            const audio = new Audio('./' + fileName);
-            audio.loop = true;
-            audio.volume = 0.3;
-            audio.play().catch(e => console.warn("Audio en bucle no encontrado:", fileName, e));
-            activeLoops[vehicleKey] = audio;
-            
-            if (vehicleKey === 'f35') {
-                triggerTTS("Escuadrón Cazas F-35 en el aire.");
-            } else if (vehicleKey === 'b21') {
-                triggerTTS("Escuadrón Bombarderos B-21 en el aire.");
-            }
-        }
-
-        function stopVehicleLoop(vehicleKey, landingFileName) {
-            if (activeLoops[vehicleKey]) {
-                activeLoops[vehicleKey].pause();
-                activeLoops[vehicleKey] = null;
-            }
-            playSFX(landingFileName);
-            if (vehicleKey === 'f35') {
-                triggerTTS("Cazas F-35 aterrizados en cubierta.");
-            } else if (vehicleKey === 'b21') {
-                triggerTTS("Bombarderos B-21 aterrizados en cubierta.");
-            }
-        }
-
-        // Inicialización automática al cargar la página
         window.addEventListener('DOMContentLoaded', () => {
-            // 1. Sonido del mar
             seaAudio = new Audio('./mar.mp3');
             seaAudio.loop = true;
             seaAudio.volume = 0.15;
-            seaAudio.play().catch(() => {});
 
-            // 2. Sonido del portaaviones de fondo
+            battleAudio = new Audio('./Batalla_Aeronaval.mp3');
+            battleAudio.loop = true;
+            battleAudio.volume = 0.15;
+
             carrierAudio = new Audio('./sonidoportaaviones1.mp3');
             carrierAudio.loop = true;
-            carrierAudio.volume = 0.2;
+            carrierAudio.volume = 0.20;
+
+            seaAudio.play().catch(() => {});
+            battleAudio.play().catch(() => {});
             carrierAudio.play().catch(() => {});
 
-            // 3. Mensaje de bienvenida y síntesis de voz
-            const mensajeBienvenida = "Bienvenido a bordo, Capitán. Portaaviones insignia en línea. Sistemas de combate y mapa global activados.";
-            triggerTTS(mensajeBienvenida);
-
-            // 4. Inicializar mapas
-            renderMapRoot();
+            playSFX('mensajedebienvenida.mp3');
+            triggerTTS("Bienvenido a bordo, Capitán. Sistema competitivo y táctico AeroOcean iniciado.");
+            mostrarContinentes();
+            actualizarRankingUI();
         });
 
         function triggerTTS(text) {
             const announcer = document.getElementById('sr-announcer');
-            if (announcer) announcer.innerText = text;
+            if (announcer) {
+                announcer.innerText = text;
+            }
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
@@ -618,41 +505,266 @@
         }
 
         function openScreen(id) {
-            document.getElementById(id).classList.add('active');
-            if(id === 'menu-mapas') {
-                renderMapRoot();
-            } else {
+            const target = document.getElementById(id);
+            if (target) {
+                target.classList.add('active');
                 triggerTTS("Abriendo " + id.replace('-', ' '));
+                if(id === 'menu-mapas') { mostrarContinentes(); }
+                if(id === 'menu-ranking') { actualizarRankingUI(); }
             }
         }
 
         function closeScreen(id) {
-            document.getElementById(id).classList.remove('active');
-            triggerTTS("Regresando");
+            const target = document.getElementById(id);
+            if (target) {
+                target.classList.remove('active');
+                triggerTTS("Regresando al menú base");
+            }
         }
 
         function openSubMenu(id) {
-            document.getElementById(id).classList.add('active');
-            triggerTTS("Entrando a submenú");
+            const target = document.getElementById(id);
+            if (target) {
+                target.classList.add('active');
+                triggerTTS("Entrando en submenú");
+            }
         }
 
         function closeSubMenu(id) {
-            document.getElementById(id).classList.remove('active');
-            triggerTTS("Regresando");
-        }
-
-        function elegirUsuario() {
-            let user = prompt("Ingresa tu nombre de Capitán:");
-            if (user) triggerTTS("Capitán " + user + " registrado.");
-        }
-
-        function loginGoogle() {
-            triggerTTS("Iniciando sesión con Google...");
+            const target = document.getElementById(id);
+            if (target) {
+                target.classList.remove('active');
+                triggerTTS("Regresando");
+            }
         }
 
         function adjustVolume(tipo) {
-            triggerTTS("Ajustando volumen de " + tipo);
+            triggerTTS("Ajustando volumen de " + tipo + ". Configuración guardada.");
         }
+
+        function buySupplies(item) {
+            triggerTTS("Abasteciendo " + item + " en el mercado.");
+        }
+
+        function repararParte(parte) {
+            playSFX('alarmadeemergencia.mp3');
+            triggerTTS("Reparando " + parte + " al 100 por ciento.");
+        }
+
+        // BASE DE DATOS GEOGRÁFICA MUNDIAL MULTINIVEL
+        const worldData = {
+            "América": {
+                "América del Norte": [
+                    { nombre: "Canadá", tipo: "País", dinero: 800, minerales: 350, puntos: 300 },
+                    { nombre: "Estados Unidos", tipo: "País", dinero: 1200, minerales: 500, puntos: 500 },
+                    { nombre: "México", tipo: "País", dinero: 700, minerales: 300, puntos: 250 }
+                ],
+                "América Central": [
+                    { nombre: "Costa Rica", tipo: "País", dinero: 550, minerales: 220, puntos: 200 },
+                    { nombre: "Honduras", tipo: "País", dinero: 500, minerales: 250, puntos: 200 },
+                    { nombre: "Guatemala", tipo: "País", dinero: 500, minerales: 230, puntos: 200 }
+                ]
+            },
+            "Europa": {
+                "Europa Occidental": [
+                    { nombre: "España", tipo: "País", dinero: 900, minerales: 400, puntos: 350 },
+                    { nombre: "Francia", tipo: "País", dinero: 1000, minerales: 450, puntos: 400 }
+                ]
+            }
+        };
+
+        let currentLevel = 'continentes';
+        let selectedContinent = '';
+        let activeMission = null;
+        let currentPhase = 1;
+
+        function mostrarContinentes() {
+            currentLevel = 'continentes';
+            document.getElementById('mapTitle').innerText = "🌍 MAPA MUNDIAL";
+            document.getElementById('breadcrumb').innerText = "Ubicación: Continentes Habitados";
+            document.getElementById('btnMapBack').style.display = 'none';
+
+            const mapList = document.getElementById('mapList');
+            mapList.innerHTML = '';
+
+            Object.keys(worldData).forEach(continente => {
+                const card = document.createElement('div');
+                card.className = 'map-card';
+                card.innerHTML = `
+                    <div class="map-card-info">
+                        <strong>${continente}</strong>
+                        <span class="reward-tag">Región Estratégica</span>
+                    </div>
+                    <button onclick="mostrarSubregiones('${continente}')">Explorar</button>
+                `;
+                mapList.appendChild(card);
+            });
+        }
+
+        function mostrarSubregiones(continente) {
+            currentLevel = 'subregiones';
+            selectedContinent = continente;
+            document.getElementById('mapTitle').innerText = `🌍 ${continente.toUpperCase()}`;
+            document.getElementById('breadcrumb').innerText = `Ubicación: ${continente} > Subregiones`;
+            document.getElementById('btnMapBack').style.display = 'inline-block';
+
+            const mapList = document.getElementById('mapList');
+            mapList.innerHTML = '';
+
+            Object.keys(worldData[continente]).forEach(subregión => {
+                const card = document.createElement('div');
+                card.className = 'map-card';
+                card.innerHTML = `
+                    <div class="map-card-info">
+                        <strong>${subregión}</strong>
+                        <span class="reward-tag">Territorio de Combate</span>
+                    </div>
+                    <button onclick="mostrarTerritorios('${subregión}')">Ver Objetivos</button>
+                `;
+                mapList.appendChild(card);
+            });
+        }
+
+        function mostrarTerritorios(subregion) {
+            currentLevel = 'territorios';
+            document.getElementById('breadcrumb').innerText = `Ubicación: ${selectedContinent} > ${subregion} > Objetivos`;
+
+            const mapList = document.getElementById('mapList');
+            mapList.innerHTML = '';
+
+            worldData[selectedContinent][subregion].forEach(territorio => {
+                const card = document.createElement('div');
+                card.className = 'map-card';
+                card.innerHTML = `
+                    <div class="map-card-info">
+                        <strong>${territorio.nombre} (${territorio.tipo})</strong>
+                        <span class="reward-tag">Recompensa: $${territorio.dinero} USD | Puntos: +${territorio.puntos}</span>
+                    </div>
+                    <button onclick="iniciarMisionCompetitiva('${territorio.nombre}', ${territorio.dinero}, ${territorio.puntos})">Atacar Territorio</button>
+                `;
+                mapList.appendChild(card);
+            });
+        }
+
+        function retrocederNivel() {
+            if (currentLevel === 'territorios') {
+                mostrarSubregiones(selectedContinent);
+            } else if (currentLevel === 'subregiones') {
+                mostrarContinentes();
+            }
+        }
+
+        // SISTEMA COMPETITIVO POR FASES CON ALARMAS EXACTAS
+        function iniciarMisionCompetitiva(nombre, dineroRecompensa, puntosRecompensa) {
+            playSFX('Alarmadeataqueenemigo.mp3');
+            activeMission = { nombre, dinero: dineroRecompensa, puntos: puntosRecompensa };
+            currentPhase = 1;
+            
+            document.getElementById('mapTitle').innerText = `⚔ COMBATE: ${nombre.toUpperCase()}`;
+            document.getElementById('breadcrumb').innerText = `Fase Actual: 1 de 3 (Superioridad Aérea)`;
+            document.getElementById('btnMapBack').style.display = 'none';
+
+            renderizarFaseCombate();
+        }
+
+        function renderizarFaseCombate() {
+            const mapList = document.getElementById('mapList');
+            
+            if (currentPhase === 1) {
+                triggerTTS("Fase 1 iniciada. Superioridad Aérea con Cazas F-35 contra defensas enemigas.");
+                mapList.innerHTML = `
+                    <div class="combat-box">
+                        <h3>Fase 1: Superioridad Aérea</h3>
+                        <p>Despliega tus Cazas F-35 para despejar los cielos de ${activeMission.nombre}.</p>
+                        <div class="btn-group-horizontal">
+                            <button onclick="playSFX('sonidodecasaenelaire.wav'); avanzarFaseCombate(2);">1. Despegar Cazas y Escanear Radar</button>
+                            <button onclick="playSFX('Alarmadeataqueenemigo.mp3'); avanzarFaseCombate(2);">2. Ataque Rápido Aéreo</button>
+                        </div>
+                    </div>
+                `;
+            } else if (currentPhase === 2) {
+                triggerTTS("Fase 2 iniciada. Bombardeo táctico y misiles de crucero.");
+                mapList.innerHTML = `
+                    <div class="combat-box">
+                        <h3>Fase 2: Bombardeo Táctico</h3>
+                        <p>Usa los bombarderos y destructores para destruir fortificaciones en tierra.</p>
+                        <div class="btn-group-horizontal">
+                            <button onclick="playSFX('sonidodeborbandeo.mp3'); avanzarFaseCombate(3);">1. Lanzar Bombas B-21</button>
+                            <button onclick="playSFX('misil de crucero.mp3'); avanzarFaseCombate(3);">2. Disparar Misiles de Crucero</button>
+                        </div>
+                    </div>
+                `;
+            } else if (currentPhase === 3) {
+                triggerTTS("Fase 3 iniciada. Asalto naval final para conquistar el territorio.");
+                mapList.innerHTML = `
+                    <div class="combat-box">
+                        <h3>Fase 3: Asalto Naval y Conquista</h3>
+                        <p>Última fase de combate. Dispara los torpedos y cañones principales para asegurar la victoria.</p>
+                        <div class="btn-group-horizontal">
+                            <button onclick="completarMisionCompetitiva();">1. ¡Ataque Total y Conquistar!</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function avanzarFaseCombate(siguienteFase) {
+            currentPhase = siguienteFase;
+            document.getElementById('breadcrumb').innerText = `Fase Actual: ${currentPhase} de 3`;
+            renderizarFaseCombate();
+        }
+
+        function completarMisionCompetitiva() {
+            playSFX('alarmadeemergencia.mp3');
+            playerScore += activeMission.puntos;
+            playerMoney += activeMission.dinero;
+
+            let jugadorEntry = rankingData.find(r => r.nombre.includes("Capitán Insignia"));
+            if (jugadorEntry) {
+                jugadorEntry.puntos = playerScore;
+                jugadorEntry.territorios += 1;
+            }
+
+            rankingData.sort((a, b) => b.puntos - a.puntos);
+
+            document.getElementById('player-score-display').innerText = `Puntuación: ${playerScore} Puntos`;
+            document.getElementById('player-money-display').innerText = `Dólares: $${playerMoney} USD`;
+
+            triggerTTS(`¡Misión exitosa! Territorio ${activeMission.nombre} conquistado. Ganaste ${activeMission.dinero} dólares y ${activeMission.puntos} puntos.`);
+            
+            mostrarContinentes();
+        }
+
+        function actualizarRankingUI() {
+            const rankingList = document.getElementById('rankingList');
+            rankingList.innerHTML = '';
+
+            rankingData.forEach((capitan, index) => {
+                const card = document.createElement('div');
+                card.className = 'map-card';
+                card.innerHTML = `
+                    <div class="map-card-info">
+                        <strong>#${index + 1} - ${capitan.nombre}</strong>
+                        <span class="reward-tag">Puntos: ${capitan.puntos} | Territorios: ${capitan.territorios}</span>
+                    </div>
+                `;
+                rankingList.appendChild(card);
+            });
+        }
+
+        // Manejo de eventos de ciclo de vida (Pausa y Reanudación)
+        document.addEventListener("pause", function() {
+            if (seaAudio) seaAudio.pause();
+            if (battleAudio) battleAudio.pause();
+            if (carrierAudio) carrierAudio.pause();
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        }, false);
+
+        document.addEventListener("resume", function() {
+            if (seaAudio) seaAudio.play().catch(() => {});
+            if (battleAudio) battleAudio.play().catch(() => {});
+            if (carrierAudio) carrierAudio.play().catch(() => {});
+        }, false);
     </script>
 </body>
 </html>
