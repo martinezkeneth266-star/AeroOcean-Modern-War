@@ -182,7 +182,7 @@
 
     <div id="start-overlay">
         <h1 style="color: var(--accent-color); text-align: center;">AEROOCEAN: GUERRA SOBRE EL AGUA</h1>
-        <p style="text-align: center; max-width: 80%;">Presiona el botón para iniciar la interfaz táctil y activar los sistemas de combate.</p>
+        <p style="text-align: center; max-width: 80%;">Presiona el botón para iniciar la interfaz táctil y activar los sistemas de combate y la música de fondo.</p>
         <button onclick="startGame()" style="font-size: 18px; padding: 18px 36px; background-color: var(--accent-color); color: #000;">INICIAR JUEGO</button>
     </div>
 
@@ -227,10 +227,13 @@
             <details>
                 <summary onclick="triggerTTS('Opción 2: Sistemas de Alarma desplegado')">Opción 2: Sistemas de Alarma y Sonidos (Desplegar)</summary>
                 <div class="dropdown-content">
+                    <button onclick="playSFX('Alarmadeataqueenemigo.mp3'); triggerTTS('¡Alerta! Enemigo atacando el portaaviones.');">Alerta Ataque Enemigo</button>
                     <button onclick="playSFX('alarmadeemergencia.mp3'); triggerTTS('Alarma de emergencia general activada.');">Alarma de Emergencia</button>
-                    <button onclick="playSFX('alarma.mp3'); triggerTTS('Alarma táctica de combate activada.');">Alarma Táctica</button>
+                    <button onclick="playSFX('alerta.mp3'); triggerTTS('Alerta: Aeronave bloqueada por enemigo.');">Alerta de Bloqueo</button>
+                    <button onclick="playSFX('contactoderadar.mp3'); triggerTTS('Radar activado: Contacto enemigo detectado.');">Radar: Contacto Enemigo</button>
+                    <button onclick="playSFX('emergencia.wav'); triggerTTS('¡Emergencia crítica! Aeronave dañada, pilotos en paracaídas.');">Emergencia / Eyección</button>
+                    <button onclick="playSFX('defensa antiaerea.mp3'); triggerTTS('Defensa antiaérea activada.');">Defensa Antiaérea</button>
                     <button onclick="adjustVolume('disparos')">Volumen Disparos</button>
-                    <button onclick="adjustVolume('vehiculos')">Volumen Vehículos</button>
                     <button onclick="toggleVibration()">Activar/Desactivar Vibración</button>
                 </div>
             </details>
@@ -271,8 +274,9 @@
                 <div class="top-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="closeSubMenu('v-f35')">Regresar</button>
-                        <button onclick="triggerTTS('Fijando Objetivo')">Fijar Objetivo</button>
-                        <button onclick="triggerTTS('Objetivo Bloqueado')">Bloquear Objetivo</button>
+                        <button onclick="playSFX('contactoderadar.mp3'); triggerTTS('Radar F35: Contacto enemigo identificado.')">Radar (Detectar Enemigo)</button>
+                        <button onclick="playSFX('alerta.mp3'); triggerTTS('¡Alerta! F35 bloqueado por caza enemigo.')">Simular Bloqueo Enemigo</button>
+                        <button onclick="playSFX('emergencia.wav'); triggerTTS('¡F35 gravemente dañado! Piloto eyectado en paracaídas.')">Daño Crítico / Eyección</button>
                         <button onclick="startVehicleLoop('f35', 'sonidodecasaenelaire.wav')">Despegar</button>
                         <button onclick="stopVehicleLoop('f35', 'aterrizaje.mp3')">Aterrizar en Base</button>
                     </div>
@@ -282,7 +286,7 @@
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Ametralladora.mp3')">Ametralladoras</button>
                         <button onclick="playSFX('misil.mp3')">Misiles Aire-Aire</button>
-                        <button onclick="playSFX('Disparo.mp3')">Cañón Principal</button>
+                        <button onclick="playSFX('defensa antiaerea.mp3')">Defensa Antiaérea</button>
                     </div>
                     <div class="btn-group-horizontal">
                         <button onclick="controlAccion('f35', 'Acelerar')">Acelerar</button>
@@ -295,14 +299,15 @@
                 </div>
             </div>
 
-            <!-- Vehículo 2: B-21 Raider (Usando borbanderoenelaire.mp3) -->
+            <!-- Vehículo 2: B-21 Raider -->
             <div id="v-b21" class="screen-panel">
                 <h3>Escuadrón Bombarderos B-21 Raider</h3>
                 <div class="top-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="closeSubMenu('v-b21')">Regresar</button>
-                        <button onclick="triggerTTS('Objetivo fijado')">Fijar Objetivo</button>
-                        <button onclick="triggerTTS('Objetivo bloqueado')">Bloquear Objetivo</button>
+                        <button onclick="playSFX('contactoderadar.mp3'); triggerTTS('Radar B21: Contacto enemigo identificado.')">Radar (Detectar Enemigo)</button>
+                        <button onclick="playSFX('alerta.mp3'); triggerTTS('¡Alerta! B21 bloqueado por radar enemigo.')">Simular Bloqueo Enemigo</button>
+                        <button onclick="playSFX('emergencia.wav'); triggerTTS('¡B21 gravemente dañado! Tripulación eyectada en paracaídas.')">Daño Crítico / Eyección</button>
                         <button onclick="startVehicleLoop('b21', 'borbanderoenelaire.mp3')">Despegar</button>
                         <button onclick="stopVehicleLoop('b21', 'aterrizaje.mp3')">Aterrizar en Base</button>
                     </div>
@@ -312,7 +317,7 @@
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Torreta.mp3')">Torretas Traseras</button>
                         <button onclick="playSFX('sonidodeborbandeo.mp3')">Lanzar Bombas</button>
-                        <button onclick="playSFX('trazadoras.mp3')">Metralletas Trazadoras</button>
+                        <button onclick="playSFX('defensa antiaerea.mp3')">Defensa Antiaérea</button>
                     </div>
                     <div class="btn-group-horizontal">
                         <button onclick="controlAccion('b21', 'Acelerar')">Acelerar</button>
@@ -331,16 +336,16 @@
                 <div class="top-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="closeSubMenu('v-destructores')">Regresar</button>
-                        <button onclick="triggerTTS('Seleccionando objetivos')">Seleccionar Objetivos</button>
+                        <button onclick="playSFX('contactoderadar.mp3'); triggerTTS('Radar Destructor: Contacto naval enemigo detectado.')">Radar (Detectar Enemigo)</button>
+                        <button onclick="playSFX('alarmadeemergencia.mp3'); triggerTTS('¡Emergencia en destructor! Daño estructural detectado.')">Emergencia en Destructor</button>
                     </div>
                 </div>
                 <div style="flex-grow: 1;"></div>
                 <div class="bottom-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Disparo.mp3')">Disparar Cañones</button>
-                        <button onclick="playSFX('Ametralladora.mp3')">Ametralladoras</button>
+                        <button onclick="playSFX('defensa antiaerea.mp3')">Defensa Antiaérea</button>
                         <button onclick="playSFX('sonidodetorpedo.mp3')">Lanzar Torpedos</button>
-                        <button onclick="playSFX('bonba.mp3')">Lanzar Granadas/Bombas</button>
                         <button onclick="playSFX('misil de crucero.mp3')">Batería Misiles</button>
                     </div>
                 </div>
@@ -352,6 +357,8 @@
                 <div class="top-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="closeSubMenu('v-submarino')">Regresar</button>
+                        <button onclick="playSFX('contactoderadar.mp3'); triggerTTS('Sonar / Radar Submarino: Contacto enemigo detectado.')">Radar / Sonar (Detectar Enemigo)</button>
+                        <button onclick="playSFX('alarmadeemergencia.mp3'); triggerTTS('¡Emergencia en submarino! Falla en compartimento.')">Emergencia en Submarino</button>
                         <button onclick="triggerTTS('Sumergiéndose bajo el agua');">Sumergirse</button>
                         <button onclick="triggerTTS('Navegando en superficie');">Navegar Superficie</button>
                     </div>
@@ -360,8 +367,8 @@
                 <div class="bottom-bar">
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Disparo.mp3')">Cañones Naval</button>
-                        <button onclick="playSFX('Ametralladora.mp3')">Ametralladoras</button>
                         <button onclick="playSFX('sonidodetorpedo.mp3')">Lanzar Torpedos</button>
+                        <button onclick="playSFX('defensa antiaerea.mp3')">Defensa Antiaérea</button>
                     </div>
                 </div>
             </div>
@@ -376,7 +383,7 @@
             </div>
         </section>
 
-        <!-- SECCIÓN DE MAPAS AMPLIADA: CONTINENTES, REGIONES, PAÍSES, ISLAS Y ARCHIPIÉLAGOS -->
+        <!-- SECCIÓN DE MAPAS -->
         <section id="menu-mapas" class="screen-panel" aria-label="Menú Mapas">
             <div class="menu-header">
                 <h2 id="mapTitle">🌍 MAPA MUNDIAL</h2>
@@ -390,12 +397,13 @@
 
     <footer class="bottom-bar" role="navigation" aria-label="Controles Base del Portaaviones">
         <div class="btn-group-horizontal">
-            <button onclick="playSFX('Disparo.mp3')">1. Cañones</button>
-            <button onclick="playSFX('Ametralladora.mp3')">2. Metralletas</button>
-            <button onclick="playSFX('sonidodetorpedo.mp3')">3. Torpedos</button>
-            <button onclick="playSFX('bonba.mp3')">4. Granadas</button>
-            <button onclick="playSFX('misil de crucero.mp3')">5. Misiles Crucero</button>
-            <button onclick="playSFX('misil.mp3')">6. Misiles Antiaéreos</button>
+            <button onclick="playSFX('contactoderadar.mp3'); triggerTTS('Radar Portaaviones: Contacto enemigo detectado.');">Radar Base</button>
+            <button onclick="playSFX('Alarmadeataqueenemigo.mp3'); triggerTTS('¡Alerta! Enemigo atacando directamente el portaaviones.');">Simular Ataque Base</button>
+            <button onclick="playSFX('Disparo.mp3')">Cañones</button>
+            <button onclick="playSFX('Ametralladora.mp3')">Metralletas</button>
+            <button onclick="playSFX('sonidodetorpedo.mp3')">Torpedos</button>
+            <button onclick="playSFX('defensa antiaerea.mp3')">Defensa Antiaérea</button>
+            <button onclick="playSFX('misil de crucero.mp3')">Misiles Crucero</button>
         </div>
         <div class="btn-group-horizontal">
             <button onclick="playSFX('sonidoportaaviones1.mp3')">Acelerar</button>
@@ -410,7 +418,6 @@
         let seaAudio = null;
         let activeLoops = {};
 
-        // Base de datos completa del mapa mundial jerárquico
         const worldMapData = {
             "América": {
                 "Regiones": {
@@ -423,13 +430,13 @@
             "Europa": {
                 "Regiones": {
                     "Europa Occidental": { "Paises": ["Reino Unido", "Francia", "Alemania", "Países Bajos", "Bélgica"], "Islas/Archipiélagos": ["Islas Británicas", "Córcega", "Cerdeña", "Baleares"] },
-                    "Europa Meridional": { "Paises": ["España", "Italia", "Grecia", "Portugal"], "Islas/Archipiélagos": ["Sicilia", "Creta", "Archipiélago Toscano", "Islasut Jónicas"] },
+                    "Europa Meridional": { "Paises": ["España", "Italia", "Grecia", "Portugal"], "Islas/Archipiélagos": ["Sicilia", "Creta", "Archipiélago Toscano", "Islas Jónicas"] },
                     "Europa Septentrional y Oriental": { "Paises": ["Noruega", "Suecia", "Polonia", "Ucrania", "Finlandia"], "Islas/Archipiélagos": ["Svalbard", "Islas Lofoten", "Archipiélago de Estocolmo"] }
                 }
             },
             "Asia": {
                 "Regiones": {
-                    "Asia Oriental": { "Paises": ["China", "Japón", "Corea del Sur", "Corea del Norte"], "Islas/Archipiélagos": ["Archipiélago Japonés (Honshu/Hokkaido)", "Islas Ryukyu", "Taiwán"] },
+                    "Asia Oriental": { "Paises": ["China", "Japón", "Corea del Sur", "Corea del Norte"], "Islas/Archipiélagos": ["Archipiélago Japonés", "Islas Ryukyu", "Taiwán"] },
                     "Sudeste Asiático": { "Paises": ["Vietnam", "Tailandia", "Indonesia", "Filipinas", "Singapur"], "Islas/Archipiélagos": ["Archipiélago Malayo", "Islas Filipinas", "Sumatra", "Java"] },
                     "Asia Meridional y Occidental": { "Paises": ["India", "Arabia Saudita", "Emiratos Árabes Unidos", "Turquía"], "Islas/Archipiélagos": ["Islas Maldivas", "Andamán y Nicobar", "Chipre"] }
                 }
@@ -459,7 +466,7 @@
             for (let continent in worldMapData) {
                 let card = document.createElement('div');
                 card.className = 'map-card';
-                card.innerHTML = `<span> continente: <strong>${continent}</strong></span> <button>Explorar Regiones ➡</button>`;
+                card.innerHTML = `<span>Continente: <strong>${continent}</strong></span> <button>Explorar Regiones ➡</button>`;
                 card.onclick = () => selectContinent(continent);
                 list.appendChild(card);
             }
@@ -492,7 +499,6 @@
 
             const data = worldMapData[continent].Regiones[region];
 
-            // Sección Países
             let headerP = document.createElement('div');
             headerP.style.color = '#00ffcc';
             headerP.style.fontWeight = 'bold';
@@ -507,7 +513,6 @@
                 list.appendChild(card);
             });
 
-            // Sección Islas y Archipiélagos
             let headerI = document.createElement('div');
             headerI.style.color = '#ffaa00';
             headerI.style.fontWeight = 'bold';
@@ -515,7 +520,7 @@
             headerI.innerText = "--- ISLAS Y ARCHIPIÉLAGOS ---";
             list.appendChild(headerI);
 
-            data["Islas/Archipiélagos"].forEach( isla => {
+            data["Islas/Archipiélagos"].forEach(isla => {
                 let card = document.createElement('div');
                 card.className = 'map-card';
                 card.style.borderLeft = '4px solid #ffaa00';
@@ -523,7 +528,7 @@
                 list.appendChild(card);
             });
 
-            triggerTTS(`Región ${region} seleccionada. Países, islas y archipiélagos listados.`);
+            triggerTTS(`Región ${region} seleccionada.`);
         }
 
         function reiniciarMapa() {
@@ -535,7 +540,7 @@
         }
 
         function desplegarZona(nombre) {
-            playSFX('alarma.mp3');
+            playSFX('Alarmadeataqueenemigo.mp3');
             triggerTTS("Desplegando fuerzas de combate en zona: " + nombre);
             document.getElementById('hud-status').innerText = `Estado: Operación Activa en ${nombre} | Casco: 100%`;
             closeScreen('menu-mapas');
@@ -592,13 +597,17 @@
         function startGame() {
             document.getElementById('start-overlay').style.display = 'none';
 
+            // Música de fondo de mar
             seaAudio = new Audio('./mar.mp3');
             seaAudio.loop = true;
             seaAudio.volume = 0.15;
             seaAudio.play().catch(() => {});
 
             playSFX('alarmadeemergencia.mp3');
-            triggerTTS("Bienvenido a bordo, Capitán. Alarma general inicializada. Sistemas en línea.");
+            
+            const mensajeBienvenida = "Bienvenido a bordo, Capitán. Alarma general inicializada. Sistemas de combate y radar global en línea.";
+            triggerTTS(mensajeBienvenida);
+            
             renderMapRoot();
         }
 
