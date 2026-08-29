@@ -153,21 +153,6 @@
             border: 0;
         }
 
-        #start-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(13, 27, 42, 0.98);
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-        }
-
         .menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00ffcc; padding-bottom: 10px; margin-bottom: 15px; }
         .menu-header h2 { margin: 0; color: #00ffcc; font-size: 18px; }
         .breadcrumb { color: #ffaa00; font-size: 13px; margin-bottom: 12px; font-weight: bold; }
@@ -179,12 +164,6 @@
     </style>
 </head>
 <body>
-
-    <div id="start-overlay">
-        <h1 style="color: var(--accent-color); text-align: center;">AEROOCEAN: GUERRA SOBRE EL AGUA</h1>
-        <p style="text-align: center; max-width: 80%;">Presiona el botón para iniciar la interfaz táctil y activar los sistemas de combate y la música de fondo.</p>
-        <button onclick="startGame()" style="font-size: 18px; padding: 18px 36px; background-color: var(--accent-color); color: #000;">INICIAR JUEGO</button>
-    </div>
 
     <div id="sr-announcer" class="sr-only" aria-live="assertive"></div>
 
@@ -416,6 +395,7 @@
     <script>
         let vibrationEnabled = true;
         let seaAudio = null;
+        let carrierAudio = null;
         let activeLoops = {};
 
         const worldMapData = {
@@ -470,7 +450,6 @@
                 card.onclick = () => selectContinent(continent);
                 list.appendChild(card);
             }
-            triggerTTS("Mostrando continentes del mundo.");
         }
 
         function selectContinent(continent) {
@@ -594,22 +573,27 @@
             }
         }
 
-        function startGame() {
-            document.getElementById('start-overlay').style.display = 'none';
-
-            // Música de fondo de mar
+        // Inicialización automática al cargar la página
+        window.addEventListener('DOMContentLoaded', () => {
+            // 1. Sonido del mar
             seaAudio = new Audio('./mar.mp3');
             seaAudio.loop = true;
             seaAudio.volume = 0.15;
             seaAudio.play().catch(() => {});
 
-            playSFX('alarmadeemergencia.mp3');
-            
-            const mensajeBienvenida = "Bienvenido a bordo, Capitán. Alarma general inicializada. Sistemas de combate y radar global en línea.";
+            // 2. Sonido del portaaviones de fondo
+            carrierAudio = new Audio('./sonidoportaaviones1.mp3');
+            carrierAudio.loop = true;
+            carrierAudio.volume = 0.2;
+            carrierAudio.play().catch(() => {});
+
+            // 3. Mensaje de bienvenida y síntesis de voz
+            const mensajeBienvenida = "Bienvenido a bordo, Capitán. Portaaviones insignia en línea. Sistemas de combate y mapa global activados.";
             triggerTTS(mensajeBienvenida);
-            
+
+            // 4. Inicializar mapas
             renderMapRoot();
-        }
+        });
 
         function triggerTTS(text) {
             const announcer = document.getElementById('sr-announcer');
