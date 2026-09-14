@@ -1,6 +1,431 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AeroOcean - Módulo de Mapa Mundial Completo</title>
+<style>
+• { box-sizing: border-box; user-select: none; }
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #050505; color: #fff; font-family: monospace; overflow: hidden; }
+
+#app { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
+
+/* Vista del Juego */
+#gameView { width: 100%; height: 100%; display: flex; flex-direction: column; padding: 8px; position: absolute; top: 0; left: 0; z-index: 1; }
+#status { border: 2px solid #00ffcc; background: #111; padding: 10px; font-size: 14px; border-radius: 6px; text-align: center; margin-bottom: 6px; color: #00ffcc; }
+#canvasContainer { flex: 1; background: #020b14; border: 2px solid #00ffcc; border-radius: 8px; display: flex; justify-content: center; align-items: center; }
+
+button { background: #161616; color: #00ffcc; border: 2px solid #00ffcc; border-radius: 6px; padding: 12px 6px; font: inherit; font-size: 13px; font-weight: bold; cursor: pointer; text-align: center; }
+button:active, button:focus { background: #00ffcc; color: #000; outline: none; }
+
+/* Vista de Menú a Pantalla Completa */
+.full-screen-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #080e14; z-index: 100; display: none; flex-direction: column; padding: 16px; overflow-y: auto; }
+.menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00ffcc; padding-bottom: 10px; margin-bottom: 15px; }
+.menu-header h2 { margin: 0; color: #00ffcc; font-size: 18px; }
+
+/* Lista de Navegación del Mapa */
+.breadcrumb { color: #ffaa00; font-size: 12px; margin-bottom: 12px; font-weight: bold; }
+.map-list { display: flex; flex-direction: column; gap: 8px; }
+.map-card { background: #112233; border: 1px solid #00ffcc; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+.map-card-info { display: flex; flex-direction: column; gap: 4px; }
+.reward-tag { color: #ffaa00; font-size: 11px; }
+
+.btn-back { border-color: #ffaa00; color: #ffaa00; margin-bottom: 10px; }
+.btn-close { border-color: #ff5555; color: #ff5555; padding: 6px 12px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<!-- VISTA PRINCIPAL DEL JUEGO -->
+<div id="gameView">
+<div id="status" aria-live="polite">Puesto de mando activo.</div>
+<div id="canvasContainer">
+<span style="color:#00ffcc;">[ SIMULADOR TÁCTICO ]</span>
+</div>
+<div style="margin-top: 8px;">
+<button style="width:100%; border-color: #ffff00; color: #ffff00;" onclick="abrirMapa()">🌍 Mapa Global de Conquista</button>
+</div>
+</div>
+
+<!-- MENÚ DEL MAPA ACCESIBLE A PANTALLA COMPLETA -->
+<div id="mapMenu" class="full-screen-menu" role="dialog" aria-label="Mapa Global de Conquista">
+<div class="menu-header">
+<h2 id="mapTitle">🌍 MAPA MUNDIAL</h2>
+<button class="btn-close" onclick="cerrarMapa()" aria-label="Volver al juego">✖ Volver</button>
+</div>
+
+<div id="breadcrumb" class="breadcrumb" aria-live="polite">Ubicación: Continentes Habitados</div>
+
+<button id="btnMapBack" class="btn-back" style="display:none;" onclick="retrocederNivel()" aria-label="Regresar al nivel anterior">⬅ Regresar Nivel</button>
+
+<div id="mapList" class="map-list" role="region" aria-live="polite"></div>
+</div>
+
+</div>
+
+<script>
+// Base de Datos Geográfica Mundial Completa
+const worldData = {
+"América": {
+"América del Norte": [
+{ nombre: "Canadá", tipo: "País", dinero: 800, minerales: 350 },
+{ nombre: "Estados Unidos", tipo: "País", dinero: 1200, minerales: 500 },
+{ nombre: "México", tipo: "País", dinero: 700, minerales: 300 },
+{ nombre: "Groenlandia", tipo: "Isla", dinero: 500, minerales: 600 },
+{ nombre: "Bermudas", tipo: "Archipiélago", dinero: 450, minerales: 200 },
+{ nombre: "San Pedro y Miquelón", tipo: "Archipiélago", dinero: 300, minerales: 150 }
+ ],
+"América Central": [
+{ nombre: "Belice", tipo: "País", dinero: 400, minerales: 180 },
+{ nombre: "Costa Rica", tipo: "País", dinero: 550, minerales: 220 },
+{ nombre: "El Salvador", tipo: "País", dinero: 450, minerales: 190 },
+{ nombre: "Guatemala", tipo: "País", dinero: 500, minerales: 230 },
+{ nombre: "Honduras", tipo: "País", dinero: 500, minerales: 250 },
+{ nombre: "Nicaragua", tipo: "País", dinero: 450, minerales: 210 },
+{ nombre: "Panamá", tipo: "País", dinero: 650, minerales: 280 }
+ ],
+"El Caribe": [
+{ nombre: "Antigua y Barbuda", tipo: "Isla", dinero: 350, minerales: 150 },
+{ nombre: "Bahamas", tipo: "Archipiélago", dinero: 500, minerales: 200 },
+{ nombre: "Barbados", tipo: "Isla", dinero: 400, minerales: 160 },
+{ nombre: "Cuba", tipo: "Isla", dinero: 550, minerales: 240 },
+{ nombre: "Dominica", tipo: "Isla", dinero: 300, minerales: 140 },
+{ nombre: "Granada", tipo: "Isla", dinero: 320, minerales: 150 },
+{ nombre: "Haití", tipo: "País", dinero: 350, minerales: 180 },
+{ nombre: "Jamaica", tipo: "Isla", dinero: 450, minerales: 210 },
+{ nombre: "Puerto Rico", tipo: "Isla", dinero: 500, minerales: 220 },
+{ nombre: "República Dominicana", tipo: "País", dinero: 520, minerales: 230 },
+{ nombre: "San Cristóbal y Nieves", tipo: "Isla", dinero: 300, minerales: 130 },
+{ nombre: "San Vicente y las Granadinas", tipo: "Archipiélago", dinero: 310, minerales: 140 },
+{ nombre: "Santa Lucía", tipo: "Isla", dinero: 330, minerales: 150 },
+{ nombre: "Trinidad y Tobago", tipo: "Isla", dinero: 480, minerales: 260 }
+ ],
+"América del Sur": [
+{ nombre: "Argentina", tipo: "País", dinero: 850, minerales: 420 },
+{ nombre: "Bolivia", tipo: "País", dinero: 500, minerales: 450 },
+{ nombre: "Brasil", tipo: "País", dinero: 1100, minerales: 550 },
+{ nombre: "Chile", tipo: "País", dinero: 750, minerales: 600 },
+{ nombre: "Colombia", tipo: "País", dinero: 700, minerales: 380 },
+{ nombre: "Ecuador", tipo: "País", dinero: 550, minerales: 300 },
+{ nombre: "Guyana", tipo: "País", dinero: 450, minerales: 350 },
+{ nombre: "Paraguay", tipo: "País", dinero: 480, minerales: 220 },
+{ nombre: "Perú", tipo: "País", dinero: 680, minerales: 490 },
+{ nombre: "Surinam", tipo: "País", dinero: 420, minerales: 310 },
+{ nombre: "Uruguay", tipo: "País", dinero: 600, minerales: 250 },
+{ nombre: "Venezuela", tipo: "País", dinero: 650, minerales: 500 },
+{ nombre: "Islas Galápagos", tipo: "Archipiélago", dinero: 400, minerales: 300 },
+{ nombre: "Islas Malvinas", tipo: "Archipiélago", dinero: 450, minerales: 320 }
+ ]
+},
+"Europa": {
+"Europa Occidental": [
+{ nombre: "Alemania", tipo: "País", dinero: 1050, minerales: 400 },
+{ nombre: "Austria", tipo: "País", dinero: 750, minerales: 300 },
+{ nombre: "Bélgica", tipo: "País", dinero: 800, minerales: 280 },
+{ nombre: "Francia", tipo: "País", dinero: 1000, minerales: 380 },
+{ nombre: "Irlanda", tipo: "Isla", dinero: 700, minerales: 250 },
+{ nombre: "Liechtenstein", tipo: "País", dinero: 500, minerales: 150 },
+{ nombre: "Luxemburgo", tipo: "País", dinero: 650, minerales: 200 },
+{ nombre: "Mónaco", tipo: "País", dinero: 600, minerales: 100 },
+{ nombre: "Países Bajos", tipo: "País", dinero: 850, minerales: 290 },
+{ nombre: "Reino Unido", tipo: "Isla", dinero: 1000, minerales: 350 },
+{ nombre: "Suiza", tipo: "País", dinero: 900, minerales: 320 }
+ ],
+"Europa del Norte": [
+{ nombre: "Dinamarca", tipo: "País", dinero: 800, minerales: 270 },
+{ nombre: "Estonia", tipo: "País", dinero: 550, minerales: 220 },
+{ nombre: "Finlandia", tipo: "País", dinero: 800, minerales: 360 },
+{ nombre: "Islandia", tipo: "Isla", dinero: 600, minerales: 380 },
+{ nombre: "Letonia", tipo: "País", dinero: 520, minerales: 210 },
+{ nombre: "Lituania", tipo: "País", dinero: 540, minerales: 220 },
+{ nombre: "Noruega", tipo: "País", dinero: 950, minerales: 500 },
+{ nombre: "Suecia", tipo: "País", dinero: 880, minerales: 420 },
+{ nombre: "Islas Feroe", tipo: "Archipiélago", dinero: 400, minerales: 250 },
+{ nombre: "Svalbard", tipo: "Archipiélago", dinero: 350, minerales: 450 }
+ ],
+"Europa del Sur": [
+{ nombre: "Albania", tipo: "País", dinero: 450, minerales: 210 },
+{ nombre: "Andorra", tipo: "País", dinero: 400, minerales: 150 },
+{ nombre: "Bosnia y Herzegovina", tipo: "País", dinero: 480, minerales: 230 },
+{ nombre: "Chipre", tipo: "Isla", dinero: 550, minerales: 240 },
+{ nombre: "Croacia", tipo: "País", dinero: 600, minerales: 260 },
+{ nombre: "España", tipo: "País", dinero: 900, minerales: 350 },
+{ nombre: "Grecia", tipo: "País", dinero: 650, minerales: 270 },
+{ nombre: "Italia", tipo: "País", dinero: 950, minerales: 360 },
+{ nombre: "Malta", tipo: "Isla", dinero: 450, minerales: 160 },
+{ nombre: "Montenegro", tipo: "País", dinero: 420, minerales: 190 },
+{ nombre: "Macedonia del Norte", tipo: "País", dinero: 430, minerales: 200 },
+{ nombre: "Portugal", tipo: "País", dinero: 700, minerales: 280 },
+{ nombre: "San Marino", tipo: "País", dinero: 380, minerales: 120 },
+{ nombre: "Serbia", tipo: "País", dinero: 520, minerales: 250 },
+{ nombre: "Eslovenia", tipo: "País", dinero: 580, minerales: 240 },
+{ nombre: "Ciudad del Vaticano", tipo: "País", dinero: 500, minerales: 100 },
+{ nombre: "Islas Baleares", tipo: "Archipiélago", dinero: 500, minerales: 200 },
+{ nombre: "Islas Canarias", tipo: "Archipiélago", dinero: 550, minerales: 220 },
+{ nombre: "Azores", tipo: "Archipiélago", dinero: 420, minerales: 230 }
+ ],
+"Europa Oriental": [
+{ nombre: "Bielorrusia", tipo: "País", dinero: 500, minerales: 280 },
+{ nombre: "Bulgaria", tipo: "País", dinero: 520, minerales: 260 },
+{ nombre: "Chequia", tipo: "País", dinero: 700, minerales: 310 },
+{ nombre: "Hungría", tipo: "País", dinero: 650, minerales: 290 },
+{ nombre: "Moldavia", tipo: "País", dinero: 400, minerales: 200 },
+{ nombre: "Polonia", tipo: "País", dinero: 780, minerales: 370 },
+{ nombre: "Rumanía", tipo: "País", dinero: 600, minerales: 320 },
+{ nombre: "Rusia (Parte Europea)", tipo: "País", dinero: 1100, minerales: 650 },
+{ nombre: "Eslovaquia", tipo: "País", dinero: 620, minerales: 270 },
+{ nombre: "Ucrania", tipo: "País", dinero: 650, minerales: 450 }
+ ]
+},
+"Asia": {
+"Asia Oriental": [
+{ nombre: "China", tipo: "País", dinero: 1300, minerales: 650 },
+{ nombre: "Japón", tipo: "Archipiélago", dinero: 1150, minerales: 400 },
+{ nombre: "Corea del Sur", tipo: "País", dinero: 950, minerales: 380 },
+{ nombre: "Corea del Norte", tipo: "País", dinero: 500, minerales: 420 },
+{ nombre: "Mongolia", tipo: "País", dinero: 480, minerales: 450 },
+{ nombre: "Taiwán", tipo: "Isla", dinero: 850, minerales: 300 }
+ ],
+"Sudeste Asiático": [
+{ nombre: "Brunéi", tipo: "País", dinero: 600, minerales: 350 },
+{ nombre: "Camboya", tipo: "País", dinero: 450, minerales: 220 },
+{ nombre: "Filipinas", tipo: "Archipiélago", dinero: 750, minerales: 380 },
+{ nombre: "Indonesia", tipo: "Archipiélago", dinero: 850, minerales: 500 },
+{ nombre: "Laos", tipo: "País", dinero: 400, minerales: 250 },
+{ nombre: "Malasia", tipo: "País", dinero: 780, minerales: 360 },
+{ nombre: "Birmania (Myanmar)", tipo: "País", dinero: 500, minerales: 380 },
+{ nombre: "Singapur", tipo: "Isla", dinero: 900, minerales: 200 },
+{ nombre: "Tailandia", tipo: "País", dinero: 720, minerales: 320 },
+{ nombre: "Timor Oriental", tipo: "País", dinero: 380, minerales: 240 },
+{ nombre: "Vietnam", tipo: "País", dinero: 680, minerales: 340 }
+ ],
+"Sur de Asia": [
+{ nombre: "Afganistán", tipo: "País", dinero: 420, minerales: 400 },
+{ nombre: "Bangladés", tipo: "País", dinero: 550, minerales: 230 },
+{ nombre: "Bután", tipo: "País", dinero: 350, minerales: 200 },
+{ nombre: "India", tipo: "País", dinero: 1100, minerales: 520 },
+{ nombre: "Maldivas", tipo: "Archipiélago", dinero: 450, minerales: 180 },
+{ nombre: "Nepal", tipo: "País", dinero: 400, minerales: 220 },
+{ nombre: "Pakistán", tipo: "País", dinero: 650, minerales: 380 },
+{ nombre: "Sri Lanka", tipo: "Isla", dinero: 520, minerales: 270 }
+ ],
+"Asia Central": [
+{ nombre: "Kazajistán", tipo: "País", dinero: 750, minerales: 550 },
+{ nombre: "Kirguistán", tipo: "País", dinero: 420, minerales: 300 },
+{ nombre: "Tayikistán", tipo: "País", dinero: 400, minerales: 280 },
+{ nombre: "Turkmenistán", tipo: "País", dinero: 500, minerales: 420 },
+{ nombre: "Uzbekistán", tipo: "País", dinero: 580, minerales: 390 }
+ ],
+"Oriente Medio": [
+{ nombre: "Arabia Saudita", tipo: "País", dinero: 1100, minerales: 600 },
+{ nombre: "Baréin", tipo: "Isla", dinero: 550, minerales: 250 },
+{ nombre: "Emiratos Árabes Unidos", tipo: "País", dinero: 1050, minerales: 450 },
+{ nombre: "Irak", tipo: "País", dinero: 650, minerales: 480 },
+{ nombre: "Irán", tipo: "País", dinero: 800, minerales: 520 },
+{ nombre: "Israel", tipo: "País", dinero: 750, minerales: 300 },
+{ nombre: "Jordania", tipo: "País", dinero: 500, minerales: 220 },
+{ nombre: "Kwait", tipo: "País", dinero: 700, minerales: 400 },
+{ nombre: "Líbano", tipo: "País", dinero: 480, minerales: 200 },
+{ nombre: "Omán", tipo: "País", dinero: 650, minerales: 380 },
+{ nombre: "Catar", tipo: "País", dinero: 900, minerales: 350 },
+{ nombre: "Siria", tipo: "País", dinero: 420, minerales: 280 },
+{ nombre: "Yemen", tipo: "País", dinero: 400, minerales: 300 },
+{ nombre: "Socotra", tipo: "Archipiélago", dinero: 320, minerales: 220 }
+ ]
+},
+"África": {
+"África del Norte": [
+{ nombre: "Argelia", tipo: "País", dinero: 700, minerales: 450 },
+{ nombre: "Egipto", tipo: "País", dinero: 750, minerales: 380 },
+{ nombre: "Libia", tipo: "País", dinero: 550, minerales: 480 },
+{ nombre: "Marruecos", tipo: "País", dinero: 650, minerales: 320 },
+{ nombre: "SUDÁN", tipo: "País", dinero: 480, minerales: 350 },
+{ nombre: "Túnez", tipo: "País", dinero: 520, minerales: 260 }
+ ],
+"África Occidental": [
+{ nombre: "Benín", tipo: "País", dinero: 380, minerales: 200 },
+{ nombre: "Burkina Faso", tipo: "País", dinero: 390, minerales: 240 },
+{ nombre: "Cabo Verde", tipo: "Archipiélago", dinero: 400, minerales: 180 },
+{ nombre: "Costa de Marfil", tipo: "País", dinero: 550, minerales: 300 },
+{ nombre: "Gambia", tipo: "País", dinero: 320, minerales: 150 },
+{ nombre: "Ghana", tipo: "País", dinero: 580, minerales: 360 },
+{ nombre: "Guinea", tipo: "País", dinero: 420, minerales: 380 },
+{ nombre: "Guinea-Bisáu", tipo: "País", dinero: 330, minerales: 170 },
+{ nombre: "Liberia", tipo: "País", dinero: 360, minerales: 220 },
+{ nombre: "Malí", tipo: "País", dinero: 410, minerales: 350 },
+{ nombre: "Mauritania", tipo: "País", dinero: 430, minerales: 320 },
+{ nombre: "Níger", tipo: "País", dinero: 400, minerales: 380 },
+{ nombre: "Nigeria", tipo: "País", dinero: 850, minerales: 520 },
+{ nombre: "Senegal", tipo: "País", dinero: 480, minerales: 240 },
+{ nombre: "Sierra Leona", tipo: "País", dinero: 370, minerales: 310 },
+{ nombre: "Togo", tipo: "País", dinero: 360, minerales: 190 }
+ ],
+"África Oriental": [
+{ nombre: "Etiopía", tipo: "País", dinero: 550, minerales: 300 },
+{ nombre: "Kenia", tipo: "País", dinero: 600, minerales: 320 },
+{ nombre: "Madagascar", tipo: "Isla", dinero: 520, minerales: 400 },
+{ nombre: "Mauricio", tipo: "Isla", dinero: 480, minerales: 200 },
+{ nombre: "Mozambique", tipo: "País", dinero: 450, minerales: 330 },
+{ nombre: "Ruanda", tipo: "País", dinero: 420, minerales: 220 },
+{ nombre: "Seychelles", tipo: "Archipiélago", dinero: 450, minerales: 170 },
+{ nombre: "Somalia", tipo: "País", dinero: 380, minerales: 250 },
+{ nombre: "Tanzania", tipo: "País", dinero: 530, minerales: 360 },
+{ nombre: "Uganda", tipo: "País", dinero: 460, minerales: 270 },
+{ nombre: "Yibuti", tipo: "País", dinero: 400, minerales: 210 }
+ ],
+"África Central y del Sur": [
+{ nombre: "Angola", tipo: "País", dinero: 650, minerales: 480 },
+{ nombre: "Camerún", tipo: "País", dinero: 500, minerales: 310 },
+{ nombre: "Gabón", tipo: "País", dinero: 520, minerales: 380 },
+{ nombre: "Namibia", tipo: "País", dinero: 540, minerales: 420 },
+{ nombre: "República Democrática del Congo", tipo: "País", dinero: 600, minerales: 650 },
+{ nombre: "Sudáfrica", tipo: "País", dinero: 850, minerales: 580 },
+{ nombre: "Zambia", tipo: "País", dinero: 480, minerales: 400 },
+{ nombre: "Zimbabue", tipo: "País", dinero: 450, minerales: 380 }
+ ]
+},
+"Oceanía": {
+"Australasia": [
+{ nombre: "Australia", tipo: "País", dinero: 1100, minerales: 600 },
+{ nombre: "Nueva Zelanda", tipo: "Isla", dinero: 800, minerales: 350 },
+{ nombre: "Tasmania", tipo: "Isla", dinero: 450, minerales: 250 }
+ ],
+"Melanesia": [
+{ nombre: "Fiyi", tipo: "Archipiélago", dinero: 480, minerales: 220 },
+{ nombre: "Islas Salomón", tipo: "Archipiélago", dinero: 400, minerales: 250 },
+{ nombre: "Nueva Caledonia", tipo: "Isla", dinero: 450, minerales: 380 },
+{ nombre: "Papúa Nueva Guinea", tipo: "País", dinero: 550, minerales: 420 },
+{ nombre: "Vanuatu", tipo: "Archipiélago", dinero: 380, minerales: 200 }
+ ],
+"Micronesia": [
+{ nombre: "Guam", tipo: "Isla", dinero: 420, minerales: 180 },
+{ nombre: "Islas Marshall", tipo: "Archipiélago", dinero: 350, minerales: 150 },
+{ nombre: "Kiribati", tipo: "Archipiélago", dinero: 320, minerales: 140 },
+{ nombre: "Palaos", tipo: "Archipiélago", dinero: 360, minerales: 160 }
+ ],
+"Polinesia": [
+{ nombre: "Hawái", tipo: "Archipiélago", dinero: 750, minerales: 280 },
+{ nombre: "Isla de Pascua", tipo: "Isla", dinero: 380, minerales: 220 },
+{ nombre: "Samoa", tipo: "Archipiélago", dinero: 370, minerales: 170 },
+{ nombre: "Tonga", tipo: "Archipiélago", dinero: 350, minerales: 160 }
+ ]
+}
+};
+
+let currentLevel = 'continents';
+let selectedContinent = null;
+let selectedRegion = null;
+
+function hablar(texto) {
+if ('speechSynthesis' in window) {
+window.speechSynthesis.cancel();
+const utterance = new SpeechSynthesisUtterance(texto);
+utterance.lang = 'es-ES';
+window.speechSynthesis.speak(utterance);
+}
+}
+
+function abrirMapa() {
+document.getElementById('gameView').style.display = 'none';
+document.getElementById('mapMenu').style.display = 'flex';
+mostrarContinentes();
+hablar("Mapa mundial abierto. Selecciona un continente.");
+}
+
+function cerrarMapa() {
+document.getElementById('mapMenu').style.display = 'none';
+document.getElementById('gameView').style.display = 'flex';
+hablar("De regreso al puesto de mando.");
+}
+
+function mostrarContinentes() {
+currentLevel = 'continents';
+selectedContinent = null;
+selectedRegion = null;
+
+document.getElementById('mapTitle').textContent = "🌍 CONTINENTES";
+document.getElementById('breadcrumb').textContent = "Ubicación: Continentes Habitados";
+document.getElementById('btnMapBack').style.display = "none";
+
+const mapList = document.getElementById('mapList');
+mapList.innerHTML = "";
+
+Object.keys(worldData).forEach(continente => {
+const btn = document.createElement('button');
+btn.className = "map-card";
+btn.setAttribute('aria-label', Continente ${continente}); btn.innerHTML =<span><strong>${continente}&lt;/strong&gt;&lt;/span&gt;&lt;span&gt;Explorar ➔&lt;/span>;
+btn.onclick = () => seleccionarContinente(continente);
+mapList.appendChild(btn);
+});
+}
+
+function seleccionarContinente(continente) {
+currentLevel = 'regions';
+selectedContinent = continente;
+
+document.getElementById('mapTitle').textContent = 🌍 ${continente.toUpperCase()}; document.getElementById('breadcrumb').textContent =Ubicación: Continente ${continente} &gt; Regiones;
+document.getElementById('btnMapBack').style.display = "block";
+
+const mapList = document.getElementById('mapList');
+mapList.innerHTML = "";
+
+const regiones = Object.keys(worldData[continente]);
+regiones.forEach(region => {
+const btn = document.createElement('button');
+btn.className = "map-card";
+btn.setAttribute('aria-label', Región ${region}); btn.innerHTML =<span><strong>${region}&lt;/strong&gt;&lt;/span&gt;&lt;span&gt;Ver Territorios ➔&lt;/span>;
+btn.onclick = () => seleccionarRegion(region);
+mapList.appendChild(btn);
+});
+
+hablar(Continente ${continente} seleccionado. Selecciona una región.`);
+}
+
+function seleccionarRegion(region) {
+currentLevel = 'territories';
+selectedRegion = region;
+
+document.getElementById('mapTitle').textContent = 📍${region.toUpperCase()}; document.getElementById('breadcrumb').textContent =Ubicación: {region}`;
+
+const mapList = document.getElementById('mapList');
+mapList.innerHTML = "";
+
+const territorios = worldData[selectedContinent][region];
+territorios.forEach(terr => {
+const btn = document.createElement('button');
+btn.className = "map-card";
+
+const labelTexto = ${terr.tipo}: ${terr.nombre}. Recompensa: ${terr.dinero} dólares y ${terr.minerales} minerales. Presiona para atacar.;
+btn.setAttribute('aria-label', labelTexto);
+
+btn.innerHTML = &lt;div class="map-card-info"&gt; &lt;strong&gt;${terr.nombre} (${terr.tipo})&lt;/strong&gt; &lt;span class="reward-tag"&gt;Recompensa: ${terr.dinero} | 💎 ${terr.minerales}&lt;/span&gt; &lt;/div&gt; &lt;span style="color:#00ffcc;"&gt;Atacar 🎯&lt;/span&gt;;
+btn.onclick = () => atacarTerritorio(terr);
+mapList.appendChild(btn);
+});
+
+hablar(Región ${region}. Mostrando todos los países, archipiélagos e islas.`);
+}
+
+function retrocederNivel() {
+if (currentLevel === 'territories') {
+seleccionarContinente(selectedContinent);
+} else if (currentLevel === 'regions') {
+mostrarContinentes();
+hablar("Regresando a la lista de continentes.");
+}
+}
+
+function atacarTerritorio(territorio) {
+const mensaje = Iniciando despliegue militar hacia${territorio.nombre}. Recompensa por victoria: {territorio.minerales} minerales.; hablar(mensaje); alert(🎯 ${mensaje}`);
+cerrarMapa();
+}
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AeroOcean: Guerra Sobre el Agua</title>
@@ -33,7 +458,6 @@
             overflow: hidden;
         }
 
-        /* Animación de sacudida para simular vibración visual y física */
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
             20% { transform: translate(-3px, 0px) rotate(-1deg); }
@@ -183,7 +607,6 @@
 
     <div id="sr-announcer" class="sr-only" aria-live="assertive"></div>
 
-    <!-- PARTE ALTA: Menús principales en línea horizontal -->
     <header class="top-bar" role="navigation" aria-label="Menú Principal Superior">
         <div class="btn-group-horizontal">
             <button onclick="openScreen('menu-ajustes')">1. Menú de Ajustes</button>
@@ -195,14 +618,12 @@
         </div>
     </header>
 
-    <!-- ÁREA CENTRAL DE PANTALLA -->
     <main id="viewport">
         <div id="main-hud">
             <h1 style="text-align: center; color: var(--accent-color);">PORTAAVIONES INSIGNIA (BASE)</h1>
             <p class="status-display" id="hud-status">Estado: En Navegación | Casco: 100% | Sistema de Obstáculos Activo</p>
         </div>
 
-        <!-- 2. MENÚ DE AJUSTES -->
         <section id="menu-ajustes" class="screen-panel" aria-label="Menú de Ajustes">
             <h2>Ajustes del Juego</h2>
             <div class="top-bar">
@@ -242,7 +663,6 @@
             </details>
         </section>
 
-        <!-- 3. MENÚ MARKET STORE -->
         <section id="menu-market" class="screen-panel" aria-label="Market Store">
             <h2>Market Store</h2>
             <div class="top-bar">
@@ -264,7 +684,6 @@
             </details>
         </section>
 
-        <!-- 4. MENÚ VEHÍCULOS -->
         <section id="menu-vehiculos" class="screen-panel" aria-label="Menú Vehículos">
             <h2>Escuadrones y Fleet Maneuver</h2>
             <div class="top-bar">
@@ -368,7 +787,6 @@
             </div>
         </section>
 
-        <!-- 5. MENÚ TALLER Y REPARACIONES -->
         <section id="menu-taller" class="screen-panel" aria-label="Taller y Reparaciones">
             <h2>Taller y Reparaciones</h2>
             <div class="top-bar">
@@ -386,7 +804,6 @@
             </details>
         </section>
 
-        <!-- 6. MENÚ MAPAS, NAVEGACIÓN Y OBSTÁCULOS -->
         <section id="menu-mapas" class="screen-panel" aria-label="Menú Mapas">
             <div class="menu-header">
                 <h2 id="mapTitle">🌍 MAPA MUNDIAL Y NAVEGACIÓN</h2>
@@ -400,7 +817,6 @@
             <div id="mapList" class="map-list" role="region" aria-live="polite"></div>
         </section>
 
-        <!-- 7. MENÚ RANKING GLOBAL -->
         <section id="menu-ranking" class="screen-panel" aria-label="Ranking Global">
             <div class="menu-header">
                 <h2>🏆 RANKING GLOBAL DE CAPITANES</h2>
@@ -411,7 +827,6 @@
         </section>
     </main>
 
-    <!-- PARTE BAJA: Controles base del Portaaviones (Con sonidodegranada.mp3) -->
     <footer class="bottom-bar" role="navigation" aria-label="Controles Base">
         <div class="btn-group-horizontal" aria-label="Controles de Ataque">
             <button onclick="playSFX('Disparo.mp3')">1. Cañones</button>
@@ -430,7 +845,6 @@
         </div>
     </footer>
 
-    <!-- SCRIPT PRINCIPAL INTEGRADO -->
     <script>
         let vibrationEnabled = true;
         let seaAudio = null;
@@ -447,14 +861,24 @@
             { nombre: "Capitana Sorenson (IA)", puntos: 1800, territorios: 2 }
         ];
 
-        // Verificación de conexión obligatoria (Wi-Fi o Datos)
+        // Verificación estricta de conexión real (Wi-Fi o Datos)
         function verificarConexionYArrancar() {
-            if (navigator.onLine) {
-                console.log("Conexión detectada. Iniciando juego...");
-                inicializarJuegoCompleto();
-            } else {
+            // Si el navegador marca desconectado o queremos forzar prueba real
+            if (!navigator.onLine) {
                 mostrarAlertaSinConexión();
+                return;
             }
+
+            // Hacemos una prueba adicional intentando contactar internet de forma ligera (fetch de respaldo)
+            fetch('https://www.google.com/favicon.ico', { mode: 'no-cors', cache: 'no-store' })
+                .then(() => {
+                    console.log("Conexión a internet verificada con éxito.");
+                    inicializarJuegoCompleto();
+                })
+                .catch(() => {
+                    // Si falla la petición significa que aunque haya red local, no hay salida a internet
+                    mostrarAlertaSinConexión();
+                });
         }
 
         function mostrarAlertaSinConexión() {
@@ -472,9 +896,10 @@
         });
 
         function playSFX(fileName) {
+            // Solución robusta para Bonba.mp3 o cualquier archivo asegurando mayúsculas/minúsculas
             const audio = new Audio('./' + fileName);
             audio.play().catch(e => {
-                console.warn("Audio no encontrado:", fileName, e);
+                console.warn("Audio no encontrado o error al reproducir:", fileName, e);
             });
             triggerVibration([100, 50, 100]);
         }
@@ -519,7 +944,6 @@
             }
         }
 
-        // Sistema de Vibración Híbrida (Física + Visual Screen-Shake)
         function triggerVibration(pattern) {
             if (!vibrationEnabled) return;
             
@@ -581,7 +1005,6 @@
             triggerTTS("Ajustando volumen de " + tipo);
         }
 
-        // BASE DE DATOS GEOGRÁFICA MUNDIAL
         const worldData = {
             "América": {
                 "América del Norte": [
