@@ -176,8 +176,6 @@
         .btn-back { border-color: #ffaa00; color: #ffaa00; margin-bottom: 10px; }
         .btn-close { border-color: #ff5555; color: #ff5555; padding: 6px 12px; }
         .combat-box { background: #1b263b; border: 2px solid var(--danger-color); border-radius: 8px; padding: 15px; margin-top: 10px; display: flex; flex-direction: column; gap: 12px; }
-        
-        /* Panel de Navegación con Obstáculos */
         .navigation-radar-box { background: #0b131f; border: 2px dashed #00b4d8; padding: 15px; border-radius: 8px; text-align: center; margin-top: 10px; }
     </style>
 </head>
@@ -266,7 +264,7 @@
             </details>
         </section>
 
-        <!-- 4. MENÚ VEHÍCULOS (Con controles completos restaurados) -->
+        <!-- 4. MENÚ VEHÍCULOS -->
         <section id="menu-vehiculos" class="screen-panel" aria-label="Menú Vehículos">
             <h2>Escuadrones y Fleet Maneuver</h2>
             <div class="top-bar">
@@ -413,13 +411,13 @@
         </section>
     </main>
 
-    <!-- PARTE BAJA: Controles base del Portaaviones -->
+    <!-- PARTE BAJA: Controles base del Portaaviones (Con el sonido de granadas corregido a sonidodegranada.mp3) -->
     <footer class="bottom-bar" role="navigation" aria-label="Controles Base">
         <div class="btn-group-horizontal" aria-label="Controles de Ataque">
             <button onclick="playSFX('Disparo.mp3')">1. Cañones</button>
             <button onclick="playSFX('Ametralladora.mp3')">2. Metralletas</button>
             <button onclick="playSFX('sonidodetorpedo.mp3')">3. Torpedos</button>
-            <button onclick="playSFX('sonidodebomba.mp3')">4. Granadas</button>
+            <button onclick="playSFX('sonidodegranada.mp3')">4. Granadas</button>
             <button onclick="playSFX('misildecrucero.mp3')">5. Misiles Crucero</button>
             <button onclick="playSFX('bateriademisilesantiaereos.mp3')">6. Antiaéreos</button>
         </div>
@@ -497,14 +495,12 @@
         function triggerVibration(pattern) {
             if (!vibrationEnabled) return;
             
-            // 1. Vibración por Hardware API
             if ('vibrate' in navigator) {
                 try {
                     navigator.vibrate(pattern);
                 } catch(err) {}
             }
 
-            // 2. Sacudida visual de pantalla para simulación inmersiva
             const viewport = document.getElementById('viewport');
             if (viewport) {
                 viewport.classList.add('vibrating');
@@ -582,7 +578,7 @@
         let currentLevel = 'continentes';
         let selectedContinent = '';
         let activeMission = null;
-        let navigationDistance = 0; // Distancia en millas náuticas hacia el objetivo
+        let navigationDistance = 0;
 
         function mostrarContinentes() {
             currentLevel = 'continentes';
@@ -662,11 +658,10 @@
             }
         }
 
-        // FASE 1: NAVEGAR HACIA EL OBJETIVO (CON OBSTÁCULOS EN EL CAMINO)
         function iniciarViajeHaciaObjetivo(nombre, dinero, puntos, defensa) {
             currentLevel = 'navegacion';
             activeMission = { nombre, dinero, puntos, defensa };
-            navigationDistance = 50; // Millas náuticas iniciales hacia el objetivo
+            navigationDistance = 50;
 
             playSFX('Alarmadeataqueenemigo.mp3');
             document.getElementById('mapTitle').innerText = `⚓ NAVEGACIÓN A ${nombre.toUpperCase()}`;
@@ -714,14 +709,12 @@
             iniciarCombateConPais();
         }
 
-        // FASE 2: COMBATE CON DEFENSA ACTIVA DEL PAÍS
         function iniciarCombateConPais() {
             currentLevel = 'combate';
             document.getElementById('mapTitle').innerText = `⚔ BATALLA CONTRA ${activeMission.nombre.toUpperCase()}`;
             document.getElementById('breadcrumb').innerText = `Defensa Activa del País: ${activeMission.defensa}`;
             document.getElementById('btnMapBack').style.display = 'none';
 
-            // El país enemigo responde disparando y activando alarmas de defensa
             playSFX('Alarmadeataqueenemigo.mp3');
             triggerTTS(`¡Atención! ${activeMission.nombre} ha activado su defensa: ${activeMission.defensa}. ¡Sus armas responden al ataque!`);
 
@@ -733,7 +726,7 @@
                     <p>Escucha las salvas enemigas y despliega tus armas para neutralizarlos.</p>
                     <div class="btn-group-horizontal">
                         <button onclick="playSFX('Disparo.mp3'); playSFX('bateriademisilesantiaereos.mp3'); completarMisionCompetitiva();">1. ¡Atacar con Cañones y Misiles!</button>
-                        <button onclick="playSFX('sonidodetorpedo.mp3'); playSFX('sonidodebomba.mp3'); completarMisionCompetitiva();">2. ¡Lanzar Torpedos y Bombas!</button>
+                        <button onclick="playSFX('sonidodetorpedo.mp3'); playSFX('sonidodegranada.mp3'); completarMisionCompetitiva();">2. ¡Lanzar Torpedos y Granadas!</button>
                     </div>
                 </div>
             `;
