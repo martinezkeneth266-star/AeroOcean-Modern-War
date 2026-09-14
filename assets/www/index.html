@@ -297,7 +297,7 @@
                         <button onclick="playSFX('misildecrucero.mp3')">Misiles de Crucero</button>
                         <button onclick="playSFX('bateriademisilesantiaereos.mp3')">Antiaérea F-35</button>
                         <button onclick="playSFX('sonidodetorpedo.mp3')">Torpedos Ligeros</button>
-                        <button onclick="playSFX('sonidodebomba.mp3')">Bombas Guiadas</button>
+                        <button onclick="playSFX('Bonba.mp3')">Bombas Guiadas</button>
                     </div>
                 </div>
             </div>
@@ -318,7 +318,7 @@
                         <button onclick="playSFX('sonidodeborbandeo.mp3')">Bombardeo Estratégico</button>
                         <button onclick="playSFX('trazadoras.mp3')">Metralletas Trazadoras</button>
                         <button onclick="playSFX('misildecrucero.mp3')">Misiles de Crucero B-21</button>
-                        <button onclick="playSFX('sonidodebomba.mp3')">Carga de Bombas Pesadas</button>
+                        <button onclick="playSFX('Bonba.mp3')">Carga de Bombas Pesadas</button>
                         <button onclick="playSFX('Ametralladora.mp3')">Cañones de Defensa</button>
                     </div>
                 </div>
@@ -341,7 +341,7 @@
                         <button onclick="playSFX('sonidodetorpedo.mp3')">Lanzar Torpedos Pesados</button>
                         <button onclick="playSFX('misildecrucero.mp3')">Misiles Antibuque</button>
                         <button onclick="playSFX('bateriademisilesantiaereos.mp3')">Defensa Antiaérea VLS</button>
-                        <button onclick="playSFX('sonidodebomba.mp3')">Cargas de Profundidad</button>
+                        <button onclick="playSFX('Bonba.mp3')">Cargas de Profundidad</button>
                     </div>
                 </div>
             </div>
@@ -411,7 +411,7 @@
         </section>
     </main>
 
-    <!-- PARTE BAJA: Controles base del Portaaviones (Con el sonido de granadas corregido a sonidodegranada.mp3) -->
+    <!-- PARTE BAJA: Controles base del Portaaviones (Con sonidodegranada.mp3) -->
     <footer class="bottom-bar" role="navigation" aria-label="Controles Base">
         <div class="btn-group-horizontal" aria-label="Controles de Ataque">
             <button onclick="playSFX('Disparo.mp3')">1. Cañones</button>
@@ -447,6 +447,30 @@
             { nombre: "Capitana Sorenson (IA)", puntos: 1800, territorios: 2 }
         ];
 
+        // Verificación de conexión obligatoria (Wi-Fi o Datos)
+        function verificarConexionYArrancar() {
+            if (navigator.onLine) {
+                console.log("Conexión detectada. Iniciando juego...");
+                inicializarJuegoCompleto();
+            } else {
+                mostrarAlertaSinConexión();
+            }
+        }
+
+        function mostrarAlertaSinConexión() {
+            document.body.innerHTML = `
+                <div style="text-align: center; margin-top: 25vh; font-family: sans-serif; color: #fff; background: #1a1a1a; padding: 40px; border-radius: 10px; width: 80%; max-width: 400px; margin-left: auto; margin-right: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                    <h2 style="color: #ff4d4d; margin-bottom: 20px;">Error de Conexión</h2>
+                    <p style="font-size: 18px; line-height: 1.5; margin-bottom: 30px;">No se puede acceder, por favor revisa tu conexión y vuelve a intentarlo.</p>
+                    <button onclick="location.reload()" style="padding: 12px 25px; font-size: 16px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; font-weight: bold;">Reintentar</button>
+                </div>
+            `;
+        }
+
+        window.addEventListener('offline', () => {
+            mostrarAlertaSinConexión();
+        });
+
         function playSFX(fileName) {
             const audio = new Audio('./' + fileName);
             audio.play().catch(e => {
@@ -455,7 +479,7 @@
             triggerVibration([100, 50, 100]);
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
+        function inicializarJuegoCompleto() {
             seaAudio = new Audio('./mar.mp3');
             seaAudio.loop = true;
             seaAudio.volume = 0.15;
@@ -476,6 +500,10 @@
             triggerTTS("Bienvenido Capitán. Sistema táctico AeroOcean con obstáculos y defensas enemigas activado.");
             mostrarContinentes();
             actualizarRankingUI();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            verificarConexionYArrancar();
         });
 
         function triggerTTS(text) {
