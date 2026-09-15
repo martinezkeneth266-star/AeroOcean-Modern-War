@@ -1,235 +1,725 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>AeroOcean: Modern War</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#06131f">
+    <title>AeroOcean: Guerra Sobre el Agua</title>
+    <style>
+        :root {
+            --bg-color: #0d1b2a;
+            --panel-bg: #1b263b;
+            --btn-bg: #415a77;
+            --btn-active: #778da9;
+            --text-color: #e0e1dd;
+            --accent-color: #00b4d8;
+            --danger-color: #e63946;
+        }
 
-<style>
-*{
- box-sizing:border-box;
- user-select:none;
- -webkit-user-select:none;
-}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-user-select: none;
+            user-select: none;
+        }
 
-html,body{
- margin:0;
- padding:0;
- width:100%;
- height:100%;
- overflow:hidden;
- background:#06101b;
- color:#fff;
- font-family:Arial,sans-serif;
-}
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
 
-button{
- border:2px solid #526b82;
- border-radius:9px;
- background:#14283c;
- color:#fff;
- min-height:52px;
- padding:8px 12px;
- font-size:17px;
- font-weight:bold;
-}
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-3px, 0px) rotate(-1deg); }
+            40% { transform: translate(3px, -2px) rotate(1deg); }
+            60% { transform: translate(-1px, 2px) rotate(0deg); }
+            80% { transform: translate(1px, -1px) rotate(1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
 
-button:active{
- background:#315574;
-}
+        .vibrating {
+            animation: shake 0.3s ease-in-out infinite;
+        }
 
-.screen{
- width:100%;
- height:100%;
- overflow-y:auto;
- padding:10px;
-}
+        .top-bar, .bottom-bar {
+            background-color: var(--panel-bg);
+            padding: 10px;
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            white-space: nowrap;
+            gap: 10px;
+            align-items: center;
+        }
 
-.hidden{
- display:none!important;
-}
+        .top-bar {
+            border-bottom: 2px solid var(--accent-color);
+        }
 
-.header{
- border:2px solid #3e586e;
- border-radius:10px;
- padding:9px;
- background:#0c1c2c;
-}
+        .bottom-bar {
+            border-top: 2px solid var(--accent-color);
+            justify-content: space-between;
+        }
 
-.header h1{
- margin:0 0 7px;
- font-size:23px;
-}
+        .btn-group-horizontal {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
 
-.statusGrid{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:5px;
-}
+        button, summary {
+            background-color: var(--btn-bg);
+            color: var(--text-color);
+            border: 1px solid var(--accent-color);
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            display: inline-block;
+            list-style: none;
+            min-height: 45px;
+        }
 
-.statusBox{
- background:#071421;
- border:1px solid #40576b;
- border-radius:7px;
- padding:7px;
- min-height:46px;
-}
+        button:focus, button:hover, summary:focus, summary:hover {
+            background-color: var(--btn-active);
+            outline: 3px solid #fff;
+        }
 
-.label{
- font-size:13px;
- color:#b8c8d6;
-}
+        button:active, summary:active {
+            background-color: var(--accent-color);
+            color: #000;
+        }
 
-.value{
- font-size:17px;
- font-weight:bold;
-}
+        details {
+            background-color: rgba(27, 38, 59, 0.6);
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
 
-.mainGrid{
- display:grid;
- grid-template-columns:1fr 1.5fr 1fr;
- gap:8px;
- margin-top:8px;
-}
+        summary {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 5px;
+        }
 
-.panel{
- background:#0c1b2a;
- border:2px solid #3b5267;
- border-radius:10px;
- padding:9px;
-}
+        .dropdown-content {
+            padding: 10px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+        }
 
-.panel h2{
- margin:0 0 8px;
- font-size:19px;
-}
+        #viewport {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: radial-gradient(circle, #1b263b 0%, #0d1b2a 100%);
+            overflow-y: auto;
+        }
 
-.panel h3{
- margin:8px 0 5px;
- font-size:16px;
-}
+        .screen-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            z-index: 10;
+            overflow-y: auto;
+        }
 
-.info{
- line-height:1.5;
- font-size:16px;
-}
+        .screen-panel.active {
+            display: flex;
+        }
 
-.target{
- border:2px solid #8a7436;
- background:#19180d;
-}
+        .status-display {
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+            background: #112233;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--accent-color);
+        }
 
-.enemy{
- border:2px solid #874545;
- background:#1b0d0d;
-}
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
 
-.controls{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:5px;
-}
+        .menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; margin-bottom: 15px; }
+        .menu-header h2 { margin: 0; color: var(--accent-color); font-size: 18px; }
+        .breadcrumb { color: #ffaa00; font-size: 12px; margin-bottom: 12px; font-weight: bold; }
+        .map-list { display: flex; flex-direction: column; gap: 8px; }
+        .map-card { background: #112233; border: 1px solid var(--accent-color); border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .map-card-info { display: flex; flex-direction: column; gap: 4px; }
+        .reward-tag { color: #ffaa00; font-size: 11px; }
+        .btn-back { border-color: #ffaa00; color: #ffaa00; margin-bottom: 10px; }
+        .btn-close { border-color: #ff5555; color: #ff5555; padding: 6px 12px; }
+        .combat-box { background: #1b263b; border: 2px solid var(--danger-color); border-radius: 8px; padding: 15px; margin-top: 10px; display: flex; flex-direction: column; gap: 12px; }
+        .navigation-radar-box { background: #0b131f; border: 2px dashed var(--accent-color); padding: 15px; border-radius: 8px; text-align: center; margin-top: 10px; }
 
-.controls button{
- min-height:48px;
- padding:5px;
-}
-
-.weaponGrid{
- display:grid;
- grid-template-columns:repeat(2,1fr);
- gap:5px;
-}
-
-.weaponGrid button{
- min-height:55px;
-}
-
-.vehicleGrid{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:5px;
-}
-
-.log{
- margin-top:8px;
- height:110px;
- overflow-y:auto;
- background:#030911;
- border:1px solid #42566a;
- border-radius:7px;
- padding:7px;
- font-size:15px;
- line-height:1.45;
-}
-
-.full{
- grid-column:1/-1;
-}
-
-.dangerText{
- color:#ffb0b0;
-}
-
-.goodText{
- color:#b5f0c3;
-}
-
-.center{
- text-align:center;
-}
-
-@media(max-width:800px){
-
- .mainGrid{
-  grid-template-columns:1fr 1fr;
- }
-
- .fullMobile{
-  grid-column:1/-1;
- }
-
-}
-
-@media(orientation:portrait){
-
- .mainGrid{
-  grid-template-columns:1fr;
- }
-
- .statusGrid{
-  grid-template-columns:repeat(2,1fr);
- }
-
-}
-</style>
+        @media (orientation: portrait) {
+            body::before {
+                content: "Gira el dispositivo a posición horizontal para una mejor experiencia táctica.";
+                position: fixed;
+                z-index: 99999;
+                top: 0; left: 0; right: 0; bottom: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                font-size: 20px;
+                font-weight: bold;
+                padding: 30px;
+                background: #06131f;
+                color: white;
+            }
+        }
+    </style>
 </head>
-
 <body>
 
-<!-- ======================================================
- AUDIO
-====================================================== -->
+    <div id="sr-announcer" class="sr-only" aria-live="assertive"></div>
 
-<audio id="mar" src="mar.mp3" loop preload="auto"></audio>
+    <header class="top-bar" role="navigation" aria-label="Menú Principal Superior">
+        <div class="btn-group-horizontal">
+            <button onclick="openScreen('menu-ajustes')">1. Ajustes</button>
+            <button onclick="openScreen('menu-market')">2. Market Store</button>
+            <button onclick="openScreen('menu-vehiculos')">3. Vehículos</button>
+            <button onclick="openScreen('menu-taller')">4. Taller</button>
+            <button onclick="openScreen('menu-mapas'); mostrarContinentes();">5. Mapas y Conquista</button>
+            <button onclick="openScreen('menu-ranking'); actualizarRankingUI();">6. Ranking Global</button>
+        </div>
+    </header>
 
-<audio id="carrierAmbient" src="Sonidoportaaviones.mp3" loop preload="auto"></audio>
-<audio id="carrierAmbient2" src="sonidoportaaviones1.mp3" loop preload="auto"></audio>
+    <main id="viewport">
+        <div id="main-hud" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+            <h1 style="color: var(--accent-color); margin-bottom: 10px;">PORTAAVIONES INSIGNIA (BASE)</h1>
+            <div class="status-display" id="hud-status">Cargando estado táctico...</div>
+            <div class="btn-group-horizontal" style="margin-top: 15px;">
+                <button onclick="openScreen('menu-mapas'); mostrarContinentes();" style="background-color: var(--danger-color);">¡Iniciar Misiones de Conquista!</button>
+                <button onclick="guardarProgreso()">Guardar Partida</button>
+            </div>
+        </div>
 
-<audio id="battleMusic" src="Batalla_Aeronaval.mp3" loop preload="auto"></audio>
+        <section id="menu-ajustes" class="screen-panel" aria-label="Menú de Ajustes">
+            <h2>Ajustes del Juego</h2>
+            <div class="top-bar"><button onclick="closeScreen('menu-ajustes')">Regresar</button></div>
+            <br>
+            <details>
+                <summary onclick="playSFX('alerta.mp3')">Opciones de Cuenta</summary>
+                <div class="dropdown-content">
+                    <button onclick="triggerTTS('Perfil de Capitán activo')">Ver Perfil</button>
+                    <button onclick="borrarProgreso()" style="border-color: var(--danger-color); color: var(--danger-color);">Borrar Progreso Guardado</button>
+                </div>
+            </details>
+            <details>
+                <summary onclick="playSFX('alerta.mp3')">Sonido y Vibración</summary>
+                <div class="dropdown-content">
+                    <button onclick="toggleVibration()">Activar/Desactivar Vibración</button>
+                </div>
+            </details>
+        </section>
 
-<audio id="carrierCannon" src="Disparo.mp3"></audio>
-<audio id="carrierGun" src="Ametralladora.mp3"></audio>
-<audio id="carrierAA" src="bateriademisilesantiaereos.mp3"></audio>
-<audio id="carrierTorpedo" src="sonidodetorpedo.mp3"></audio>
-<audio id="carrierBomb" src="bonba.mp3"></audio>
-<audio id="carrierCruise" src="misildecrucero.mp3"></audio>
-<audio id="cruiseLaunch" src="misildecrucerolanzado.wav"></audio>
-<audio id="missile" src="misil.mp3"></audio>
+        <section id="menu-market" class="screen-panel" aria-label="Market Store">
+            <h2>Market Store & Recursos</h2>
+            <div class="top-bar"><button onclick="closeScreen('menu-market')">Regresar</button></div>
+            <br>
+            <div class="map-card" style="margin-bottom: 10px;">
+                <div class="map-card-info">
+                    <strong>Reabastecimiento de Combustible y Municiones</strong>
+                    <span class="reward-tag">Costo: 100 Dólares</span>
+                </div>
+                <button onclick="reabastecerRecursos()">Reabastecer</button>
+            </div>
+            <div class="status-display" id="market-status-box"></div>
+        </section>
 
-<audio id="tracer" src="trazadoras.mp3"></audio>
-<audio id="torpedoSound" src="sonidodetorpedo.mp3"></audio>
+        <section id="menu-vehiculos" class="screen-panel" aria-label="Menú Vehículos">
+            <h2>Escuadrones y Fleet Maneuver</h2>
+            <div class="top-bar">
+                <div class="btn-group-horizontal">
+                    <button onclick="closeScreen('menu-vehiculos')">Regresar</button>
+                    <button onclick="activarVehiculoEnAire('f35')">1. Desplegar Cazas F-35</button>
+                    <button onclick="activarVehiculoEnAire('b21')">2. Desplegar B-21 Raider</button>
+                    <button onclick="aterrizarVehiculo()">Aterrizar Vehículo Activo</button>
+                </div>
+            </div>
+        </section>
 
-<audio id="bombSound" src="bonba.mp3"></audio>
-<audio id="precisionSelected" src="bombadeprecisionseleccionada.wav"></audio>
-<audio id="precisionLaunch
+        <section id="menu-taller" class="screen-panel" aria-label="Taller y Reparaciones">
+            <h2>Taller y Reparaciones</h2>
+            <div class="top-bar"><button onclick="closeScreen('menu-taller')">Regresar</button></div>
+            <br>
+            <button onclick="repararCasco()">Reparar Casco e Integridad (Usa Minerales)</button>
+        </section>
+
+        <section id="menu-mapas" class="screen-panel" aria-label="Menú Mapas">
+            <div class="menu-header">
+                <h2 id="mapTitle">🌍 MAPA MUNDIAL Y NAVEGACIÓN</h2>
+                <button class="btn-close" onclick="closeScreen('menu-mapas')">✖ Volver</button>
+            </div>
+            <div id="breadcrumb" class="breadcrumb">Ubicación: Continentes Habitados</div>
+            <button id="btnMapBack" class="btn-back" style="display:none;" onclick="retrocederNivel()">⬅ Regresar</button>
+            <div id="mapList" class="map-list"></div>
+        </section>
+
+        <section id="menu-ranking" class="screen-panel" aria-label="Ranking Global">
+            <div class="menu-header">
+                <h2>🏆 RANKING GLOBAL DE CAPITANES</h2>
+                <button class="btn-close" onclick="closeScreen('menu-ranking')">✖ Volver</button>
+            </div>
+            <p class="breadcrumb">Tabla competitiva basada en tus victorias y puntos</p>
+            <div id="rankingList" class="map-list"></div>
+        </section>
+    </main>
+
+    <footer class="bottom-bar" role="navigation" aria-label="Controles Base">
+        <div class="btn-group-horizontal">
+            <button onclick="guardarProgreso()">Guardar Partida</button>
+            <button onclick="openScreen('menu-mapas'); mostrarContinentes();">Ir a Conquista</button>
+        </div>
+    </footer>
+
+    <script>
+        // --- ESTADO COMPETITIVO Y PROGRESIÓN ---
+        let estadoJuego = {
+            nivel: 1,
+            dinero: 1200,
+            minerales: 350,
+            combustible: 100,
+            municion: 100,
+            vida: 100,
+            victorias: 0,
+            misiones: 0,
+            territorios: 0
+        };
+
+        let rankingData = [
+            { nombre: "Capitán Insignia (Tú)", puntos: 1200, territorios: 0 },
+            { nombre: "Almirante Vance (IA)", puntos: 2500, territorios: 4 },
+            { nombre: "Comandante Zhao (IA)", puntos: 2100, territorios: 3 },
+            { nombre: "Capitana Sorenson (IA)", puntos: 1800, territorios: 2 }
+        ];
+
+        let vibrationEnabled = true;
+        let seaAudio = null;
+        let battleAudio = null;
+        let carrierAudio = null;
+        let activeVehicleAudio = null;
+        let battleActive = false;
+
+        let worldData = {
+            "América": {
+                "América del Norte": [
+                    { nombre: "Canadá", dinero: 800, puntos: 300, defensa: "Batería Costera del Norte", vida: 100 },
+                    { nombre: "Estados Unidos", dinero: 1200, puntos: 500, defensa: "Escudo Antiaéreo VLS", vida: 100 },
+                    { nombre: "México", dinero: 700, puntos: 250, defensa: "Patrulla Naval del Golfo", vida: 100 }
+                ],
+                "América Central": [
+                    { nombre: "Costa Rica", dinero: 550, puntos: 200, defensa: "Guarnición Costera", vida: 100 },
+                    { nombre: "Honduras", dinero: 500, puntos: 200, defensa: "Defensa Costera Caribeña", vida: 100 }
+                ]
+            }
+        };
+
+        let currentLevel = 'continentes';
+        let selectedContinent = '';
+        let activeMission = null;
+        let navigationDistance = 0;
+
+        // --- PERSISTENCIA (LOCALSTORAGE) ---
+        function guardarProgreso() {
+            localStorage.setItem("AeroOceanModernWar", JSON.stringify(estadoJuego));
+            triggerTTS("Progreso guardado correctamente.");
+        }
+
+        function cargarProgreso() {
+            const datos = localStorage.getItem("AeroOceanModernWar");
+            if (datos) {
+                try {
+                    estadoJuego = Object.assign(estadoJuego, JSON.parse(datos));
+                } catch(e) {}
+            }
+            actualizarHUD();
+        }
+
+        function borrarProgreso() {
+            localStorage.removeItem("AeroOceanModernWar");
+            location.reload();
+        }
+
+        // --- GESTIÓN DE AUDIO INTELIGENTE ---
+        function inicializarAmbienteAudio() {
+            seaAudio = new Audio('./mar.mp3');
+            seaAudio.loop = true;
+            seaAudio.volume = 0.35;
+
+            carrierAudio = new Audio('./Sonidoportaaviones.mp3');
+            carrierAudio.loop = true;
+            carrierAudio.volume = 0.25;
+
+            battleAudio = new Audio('./Batalla_Aeronaval.mp3');
+            battleAudio.loop = true;
+            battleAudio.volume = 0.30;
+
+            seaAudio.play().catch(() => {});
+            carrierAudio.play().catch(() => {});
+            battleAudio.play().catch(() => {});
+        }
+
+        function playSFX(fileName) {
+            const audio = new Audio('./' + fileName);
+            audio.play().catch(e => console.warn("Audio no encontrado:", fileName));
+            triggerVibration([80, 40, 80]);
+        }
+
+        function iniciarBatallaAudioModo() {
+            battleActive = true;
+            if (battleAudio) battleAudio.pause(); // Silencia música general en combate
+        }
+
+        function terminarBatallaAudioModo() {
+            battleActive = false;
+            if (battleAudio) battleAudio.play().catch(() => {}); // Restaura música general
+        }
+
+        // --- CONTROL DE VEHÍCULOS EN EL AIRE ---
+        function activarVehiculoEnAire(tipo) {
+            if (activeVehicleAudio) {
+                activeVehicleAudio.pause();
+                activeVehicleAudio = null;
+            }
+
+            if (tipo === 'f35') {
+                playSFX('vehículo-f35desplegado.wav');
+                activeVehicleAudio = new Audio('./sonidodecasaenelaire.wav');
+            } else if (tipo === 'b21') {
+                playSFX('bombardero-b-21raiderdesplegado.wav');
+                activeVehicleAudio = new Audio('./sonidodeborbandeo.mp3');
+            }
+
+            if (activeVehicleAudio) {
+                activeVehicleAudio.loop = true;
+                activeVehicleAudio.volume = 0.30;
+                activeVehicleAudio.play().catch(e => {});
+            }
+            triggerTTS("Vehículo desplegado y en patrulla continua.");
+        }
+
+        function aterrizarVehiculo() {
+            playSFX('aterrizaje.mp3');
+            if (activeVehicleAudio) {
+                activeVehicleAudio.pause();
+                activeVehicleAudio = null;
+            }
+            triggerTTS("Vehículo asegurado en plataforma.");
+        }
+
+        // --- UTILIDADES ---
+        function triggerTTS(text) {
+            const announcer = document.getElementById('sr-announcer');
+            if (announcer) announcer.innerText = text;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'es-ES';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function triggerVibration(pattern) {
+            if (!vibrationEnabled) return;
+            if ('vibrate' in navigator) {
+                try { navigator.vibrate(pattern); } catch(err) {}
+            }
+        }
+
+        function toggleVibration() {
+            vibrationEnabled = !vibrationEnabled;
+            triggerTTS(vibrationEnabled ? "Vibración activada" : "Vibración desactivada");
+        }
+
+        function openScreen(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeScreen(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function actualizarHUD() {
+            const hud = document.getElementById('hud-status');
+            if (hud) {
+                hud.innerHTML = `Nivel: <strong>${estadoJuego.nivel}</strong> | Dinero: <strong>$${estadoJuego.dinero}</strong> | Minerales: <strong>${estadoJuego.minerales}</strong> | Combustible: <strong>${estadoJuego.combustible}%</strong> | Munición: <strong>${estadoJuego.municion}</strong> | Vida: <strong>${estadoJuego.vida}%</strong> | Victorias: <strong>${estadoJuego.victorias}</strong>`;
+            }
+        }
+
+        // --- NAVEGACIÓN Y CONQUISTA COMPETITIVA ---
+        function mostrarContinentes() {
+            currentLevel = 'continentes';
+            document.getElementById('mapTitle').innerText = "🌍 MAPA MUNDIAL";
+            document.getElementById('breadcrumb').innerText = "Ubicación: Continentes Habitados";
+            document.getElementById('btnMapBack').style.display = 'none';
+
+            const mapList = document.getElementById('mapList');
+            mapList.innerHTML = '';
+
+            Object.keys(worldData).forEach(continente => {
+                const card = document.createElement('div');
+                card.className = 'map-card';
+                card.innerHTML = `
+                    <div class="map-card-info">
+                        <strong>${continente}</strong>
+                        <span class="reward-tag">Región de Conquista</span>
+                    </div>
+                    <button onclick="playSFX('nuevamisiondisponible.wav'); mostrarSubregiones('${continente}')">Explorar</button>
+                `;
+                mapList.appendChild(card);
+            });
+        }
+
+        function mostrarSubregiones(continente) {
+            currentLevel = 'subregiones';
+            selectedContinent = continente;
+            document.getElementById('mapTitle').innerText = `🌍 ${continente.toUpperCase()}`;
+            document.getElementById('breadcrumb').innerText = `Ubicación: ${continente} > Subregiones`;
+            document.getElementById('btnMapBack').style.display = 'inline-block';
+
+            const mapList = document.getElementById('mapList');
+            mapList.innerHTML = '';
+
+            Object.keys(worldData[continente]).forEach(subregión => {
+                const card = document.createElement('div');
+                card.className = 'map-card';
+                card.innerHTML = `
+                    <div class="map-card-info">
+                        <strong>${subregión}</strong>
+                        <span class="reward-tag">Zona Operativa</span>
+                    </div>
+                    <button onclick="mostrarTerritorios('${subregión}')">Ver Objetivos</button>
+                `;
+                mapList.appendChild(card);
+            });
+        }
+
+        function mostrarTerritorios(subregion) {
+            currentLevel = 'territorios';
+            document.getElementById('breadcrumb').innerText = `Ubicación: ${selectedContinent} > ${subregion} > Objetivos`;
+
+            const mapList = document.getElementById('mapList');
+            mapList.innerHTML = '';
+
+            worldData[selectedContinent][subregion].forEach(territorio => {
+                const card = document.createElement('div');
+                card.className = 'map-card';
+                card.innerHTML = `
+                    <div class="map-card-info">
+                        <strong>${territorio.nombre}</strong>
+                        <span class="reward-tag">Recompensa: $${territorio.dinero} | Defensa: ${territorio.defensa}</span>
+                    </div>
+                    <button onclick="iniciarViajeMision('${territorio.nombre}', ${territorio.dinero}, ${territorio.puntos}, '${territorio.defensa}')">Navegar hacia Objetivo</button>
+                `;
+                mapList.appendChild(card);
+            });
+        }
+
+        function retrocederNivel() {
+            if (currentLevel === 'territorios') mostrarSubregiones(selectedContinent);
+            else if (currentLevel === 'subregiones') mostrarContinentes();
+            else mostrarContinentes();
+        }
+
+        function iniciarViajeMision(nombre, dinero, puntos, defensa) {
+            currentLevel = 'navegacion';
+            activeMission = { nombre, dinero, puntos, defensa, vida: 100 };
+            navigationDistance = 50;
+
+            playSFX('haslletadoalareadecombate.wav');
+            document.getElementById('mapTitle').innerText = `⚓ RUTA A ${nombre.toUpperCase()}`;
+            document.getElementById('breadcrumb').innerText = `Trayecto Marítimo - Evitando Obstáculos`;
+            document.getElementById('btnMapBack').style.display = 'inline-block';
+
+            const mapList = document.getElementById('mapList');
+            mapList.innerHTML = `
+                <div class="navigation-radar-box">
+                    <h3>Radar de Trayecto</h3>
+                    <p>Destino: <strong>${nombre}</strong></p>
+                    <br>
+                    <div class="btn-group-horizontal">
+                        <button onclick="esquivarObstaculo()">Esquivar Minas y Avanzar</button>
+                    </div>
+                </div>
+            `;
+            triggerTTS(`Estableciendo rumbo a ${nombre}. Navega con precaución.`);
+        }
+
+        function esquivarObstaculo() {
+            playSFX('sonidoportaaviones1.mp3');
+            triggerVibration([50, 50]);
+            iniciarCombateMision();
+        }
+
+        function iniciarCombateMision() {
+            currentLevel = 'combate';
+            iniciarBatallaAudioModo(); // Silencia música general, deja mar y portaaviones
+
+            playSFX('combateiniciado.mp3');
+            triggerTTS(`¡Atención! ${activeMission.nombre} ha activado su defensa: ${activeMission.defensa}. ¡Comienza el ataque táctico!`);
+
+            const mapList = document.getElementById('mapList');
+            mapList.innerHTML = `
+                <div class="combat-box">
+                    <h3>⚔ ZONA DE COMBATE ACTIVA</h3>
+                    <p>Enemigo: <strong>${activeMission.nombre}</strong> (Defensa: ${activeMission.defensa})</p>
+                    <p>Vida Enemiga: <strong id="enemigo-vida-txt">100%</strong></p>
+                    <div class="btn-group-horizontal">
+                        <button onclick="atacarEnemigo(35)">Disparar Misil / Cañón Principal</button>
+                        <button onclick="atacarEnemigo(55)">Lanzar Bombardeo Pesado</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function atacarEnemigo(dano) {
+            playSFX('Disparo.mp3');
+            playSFX('impactoconfirmado.wav');
+            triggerVibration(100);
+
+            activeMission.vida -= dano;
+            if (activeMission.vida < 0) activeMission.vida = 0;
+
+            const vidaTxt = document.getElementById('enemigo-vida-txt');
+            if (vidaTxt) vidaTxt.innerText = activeMission.vida + "%";
+
+            if (activeMission.vida <= 0) {
+                finalizarVictoriaMision();
+            } else {
+                // Daño de respuesta de la IA enemiga al jugador
+                let dannoRecibido = Math.floor(Math.random() * 15) + 5;
+                estadoJuego.vida -= dannoRecibido;
+                if (estadoJuego.vida < 0) estadoJuego.vida = 0;
+                playSFX('alerta.mp3');
+                actualizarHUD();
+                if (estadoJuego.vida <= 0) {
+                    alert("¡Tus fuerzas han sufrido daños críticos! Misión fallida.");
+                    terminarBatallaAudioModo();
+                    mostrarContinentes();
+                    estadoJuego.vida = 100;
+                }
+            }
+        }
+
+        function finalizarVictoriaMision() {
+            terminarBatallaAudioModo();
+            playSFX('victoriaconfirmada-hascompletadolamision.wav');
+            triggerVibration([200, 100, 200]);
+
+            estadoJuego.victorias++;
+            estadoJuego.misiones++;
+            estadoJuego.dinero += activeMission.dinero;
+            estadoJuego.territorios++;
+            estadoJuego.combustible -= 10;
+            if (estadoJuego.combustible < 0) estadoJuego.combustible = 0;
+
+            if (estadoJuego.victorias % 2 === 0) {
+                estadoJuego.nivel++;
+                playSFX('nivelaumentado.wav');
+                triggerTTS("¡Nivel de Capitán aumentado!");
+            }
+
+            // Actualizar ranking competitivo
+            let jugadorEntry = rankingData.find(r => r.nombre.includes("Capitán Insignia"));
+            if (jugadorEntry) {
+                jugadorEntry.puntos += activeMission.puntos;
+                jugadorEntry.territorios += 1;
+            }
+            rankingData.sort((a, b) => b.puntos - a.puntos);
+
+            actualizarHUD();
+            guardarProgreso();
+
+            triggerTTS(`¡Victoria confirmada! Territorio conquistado. Recompensas acreditadas.`);
+            mostrarContinentes();
+        }
+
+        function reabastecerRecursos() {
+            if (estadoJuego.dinero >= 100) {
+                estadoJuego.dinero -= 100;
+                estadoJuego.combustible = 100;
+                estadoJuego.municion = 100;
+                playSFX('reabastecimientoyrearmecompletados.wav');
+                triggerTTS("Reabastecimiento completado con éxito.");
+                actualizarHUD();
+                guardarProgreso();
+            } else {
+                triggerTTS("Fondos insuficientes para reabastecer.");
+            }
+        }
+
+        function repararCasco() {
+            if (estadoJuego.minerales >= 50) {
+                estadoJuego.minerales -= 50;
+                estadoJuego.vida = 100;
+                playSFX('reabastecimientoyrearmecompletados.wav');
+                triggerTTS("Reparación de casco finalizada al 100 por ciento.");
+                actualizarHUD();
+                guardarProgreso();
+            } else {
+                triggerTTS("Minerales insuficientes en el inventario.");
+            }
+        }
+
+        function actualizarRankingUI() {
+            const rankingList = document.getElementById('rankingList');
+            rankingList.innerHTML = '';
+            rankingData.forEach((capitan, index) => {
+                const card = document.createElement('div');
+                card.className = 'map-card';
+                card.innerHTML = `
+                    <div class="map-card-info">
+                        <strong>#${index + 1} - ${capitan.nombre}</strong>
+                        <span class="reward-tag">Puntos: ${capitan.puntos} | Territorios: ${capitan.territorios}</span>
+                    </div>
+                `;
+                rankingList.appendChild(card);
+            });
+        }
+
+        // --- INICIALIZACIÓN GENERAL ---
+        window.addEventListener('DOMContentLoaded', () => {
+            cargarProgreso();
+            inicializarAmbienteAudio();
+            actualizarHUD();
+            triggerTTS("Sistema táctico AeroOcean integrado con éxito, Capitán.");
+        });
+    </script>
+</body>
+</html>
