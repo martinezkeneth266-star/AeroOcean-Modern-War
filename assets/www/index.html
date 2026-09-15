@@ -2,1371 +2,1586 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"
+>
+
+<meta name="theme-color" content="#06131f">
 
 <title>AeroOcean: Modern War</title>
 
 <style>
-:root{
---bg:#0d1b2a;
---panel:#1b263b;
---button:#415a77;
---active:#778da9;
---text:#e0e1dd;
---accent:#00b4d8;
---danger:#e63946;
---success:#32d583;
---warning:#ffaa00;
-}
 
 *{
 box-sizing:border-box;
-margin:0;
-padding:0;
-user-select:none;
 -webkit-user-select:none;
+user-select:none;
 }
 
+html,
 body{
-font-family:Arial,sans-serif;
-background:var(--bg);
-color:var(--text);
-height:100vh;
+margin:0;
+padding:0;
+width:100%;
+height:100%;
 overflow:hidden;
-display:flex;
-flex-direction:column;
+background:#06131f;
+color:#fff;
+font-family:Arial,sans-serif;
 }
 
 button{
-background:var(--button);
-color:var(--text);
-border:1px solid var(--accent);
-padding:12px 16px;
-font-size:14px;
+font-size:18px;
 font-weight:bold;
-border-radius:5px;
-margin:3px;
+padding:15px;
+margin:5px;
+border-radius:10px;
+border:2px solid #5fa8d3;
+background:#12364d;
+color:white;
+min-height:55px;
 }
 
 button:focus{
-outline:3px solid white;
-background:var(--active);
-}
-
-button:active{
-background:var(--accent);
-color:#000;
-}
-
-.top,.bottom{
-background:var(--panel);
-padding:8px;
-display:flex;
-overflow-x:auto;
-gap:5px;
-flex-shrink:0;
-}
-
-.top{
-border-bottom:2px solid var(--accent);
-}
-
-.bottom{
-border-top:2px solid var(--accent);
-}
-
-.viewport{
-flex:1;
-position:relative;
-overflow:hidden;
-}
-
-.panel{
-position:absolute;
-inset:0;
-background:var(--bg);
-padding:15px;
-overflow-y:auto;
-display:none;
-z-index:20;
-}
-
-.panel.active{
-display:block;
-}
-
-h1,h2,h3{
-color:var(--accent);
-margin-bottom:12px;
-}
-
-.status{
-background:#101d2d;
-border:1px solid var(--accent);
-border-radius:8px;
-padding:12px;
-margin:8px 0;
-}
-
-.warning{
-color:var(--warning);
-}
-
-.danger{
-color:var(--danger);
-}
-
-.success{
-color:var(--success);
-}
-
-.card{
-background:#112233;
-border:1px solid var(--accent);
-border-radius:7px;
-padding:12px;
-margin:8px 0;
-}
-
-.row{
-display:flex;
-flex-wrap:wrap;
-gap:5px;
-}
-
-.progress{
-height:18px;
-background:#333;
-border-radius:10px;
-overflow:hidden;
-margin:5px 0 10px;
-}
-
-.progress div{
-height:100%;
-width:100%;
-background:var(--success);
-}
-
-#battleLog{
-height:150px;
-overflow-y:auto;
-background:#07111d;
-border:1px solid #456;
-padding:8px;
-font-size:14px;
-}
-
-#sr{
-position:absolute;
-width:1px;
-height:1px;
-overflow:hidden;
-clip:rect(0,0,0,0);
-}
-
-.big{
-font-size:20px;
-font-weight:bold;
+outline:4px solid #fff;
 }
 
 .hidden{
 display:none!important;
 }
 
-.center{
+.screen{
+width:100%;
+height:100%;
+overflow:auto;
+padding:15px;
+}
+
+#inicio{
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
 text-align:center;
 }
+
+h1{
+font-size:34px;
+margin:10px 0;
+}
+
+h2{
+font-size:27px;
+}
+
+h3{
+font-size:22px;
+}
+
+.panel{
+background:#0c2435;
+border:2px solid #28546d;
+border-radius:14px;
+padding:15px;
+margin:10px 0;
+}
+
+.estado{
+font-size:19px;
+line-height:1.7;
+}
+
+#log{
+height:180px;
+overflow:auto;
+background:#020b12;
+border:2px solid #31586c;
+padding:12px;
+border-radius:10px;
+font-size:18px;
+line-height:1.6;
+}
+
+#objetivos button,
+#armas button{
+display:block;
+width:95%;
+margin:8px auto;
+}
+
+.critico{
+font-weight:bold;
+}
+
+.victoria{
+background:#124b2a;
+}
+
+.derrota{
+background:#521c1c;
+}
+
+.infoGrande{
+font-size:24px;
+font-weight:bold;
+margin:10px 0;
+}
+
+@media (orientation:portrait){
+
+body::before{
+content:"Gira el dispositivo a posición horizontal para jugar.";
+position:fixed;
+z-index:9999;
+top:0;
+left:0;
+right:0;
+bottom:0;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+font-size:24px;
+font-weight:bold;
+padding:30px;
+background:#06131f;
+color:white;
+}
+
+}
+
 </style>
 </head>
 
 <body>
 
-<div id="sr" aria-live="assertive"></div>
+<!-- ========================================================= -->
+<!-- SONIDOS -->
+<!-- ========================================================= -->
 
-<header class="top">
-<button onclick="abrir('mapa')">1. Mapa</button>
-<button onclick="abrir('vehiculos')">2. Vehículos</button>
-<button onclick="abrir('mercado')">3. Mercado</button>
-<button onclick="abrir('taller')">4. Taller</button>
-<button onclick="abrir('cuenta')">5. Cuenta</button>
-<button onclick="abrir('ranking')">6. Ranking</button>
-</header>
+<audio id="audioMar"
+src="mar.mp3"
+loop
+preload="auto"></audio>
 
-<main class="viewport">
+<audio id="audioPortaaviones"
+src="Sonidoportaaviones.mp3"
+loop
+preload="auto"></audio>
 
-<!-- BASE -->
-<section id="base" class="panel active">
-<div class="center">
-<h1>AERO OCEAN: MODERN WAR</h1>
-<p class="big">PORTAAVIONES INSIGNIA</p>
+<audio id="audioPortaaviones1"
+src="sonidoportaaviones1.mp3"
+preload="auto"></audio>
+
+<audio id="audioBatalla"
+src="Batalla_Aeronaval.mp3"
+loop
+preload="auto"></audio>
+
+<audio id="audioInicio"
+src="Iniciandopartida.mp3"
+preload="auto"></audio>
+
+<audio id="audioCombate"
+src="combateiniciado.mp3"
+preload="auto"></audio>
+
+<audio id="audioEnemigo"
+src="enemigodetectado.wav"
+preload="auto"></audio>
+
+<audio id="audioObjetivoIdentificado"
+src="objetivoidentificado.wav"
+preload="auto"></audio>
+
+<audio id="audioRecomendadoF35"
+src="vr-a-f35.wav"
+preload="auto"></audio>
+
+<audio id="audioF35Desplegado"
+src="vehículo-f35desplegado.wav"
+preload="auto"></audio>
+
+<audio id="audioArmasF35"
+src="armasdel-f-35disponibles.wav"
+preload="auto"></audio>
+
+<audio id="audioMisilCruceroListo"
+src="misildecrucerolistoparadisparar.wav"
+preload="auto"></audio>
+
+<audio id="audioMisilCrucero"
+src="misildecrucero.mp3"
+preload="auto"></audio>
+
+<audio id="audioMisilCruceroLanzado"
+src="misildecrucerolanzado.wav"
+preload="auto"></audio>
+
+<audio id="audioRecomendadoB21"
+src="vehiculorecomendadobombardero-b-21rayder.wav"
+preload="auto"></audio>
+
+<audio id="audioB21Desplegado"
+src="bombardero-b-21raiderdesplegado.wav"
+preload="auto"></audio>
+
+<audio id="audioArmamentoB21"
+src="armamentodel-b-21raiderlisto.wav"
+preload="auto"></audio>
+
+<audio id="audioBombaSeleccionada"
+src="bombadeprecisionseleccionada.wav"
+preload="auto"></audio>
+
+<audio id="audioBomba"
+src="bonba.mp3"
+preload="auto"></audio>
+
+<audio id="audioBombaLanzada"
+src="bombadeprecisionlanzada.wav"
+preload="auto"></audio>
+
+<audio id="audioBombardeo"
+src="sonidodeborbandeo.mp3"
+preload="auto"></audio>
+
+<audio id="audioBombardeoAire"
+src="borbanderoenelaire.mp3"
+preload="auto"></audio>
+
+<audio id="audioRecomendadoDestructor"
+src="vehiculorecomendadodestructor.wav"
+preload="auto"></audio>
+
+<audio id="audioDestructorDesplegado"
+src="destructordesplegado.wav"
+preload="auto"></audio>
+
+<audio id="audioDestructorRuta"
+src="destructorenrutahaciaelobjetivo.wav"
+preload="auto"></audio>
+
+<audio id="audioTorpedo"
+src="sonidodetorpedo.mp3"
+preload="auto"></audio>
+
+<audio id="audioMisil"
+src="misil.mp3"
+preload="auto"></audio>
+
+<audio id="audioDisparo"
+src="Disparo.mp3"
+preload="auto"></audio>
+
+<audio id="audioTrazadoras"
+src="trazadoras.mp3"
+preload="auto"></audio>
+
+<audio id="audioAmetralladora"
+src="Ametralladora.mp3"
+preload="auto"></audio>
+
+<audio id="audioMP40"
+src="mp40.mp3"
+preload="auto"></audio>
+
+<audio id="audioTorreta"
+src="Torreta.mp3"
+preload="auto"></audio>
+
+<audio id="audioBateriaAA"
+src="bateriademisilesantiaereos.mp3"
+preload="auto"></audio>
+
+<audio id="audioAvion"
+src="sonidodeavion.mp3"
+preload="auto"></audio>
+
+<audio id="audioF35"
+src="sonido-de-f-35.mp3"
+preload="auto"></audio>
+
+<audio id="audioCasa"
+src="sonidodecasaenelaire.wav"
+preload="auto"></audio>
+
+<audio id="audioExplosion"
+src="impactoconfirmado.wav"
+preload="auto"></audio>
+
+<audio id="audioImpacto50"
+src="impactoconfirmadodanoenemigo50%.wav"
+preload="auto"></audio>
+
+<audio id="audioAlerta"
+src="alerta.mp3"
+preload="auto"></audio>
+
+<audio id="audioEmergencia"
+src="emergencia.wav"
+preload="auto"></audio>
+
+<audio id="audioAlarmaEmergencia"
+src="alarmadeemergencia.mp3"
+preload="auto"></audio>
+
+<audio id="audioAlarmaAtaque"
+src="Alarmadeataqueenemigo.mp3"
+preload="auto"></audio>
+
+<audio id="audioAtencionF35"
+src="atenciontu-f35estarecibiendofuegoenemigo.wav"
+preload="auto"></audio>
+
+<audio id="audioEnemigosDestruido"
+src="enemigosdestruido.wav"
+preload="auto"></audio>
+
+<audio id="audioObjetivoDestruido"
+src="objetivodestruido-prepárateparalasiguientemision.wav"
+preload="auto"></audio>
+
+<audio id="audioVictoria"
+src="victoriaconfirmada-hascompletadolamision.wav"
+preload="auto"></audio>
+
+<audio id="audioMisionCompletada"
+src="misioncompletada-recompensasrecibidas.wav"
+preload="auto"></audio>
+
+<audio id="audioRecursos"
+src="hasobtenidorecursosdelterritorioconquistado.wav"
+preload="auto"></audio>
+
+<audio id="audioNivel"
+src="nivelaumentado.wav"
+preload="auto"></audio>
+
+<audio id="audioNuevaMision"
+src="nuevamisiondisponible.wav"
+preload="auto"></audio>
+
+<audio id="audioPreparando"
+src="preparandofuerzasparalapróximamision.wav"
+preload="auto"></audio>
+
+<audio id="audioSeleccionaArma"
+src="seleccionaelarmaquedeseasutilizar.wav"
+preload="auto"></audio>
+
+<audio id="audioSeleccionaArmamento"
+src="seleccionaelarmamentodisponible.wav"
+preload="auto"></audio>
+
+<audio id="audioMisilAASeleccionado"
+src="misilaire-aireseleccionado.wav"
+preload="auto"></audio>
+
+<audio id="audioMisilAALanzado"
+src="misilaire-airelanzado.wav"
+preload="auto"></audio>
+
+<audio id="audioAmetralladoraSeleccionada"
+src="ametralladoraseleccionada.wav"
+preload="auto"></audio>
+
+<audio id="audioMunicionBaja"
+src="municionbajarecargatusarmasinmediatamente.wav"
+preload="auto"></audio>
+
+<audio id="audioLlegada"
+src="haslletadoalareadecombate.wav"
+preload="auto"></audio>
+
+<audio id="audioF35Ruta"
+src="avion-f35enrutahaciaelobjetivo.wav"
+preload="auto"></audio>
+
+<audio id="audioB21Ruta"
+src="b-21raiderenrutahaciaelobjetivo.wav"
+preload="auto"></audio>
+
+<audio id="audioB21Regreso"
+src="b-21raiderregresandoalportaaviones.wav"
+preload="auto"></audio>
+
+<audio id="audioB21Aterrizaje"
+src="b-21raiderhaaterrizadoenelportaaviones.wav"
+preload="auto"></audio>
+
+<audio id="audioAterrizaje"
+src="aterrizaje.mp3"
+preload="auto"></audio>
+
+<audio id="audioReabastecimiento"
+src="reabastecimientoyrearmecompletados.wav"
+preload="auto"></audio>
+
+<audio id="audioSonidoCasa"
+src="sonidodecasaenelaire.wav"
+preload="auto"></audio>
+
+<!-- ========================================================= -->
+<!-- INICIO -->
+<!-- ========================================================= -->
+
+<section id="inicio" class="screen">
+
+<h1>AeroOcean: Modern War</h1>
+
+<div class="panel">
+<p class="infoGrande">
+Guerra aeronaval estratégica
+</p>
+
+<p>
+Controla tus fuerzas, conquista territorios,
+destruye objetivos enemigos y desarrolla tu flota.
+</p>
 </div>
 
-<div id="hud" class="status"></div>
+<button id="btnComenzar">
+Comenzar partida
+</button>
 
-<div class="card">
-<h3>Estado del comandante</h3>
-<div id="playerHud"></div>
-</div>
+<button id="btnContinuar">
+Continuar partida
+</button>
 
-<div class="card">
-<h3>Actividad</h3>
-<div id="eventLog">Sistema listo.</div>
-</div>
+<button id="btnBorrar">
+Borrar progreso
+</button>
+
 </section>
 
+<!-- ========================================================= -->
+<!-- JUEGO -->
+<!-- ========================================================= -->
 
-<!-- MAPA -->
-<section id="mapa" class="panel">
-<h2>MAPA MUNDIAL</h2>
+<section id="juego" class="screen hidden">
 
-<button onclick="cerrar('mapa')">Regresar</button>
+<h1>AeroOcean: Modern War</h1>
 
-<div id="mapContent"></div>
-</section>
+<div class="panel estado" id="estado"></div>
 
+<div class="panel">
 
-<!-- NAVEGACION -->
-<section id="navegacion" class="panel">
-<h2 id="navTitle">NAVEGACIÓN</h2>
+<h2>Objetivos disponibles</h2>
 
-<div id="navStatus" class="status"></div>
-
-<div class="card">
-<p id="navObstacle"></p>
-</div>
-
-<div class="row">
-<button onclick="navegar('babor')">Girar Babor</button>
-<button onclick="navegar('estribor')">Girar Estribor</button>
-<button onclick="avanzar()">Avanzar</button>
-<button onclick="frenar()">Frenar</button>
-</div>
-
-<button onclick="cerrar('navegacion')">Cancelar misión</button>
-</section>
-
-
-<!-- COMBATE -->
-<section id="combate" class="panel">
-
-<h2 id="battleTitle">COMBATE</h2>
-
-<div id="battleStatus" class="status"></div>
-
-<div class="card">
-<h3>Tu Portaaviones</h3>
-
-<p>Casco</p>
-<div class="progress">
-<div id="playerHPBar"></div>
-</div>
-
-<div id="playerCombatInfo"></div>
-</div>
-
-
-<div class="card">
-<h3>Fuerzas enemigas</h3>
-
-<div id="enemyInfo"></div>
-</div>
-
-
-<div class="card">
-<h3>Armas</h3>
-
-<div class="row">
-
-<button onclick="usarArma('canon')">
-1. Cañones 406 mm
-</button>
-
-<button onclick="usarArma('ametralladora')">
-2. Ametralladoras
-</button>
-
-<button onclick="usarArma('torpedo')">
-3. Torpedos
-</button>
-
-<button onclick="usarArma('misil')">
-4. Misiles Crucero
-</button>
-
-<button onclick="usarArma('antiaereo')">
-5. Defensa Antiaérea
-</button>
-
-<button onclick="usarArma('bombas')">
-6. Bombas
-</button>
+<div id="objetivos"></div>
 
 </div>
+
+<div class="panel">
+
+<h2>Situación</h2>
+
+<div id="situacion">
+Selecciona un objetivo para comenzar.
 </div>
 
-
-<div class="card">
-<h3>Maniobra</h3>
-
-<div class="row">
-<button onclick="maniobraCombate('babor')">
-Girar Babor
-</button>
-
-<button onclick="maniobraCombate('estribor')">
-Girar Estribor
-</button>
-
-<button onclick="retirarse()">
-Retirada
-</button>
-</div>
 </div>
 
+<div class="panel hidden" id="panelArmas">
 
-<div class="card">
-<h3>Comunicaciones tácticas</h3>
-<div id="battleLog"></div>
+<h2>Armamento</h2>
+
+<div id="armas"></div>
+
+</div>
+
+<div class="panel">
+
+<h2>Registro de combate</h2>
+
+<div
+id="log"
+aria-live="polite"
+aria-atomic="false">
+</div>
+
+</div>
+
+<div class="panel">
+
+<button id="btnGuardar">
+Guardar progreso
+</button>
+
+<button id="btnSalir">
+Volver al inicio
+</button>
+
 </div>
 
 </section>
-
-
-<!-- VEHICULOS -->
-<section id="vehiculos" class="panel">
-<h2>VEHÍCULOS</h2>
-
-<button onclick="cerrar('vehiculos')">Regresar</button>
-
-<div class="card">
-<h3>F-35 Lightning II</h3>
-<p>Cazas disponibles: <span id="f35Count"></span></p>
-
-<button onclick="desplegarF35()">Desplegar F-35</button>
-</div>
-
-<div class="card">
-<h3>B-21 Raider</h3>
-<p>Bombarderos disponibles: <span id="b21Count"></span></p>
-
-<button onclick="desplegarB21()">Desplegar B-21</button>
-</div>
-
-<div class="card">
-<h3>Destructor</h3>
-<p>Destructores disponibles: <span id="destroyerCount"></span></p>
-
-<button onclick="desplegarDestructor()">Desplegar destructor</button>
-</div>
-
-<div class="card">
-<h3>Submarino USS Shadowhawk</h3>
-<p>Submarinos disponibles: <span id="subCount"></span></p>
-
-<button onclick="desplegarSubmarino()">Desplegar submarino</button>
-</div>
-</section>
-
-
-<!-- MERCADO -->
-<section id="mercado" class="panel">
-<h2>MARKET STORE</h2>
-
-<button onclick="cerrar('mercado')">Regresar</button>
-
-<div id="inventory" class="status"></div>
-
-<div class="card">
-
-<h3>Combustible</h3>
-<p>+25 combustible por $100</p>
-<button onclick="comprar('fuel')">Comprar</button>
-
-<h3>Munición</h3>
-<p>+50 municiones por $150</p>
-<button onclick="comprar('ammo')">Comprar</button>
-
-<h3>Kit de reparación</h3>
-<p>+20 piezas por 50 minerales</p>
-<button onclick="comprar('parts')">Comprar</button>
-
-</div>
-</section>
-
-
-<!-- TALLER -->
-<section id="taller" class="panel">
-<h2>TALLER Y REPARACIONES</h2>
-
-<button onclick="cerrar('taller')">Regresar</button>
-
-<div id="repairInfo" class="status"></div>
-
-<button onclick="reparar()">Reparar portaaviones</button>
-</section>
-
-
-<!-- CUENTA -->
-<section id="cuenta" class="panel">
-<h2>CUENTA Y PROGRESO</h2>
-
-<button onclick="cerrar('cuenta')">Regresar</button>
-
-<div class="card">
-<label for="username">Nombre del comandante</label>
-
-<input
-id="username"
-type="text"
-style="padding:12px;width:100%;margin:8px 0"
->
-
-<button onclick="guardarNombre()">
-Guardar nombre
-</button>
-</div>
-
-<div id="accountInfo" class="status"></div>
-
-<button onclick="reiniciarPartida()">
-Borrar progreso local
-</button>
-</section>
-
-
-<!-- RANKING -->
-<section id="ranking" class="panel">
-<h2>RANKING GLOBAL</h2>
-
-<button onclick="cerrar('ranking')">Regresar</button>
-
-<div id="rankingContent"></div>
-</section>
-
-</main>
-
-
-<footer class="bottom">
-
-<button onclick="abrir('mapa')">
-Mapa
-</button>
-
-<button onclick="abrir('vehiculos')">
-Vehículos
-</button>
-
-<button onclick="abrir('mercado')">
-Recursos
-</button>
-
-<button onclick="hablarEstado()">
-Estado
-</button>
-
-</footer>
-
 
 <script>
 
-/* =========================================================
-   ESTADO DEL JUGADOR
-========================================================= */
+/* ============================================================
+   CONFIGURACIÓN
+============================================================ */
 
-let jugador = JSON.parse(
-localStorage.getItem("aeroOceanSave")
-) || {
+const $ = id => document.getElementById(id);
 
-nombre:"Capitán Insignia",
+let battleActive = false;
+let navegando = false;
+let objetivoActual = null;
+let vehiculoActual = null;
+let armaActual = null;
+let enemigoInterval = null;
+let navegacionTimeout = null;
+
+let estadoJuego = {
 
 nivel:1,
 
-xp:0,
-
-puntos:1200,
-
-dinero:50000,
+dinero:500,
 
 minerales:150,
 
-fuel:100,
+combustible:100,
 
-ammo:5000,
+municion:100,
 
-parts:20,
+repuestos:20,
 
-hp:100,
+vida:100,
 
-territorios:[],
+victorias:0,
 
-f35:6,
+misiones:0,
 
-b21:2,
-
-destroyers:2,
-
-submarines:1
+territorios:0
 
 };
 
 
-/* =========================================================
-   MISION
-========================================================= */
-
-let mision=null;
-
-let navegacion={
-distancia:0,
-rumbo:0,
-obstaculo:true
-};
-
-let combate=null;
-
-let enemyTimer=null;
-
-
-/* =========================================================
-   DATOS DEL MUNDO
-========================================================= */
-
-const mundo={
-
-"América":{
-"América del Norte":[
-
-{
-nombre:"Canadá",
-dinero:800,
-minerales:350,
-puntos:300,
-defensa:"Patrulla Naval del Norte",
-hp:100
-},
-
-{
-nombre:"Estados Unidos",
-dinero:1200,
-minerales:500,
-puntos:500,
-defensa:"Escudo Antiaéreo VLS",
-hp:160
-},
-
-{
-nombre:"México",
-dinero:700,
-minerales:300,
-puntos:250,
-defensa:"Patrulla Naval del Golfo",
-hp:120
-}
-
-],
-
-"América Central":[
-
-{
-nombre:"Honduras",
-dinero:500,
-minerales:250,
-puntos:200,
-defensa:"Defensa Costera Caribeña",
-hp:100
-},
-
-{
-nombre:"Guatemala",
-dinero:500,
-minerales:230,
-puntos:200,
-defensa:"Batería de Artillería",
-hp:100
-},
-
-{
-nombre:"Costa Rica",
-dinero:550,
-minerales:220,
-puntos:200,
-defensa:"Guarnición Costera",
-hp:100
-}
-
-]
-},
-
-"Europa":{
-
-"Europa Occidental":[
-
-{
-nombre:"España",
-dinero:900,
-minerales:400,
-puntos:350,
-defensa:"Flota de Fragatas",
-hp:120
-},
-
-{
-nombre:"Francia",
-dinero:1000,
-minerales:450,
-puntos:400,
-defensa:"Defensa Naval",
-hp:140
-}
-
-]
-
-},
-
-"Asia":{
-
-"Asia Oriental":[
-
-{
-nombre:"Japón",
-dinero:1100,
-minerales:450,
-puntos:450,
-defensa:"Flota del Pacífico",
-hp:150
-},
-
-{
-nombre:"Corea del Sur",
-dinero:900,
-minerales:350,
-puntos:350,
-defensa:"Defensa Costera",
-hp:120
-}
-
-]
-
-}
-
-};
-
-
-/* =========================================================
-   AUDIO
-========================================================= */
-
-function sonido(nombre){
-
-let a=new Audio("./"+nombre);
-
-a.volume=.8;
-
-a.play().catch(()=>{});
-
-}
-
-
-/* =========================================================
-   VOZ
-========================================================= */
-
-function hablar(texto){
-
-const sr=document.getElementById("sr");
-
-sr.textContent="";
-
-setTimeout(()=>{
-sr.textContent=texto;
-},20);
-
-if("speechSynthesis" in window){
-
-speechSynthesis.cancel();
-
-let u=new SpeechSynthesisUtterance(texto);
-
-u.lang="es-ES";
-
-u.rate=.95;
-
-speechSynthesis.speak(u);
-
-}
-
-}
-
-
-/* =========================================================
-   VIBRACION
-========================================================= */
-
-function vibrar(patron){
-
-if("vibrate" in navigator){
-
-try{
-navigator.vibrate(patron);
-}catch(e){}
-
-}
-
-}
-
-
-/* =========================================================
+/* ============================================================
    GUARDADO
-========================================================= */
+============================================================ */
 
 function guardar(){
 
 localStorage.setItem(
-"aeroOceanSave",
-JSON.stringify(jugador)
+"AeroOceanModernWar",
+JSON.stringify(estadoJuego)
+);
+
+}
+
+function cargar(){
+
+const datos =
+localStorage.getItem("AeroOceanModernWar");
+
+if(!datos){
+
+return false;
+
+}
+
+try{
+
+estadoJuego =
+Object.assign(
+estadoJuego,
+JSON.parse(datos)
+);
+
+return true;
+
+}catch(e){
+
+return false;
+
+}
+
+}
+
+
+/* ============================================================
+   VIBRACIÓN
+============================================================ */
+
+function vibrar(tipo="normal"){
+
+if(!navigator.vibrate) return;
+
+if(tipo==="alerta"){
+
+navigator.vibrate([150,80,150]);
+
+}else if(tipo==="impacto"){
+
+navigator.vibrate(120);
+
+}else if(tipo==="victoria"){
+
+navigator.vibrate([100,80,100,80,250]);
+
+}else{
+
+navigator.vibrate(60);
+
+}
+
+}
+
+
+/* ============================================================
+   AUDIO
+============================================================ */
+
+function reproducir(id, volumen=1){
+
+const audio=$(id);
+
+if(!audio) return;
+
+try{
+
+audio.pause();
+audio.currentTime=0;
+audio.volume=volumen;
+
+audio.play().catch(()=>{});
+
+}catch(e){}
+
+}
+
+
+/*
+===============================================================
+AMBIENTE PERMANENTE
+
+El mar y el sonido del portaaviones NO se detienen durante
+la batalla.
+===============================================================
+*/
+
+function iniciarAmbiente(){
+
+const mar=$("audioMar");
+
+mar.loop=true;
+mar.volume=0.45;
+
+mar.play().catch(()=>{});
+
+
+const porta=$("audioPortaaviones");
+
+porta.loop=true;
+porta.volume=0.25;
+
+porta.play().catch(()=>{});
+
+}
+
+
+/*
+===============================================================
+MÚSICA DE FONDO
+
+Solo se reproduce cuando NO existe una batalla.
+===============================================================
+*/
+
+function iniciarMusicaFondo(){
+
+if(battleActive) return;
+
+const musica=$("audioBatalla");
+
+musica.loop=true;
+musica.volume=0.55;
+
+musica.play().catch(()=>{});
+
+}
+
+
+/*
+===============================================================
+INICIO DE BATALLA
+
+SOLO se pausa Batalla_Aeronaval.mp3.
+===============================================================
+*/
+
+function iniciarBatallaAudio(){
+
+battleActive=true;
+
+$("audioBatalla").pause();
+
+iniciarAmbiente();
+
+reproducir("audioCombate",0.8);
+
+}
+
+
+/*
+===============================================================
+FIN DE BATALLA
+
+El mar y portaaviones continúan.
+La música de fondo vuelve.
+===============================================================
+*/
+
+function terminarBatallaAudio(){
+
+battleActive=false;
+
+iniciarAmbiente();
+
+iniciarMusicaFondo();
+
+}
+
+
+/* ============================================================
+   REGISTRO
+============================================================ */
+
+function registrar(texto){
+
+const log=$("log");
+
+const linea=document.createElement("div");
+
+linea.textContent=texto;
+
+log.appendChild(linea);
+
+log.scrollTop=log.scrollHeight;
+
+}
+
+
+/* ============================================================
+   ESTADO
+============================================================ */
+
+function actualizarEstado(){
+
+$("estado").textContent=
+
+"Nivel: "+estadoJuego.nivel+
+" | Dinero: $"+estadoJuego.dinero+
+" | Minerales: "+estadoJuego.minerales+
+" | Combustible: "+estadoJuego.combustible+"%"+
+" | Munición: "+estadoJuego.municion+
+" | Repuestos: "+estadoJuego.repuestos+
+" | Vida: "+estadoJuego.vida+"%"+
+" | Victorias: "+estadoJuego.victorias;
+
+}
+
+
+/* ============================================================
+   OBJETIVOS
+============================================================ */
+
+const objetivos=[
+
+{
+id:"base",
+nombre:"Base aérea enemiga",
+tipo:"base",
+defensa:45,
+vida:100
+},
+
+{
+id:"militar",
+nombre:"Instalación militar estratégica",
+tipo:"militar",
+defensa:70,
+vida:100
+},
+
+{
+id:"naval",
+nombre:"Grupo naval enemigo",
+tipo:"naval",
+defensa:60,
+vida:100
+},
+
+{
+id:"submarino",
+nombre:"Submarino enemigo",
+tipo:"submarino",
+defensa:55,
+vida:100
+},
+
+{
+id:"costa",
+nombre:"Instalación costera",
+tipo:"costera",
+defensa:65,
+vida:100
+}
+
+];
+
+
+function mostrarObjetivos(){
+
+const contenedor=$("objetivos");
+
+contenedor.innerHTML="";
+
+objetivos.forEach(obj=>{
+
+const boton=document.createElement("button");
+
+boton.textContent=obj.nombre;
+
+boton.setAttribute(
+"aria-label",
+"Objetivo: "+obj.nombre+
+". Defensa: "+obj.defensa+" por ciento."
+);
+
+boton.onclick=()=>seleccionarObjetivo(obj);
+
+contenedor.appendChild(boton);
+
+});
+
+}
+
+
+/* ============================================================
+   RECOMENDACIÓN DE VEHÍCULO
+============================================================ */
+
+function recomendarVehiculo(obj){
+
+if(obj.tipo==="base"){
+
+return "F-35";
+
+}
+
+if(obj.tipo==="militar"){
+
+return "B-21 Raider";
+
+}
+
+if(obj.tipo==="naval"){
+
+return "Destructor";
+
+}
+
+if(obj.tipo==="submarino"){
+
+return "Destructor";
+
+}
+
+if(obj.tipo==="costera"){
+
+return "B-21 Raider";
+
+}
+
+return "F-35";
+
+}
+
+
+/* ============================================================
+   SELECCIONAR OBJETIVO
+============================================================ */
+
+function seleccionarObjetivo(obj){
+
+if(battleActive || navegando){
+
+return;
+
+}
+
+objetivoActual={
+...obj
+};
+
+objetivoActual.vida=obj.vida;
+
+reproducir(
+"audioObjetivoIdentificado",
+0.9
+);
+
+registrar(
+"Objetivo identificado: "+obj.nombre
+);
+
+$("situacion").textContent=
+"Objetivo identificado. Calculando vehículo recomendado.";
+
+vibrar();
+
+setTimeout(()=>{
+
+const recomendado=
+recomendarVehiculo(obj);
+
+vehiculoActual=recomendado;
+
+if(recomendado==="F-35"){
+
+reproducir(
+"audioRecomendadoF35",
+1
+);
+
+}else if(recomendado==="B-21 Raider"){
+
+reproducir(
+"audioRecomendadoB21",
+1
+);
+
+}else{
+
+reproducir(
+"audioRecomendadoDestructor",
+1
+);
+
+}
+
+registrar(
+"Vehículo recomendado: "+recomendado
+);
+
+$("situacion").textContent=
+"Vehículo recomendado: "+recomendado+
+". Preparando despliegue.";
+
+setTimeout(()=>desplegarVehiculo(),1200);
+
+},1200);
+
+}
+
+
+/* ============================================================
+   DESPLIEGUE
+============================================================ */
+
+function desplegarVehiculo(){
+
+navegando=true;
+
+$("panelArmas").classList.add("hidden");
+
+if(vehiculoActual==="F-35"){
+
+reproducir(
+"audioF35Desplegado",
+1
+);
+
+reproducir(
+"audioF35Ruta",
+0.8
+);
+
+reproducir(
+"audioF35",
+0.4
+);
+
+registrar(
+"Vehículo F-35 desplegado."
+);
+
+$("situacion").textContent=
+"F-35 en ruta hacia el objetivo.";
+
+}else if(vehiculoActual==="B-21 Raider"){
+
+reproducir(
+"audioB21Desplegado",
+1
+);
+
+reproducir(
+"audioB21Ruta",
+0.8
+);
+
+registrar(
+"Bombardero B-21 Raider desplegado."
+);
+
+$("situacion").textContent=
+"B-21 Raider en ruta hacia el objetivo.";
+
+}else{
+
+reproducir(
+"audioDestructorDesplegado",
+1
+);
+
+reproducir(
+"audioDestructorRuta",
+0.8
+);
+
+registrar(
+"Destructor desplegado."
+);
+
+$("situacion").textContent=
+"Destructor en ruta hacia el objetivo.";
+
+}
+
+const distancia =
+9000 +
+Math.floor(Math.random()*6000);
+
+navegacionTimeout=setTimeout(()=>{
+
+navegando=false;
+
+reproducir(
+"audioLlegada",
+1
+);
+
+registrar(
+"Vehículo ha llegado al área de combate."
+);
+
+$("situacion").textContent=
+"Vehículo en el área de combate. Preparando combate.";
+
+setTimeout(
+prepararCombate,
+1200
+);
+
+},distancia/10);
+
+}
+
+
+/* ============================================================
+   PREPARAR COMBATE
+============================================================ */
+
+function prepararCombate(){
+
+if(!objetivoActual) return;
+
+iniciarBatallaAudio();
+
+reproducir(
+"audioEnemigo",
+1
+);
+
+registrar(
+"Enemigo detectado."
+);
+
+$("situacion").textContent=
+"Enemigo detectado. Combate iniciado.";
+
+mostrarArmas();
+
+iniciarIAEnemiga();
+
+}
+
+
+/* ============================================================
+   ARMAS
+============================================================ */
+
+function mostrarArmas(){
+
+const panel=$("panelArmas");
+
+const contenedor=$("armas");
+
+contenedor.innerHTML="";
+
+panel.classList.remove("hidden");
+
+reproducir(
+"audioSeleccionaArmamento",
+0.8
+);
+
+
+if(vehiculoActual==="F-35"){
+
+agregarArma(
+"Misil de crucero",
+"misilCrucero"
+);
+
+agregarArma(
+"Ametralladora",
+"ametralladora"
+);
+
+agregarArma(
+"Misil aire-aire",
+"misilAA"
 );
 
 }
 
 
-/* =========================================================
-   INTERFAZ
-========================================================= */
+if(vehiculoActual==="B-21 Raider"){
 
-function actualizar(){
+agregarArma(
+"Bomba de precisión",
+"bomba"
+);
 
-document.getElementById("playerHud").innerHTML=`
+agregarArma(
+"Bombardeo",
+"bombardeo"
+);
 
-Nombre: ${jugador.nombre}<br>
-Nivel: ${jugador.nivel}<br>
-Experiencia: ${jugador.xp}<br>
-Puntos: ${jugador.puntos}<br>
-Dinero: $${jugador.dinero}<br>
-Territorios conquistados: ${jugador.territorios.length}
-`;
+}
 
-document.getElementById("hud").innerHTML=`
 
-Casco: ${jugador.hp}%<br>
-Combustible: ${jugador.fuel}%<br>
-Munición: ${jugador.ammo}<br>
-Minerales: ${jugador.minerales}<br>
-Piezas: ${jugador.parts}
-`;
+if(vehiculoActual==="Destructor"){
 
-document.getElementById("inventory").innerHTML=`
+agregarArma(
+"Misil",
+"misil"
+);
 
-Combustible: ${jugador.fuel}%<br>
-Municiones: ${jugador.ammo}<br>
-Dinero: $${jugador.dinero}<br>
-Minerales: ${jugador.minerales}<br>
-Piezas: ${jugador.parts}
-`;
+agregarArma(
+"Cañón",
+"canon"
+);
 
-document.getElementById("f35Count").textContent=jugador.f35;
+agregarArma(
+"Torpedo",
+"torpedo"
+);
 
-document.getElementById("b21Count").textContent=jugador.b21;
+}
 
-document.getElementById("destroyerCount").textContent=jugador.destroyers;
+}
 
-document.getElementById("subCount").textContent=jugador.submarines;
 
-document.getElementById("repairInfo").innerHTML=
-"Casco actual: "+jugador.hp+"%<br>"+
-"Piezas disponibles: "+jugador.parts;
+/* ============================================================
+   CREAR BOTÓN DE ARMA
+============================================================ */
+
+function agregarArma(nombre,tipo){
+
+const boton=document.createElement("button");
+
+boton.textContent=nombre;
+
+boton.setAttribute(
+"aria-label",
+"Seleccionar arma: "+nombre
+);
+
+boton.onclick=()=>usarArma(tipo);
+
+$("armas").appendChild(boton);
+
+}
+
+
+/* ============================================================
+   COMBATE
+============================================================ */
+
+function usarArma(tipo){
+
+if(!battleActive) return;
+
+if(estadoJuego.municion<=0){
+
+reproducir(
+"audioMunicionBaja",
+1
+);
+
+registrar(
+"Munición agotada."
+);
+
+vibrar("alerta");
+
+return;
+
+}
+
+armaActual=tipo;
+
+let dano=0;
+
+estadoJuego.municion--;
+
+switch(tipo){
+
+case"misilCrucero":
+
+reproducir(
+"audioMisilCruceroListo",
+0.9
+);
+
+setTimeout(()=>{
+
+reproducir(
+"audioMisilCruceroLanzado",
+1
+);
+
+reproducir(
+"audioMisilCrucero",
+0.7
+);
+
+aplicarDano(25);
+
+},400);
+
+break;
+
+
+case"ametralladora":
+
+reproducir(
+"audioAmetralladoraSeleccionada",
+0.9
+);
+
+setTimeout(()=>{
+
+reproducir(
+"audioAmetralladora",
+0.8
+);
+
+reproducir(
+"audioTrazadoras",
+0.6
+);
+
+aplicarDano(10);
+
+},250);
+
+break;
+
+
+case"misilAA":
+
+reproducir(
+"audioMisilAASeleccionado",
+0.9
+);
+
+setTimeout(()=>{
+
+reproducir(
+"audioMisilAALanzado",
+1
+);
+
+reproducir(
+"audioMisil",
+0.7
+);
+
+aplicarDano(20);
+
+},350);
+
+break;
+
+
+case"bomba":
+
+reproducir(
+"audioBombaSeleccionada",
+0.9
+);
+
+setTimeout(()=>{
+
+reproducir(
+"audioBombaLanzada",
+1
+);
+
+reproducir(
+"audioBomba",
+0.8
+);
+
+reproducir(
+"audioBombardeo",
+0.7
+);
+
+aplicarDano(50);
+
+},500);
+
+break;
+
+
+case"bombardeo":
+
+reproducir(
+"audioBombardeoAire",
+0.8
+);
+
+setTimeout(()=>{
+
+reproducir(
+"audioBombardeo",
+0.8
+);
+
+aplicarDano(40);
+
+},500);
+
+break;
+
+
+case"misil":
+
+reproducir(
+"audioMisil",
+0.8
+);
+
+setTimeout(()=>{
+
+aplicarDano(30);
+
+},400);
+
+break;
+
+
+case"canon":
+
+reproducir(
+"audioDisparo",
+0.9
+);
+
+reproducir(
+"audioTorreta",
+0.5
+);
+
+setTimeout(()=>{
+
+aplicarDano(15);
+
+},250);
+
+break;
+
+
+case"torpedo":
+
+reproducir(
+"audioTorpedo",
+1
+);
+
+setTimeout(()=>{
+
+aplicarDano(35);
+
+},500);
+
+break;
+
+}
+
+actualizarEstado();
 
 guardar();
 
 }
 
 
-/* =========================================================
-   MENUS
-========================================================= */
+/* ============================================================
+   DAÑO AL ENEMIGO
+============================================================ */
 
-function abrir(id){
+function aplicarDano(dano){
 
-document.querySelectorAll(".panel").forEach(p=>{
-p.classList.remove("active");
-});
+if(!battleActive) return;
 
-document.getElementById(id).classList.add("active");
+objetivoActual.vida-=dano;
 
-if(id==="mapa") mostrarContinentes();
+if(objetivoActual.vida<0){
 
-if(id==="mercado") actualizar();
-
-if(id==="taller") actualizar();
-
-if(id==="cuenta") mostrarCuenta();
-
-if(id==="ranking") mostrarRanking();
-
-hablar("Abriendo "+id);
+objetivoActual.vida=0;
 
 }
 
-
-function cerrar(id){
-
-document.getElementById(id).classList.remove("active");
-
-document.getElementById("base").classList.add("active");
-
-hablar("Regresando a la base");
-
-}
-
-
-/* =========================================================
-   MAPA
-========================================================= */
-
-function mostrarContinentes(){
-
-let html="<h3>Selecciona un continente</h3>";
-
-Object.keys(mundo).forEach(c=>{
-
-html+=`
-
-<div class="card">
-
-<strong>${c}</strong>
-
-<button onclick="mostrarRegiones('${c}')">
-Explorar
-</button>
-
-</div>
-`;
-
-});
-
-document.getElementById("mapContent").innerHTML=html;
-
-}
-
-
-function mostrarRegiones(continente){
-
-let html=`
-
-<button onclick="mostrarContinentes()">
-Regresar
-</button>
-
-<h3>${continente}</h3>
-`;
-
-Object.keys(mundo[continente]).forEach(region=>{
-
-html+=`
-
-<div class="card">
-
-<strong>${region}</strong>
-
-<button onclick="mostrarPaises('${continente}','${region}')">
-Ver objetivos
-</button>
-
-</div>
-`;
-
-});
-
-document.getElementById("mapContent").innerHTML=html;
-
-hablar("Selecciona una región");
-
-}
-
-
-function mostrarPaises(continente,region){
-
-let html=`
-
-<button onclick="mostrarRegiones('${continente}')">
-Regresar
-</button>
-
-<h3>Objetivos disponibles</h3>
-`;
-
-mundo[continente][region].forEach((pais,i)=>{
-
-let conquistado=jugador.territorios.includes(pais.nombre);
-
-html+=`
-
-<div class="card">
-
-<strong>${pais.nombre}</strong><br>
-
-Defensa: ${pais.defensa}<br>
-
-Recompensa: $${pais.dinero}<br>
-
-Puntos: ${pais.puntos}<br>
-
-Estado:
-${conquistado ? "CONQUISTADO" : "ENEMIGO"}
-
-<br>
-
-${
-conquistado
-?
-""
-:
-`<button onclick="iniciarMision('${continente}','${region}',${i})">
-Atacar territorio
-</button>`
-}
-
-</div>
-`;
-
-});
-
-document.getElementById("mapContent").innerHTML=html;
-
-}
-
-
-/* =========================================================
-   INICIAR MISION
-========================================================= */
-
-function iniciarMision(continente,region,index){
-
-let pais=mundo[continente][region][index];
-
-mision={
-...pais,
-continente,
-region
-};
-
-navegacion.distancia=50;
-
-navegacion.rumbo=0;
-
-navegacion.obstaculo=true;
-
-abrir("navegacion");
-
-document.getElementById("navTitle").textContent=
-"Navegando hacia "+pais.nombre;
-
-actualizarNavegacion();
-
-sonido("Alarmadeataqueenemigo.mp3");
-
-hablar(
-"Curso establecido hacia "+
-pais.nombre+
-". Distancia cincuenta millas náuticas. Obstáculo detectado."
+registrar(
+"Daño causado al enemigo: "+
+dano+" por ciento."
 );
 
-}
+vibrar("impacto");
 
+if(dano>=40){
 
-function actualizarNavegacion(){
-
-document.getElementById("navStatus").innerHTML=`
-
-Objetivo: ${mision.nombre}<br>
-Distancia: ${navegacion.distancia} millas náuticas<br>
-Rumbo: ${navegacion.rumbo} grados<br>
-Combustible: ${jugador.fuel} por ciento
-`;
-
-document.getElementById("navObstacle").textContent=
-
-navegacion.obstaculo
-
-?
-
-"Alerta: arrecifes y campo de minas detectados. Elige una maniobra."
-
-:
-
-"Ruta despejada. Continúa avanzando.";
-
-}
-
-
-/* =========================================================
-   NAVEGACION
-========================================================= */
-
-function navegar(dir){
-
-if(jugador.fuel<=0){
-
-hablar("Combustible agotado. No puedes navegar.");
-
-vibrar([300,100,300]);
-
-return;
-
-}
-
-jugador.fuel-=5;
-
-navegacion.rumbo+=
-dir==="babor"?-15:15;
-
-if(navegacion.rumbo<0)
-navegacion.rumbo+=360;
-
-if(navegacion.rumbo>=360)
-navegacion.rumbo-=360;
-
-if(navegacion.obstaculo){
-
-navegacion.distancia-=10;
-
-navegacion.obstaculo=false;
-
-sonido("sonidoportaaviones1.mp3");
-
-vibrar([60,60]);
-
-hablar(
-"Obstáculo esquivado por "+
-dir+
-". Diez millas recorridas."
+reproducir(
+"audioImpacto50",
+0.8
 );
 
 }else{
 
-navegacion.distancia-=10;
-
-navegacion.obstaculo=true;
-
-hablar("Avanzando. Nuevo contacto de navegación detectado.");
-
-}
-
-if(navegacion.distancia<=0){
-
-iniciarCombate();
-
-return;
-
-}
-
-actualizarNavegacion();
-
-actualizar();
-
-}
-
-
-function avanzar(){
-
-if(jugador.fuel<10){
-
-hablar("Combustible insuficiente.");
-
-return;
-
-}
-
-jugador.fuel-=10;
-
-navegacion.distancia-=20;
-
-sonido("sonidoportaaviones1.mp3");
-
-if(navegacion.distancia<=0){
-
-iniciarCombate();
-
-return;
-
-}
-
-hablar(
-"Avance rápido. Distancia restante "+
-navegacion.distancia+
-" millas."
+reproducir(
+"audioExplosion",
+0.6
 );
 
-actualizarNavegacion();
-
-actualizar();
-
 }
 
+$("situacion").textContent=
+"Objetivo: "+objetivoActual.nombre+
+". Vida enemiga: "+
+objetivoActual.vida+"%";
 
-function frenar(){
+if(objetivoActual.vida<=0){
 
-hablar("Velocidad reducida.");
-
-vibrar([50]);
-
-}
-
-
-/* =========================================================
-   COMBATE
-========================================================= */
-
-function iniciarCombate(){
-
-abrir("combate");
-
-combate={
-
-enemyHP:mision.hp,
-
-enemyMaxHP:mision.hp,
-
-enemyDamage:5,
-
-turno:0,
-
-distancia:20,
-
-enemigoActivo:true
-
-};
-
-document.getElementById("battleTitle").textContent=
-"BATALLA: "+mision.nombre;
-
-document.getElementById("battleLog").innerHTML="";
-
-actualizarCombate();
-
-hablar(
-"Entrando en combate contra "+
-mision.nombre+
-". Defensa enemiga activa."
-);
-
-sonido("Alarmadeataqueenemigo.mp3");
-
-clearInterval(enemyTimer);
-
-enemyTimer=setInterval(ataqueEnemigo,7000);
-
-}
-
-
-function actualizarCombate(){
-
-if(!combate)return;
-
-let porcentaje=
-Math.max(
-0,
-(combate.enemyHP/combate.enemyMaxHP)*100
-);
-
-document.getElementById("battleStatus").innerHTML=`
-
-Distancia al enemigo: ${combate.distancia} kilómetros<br>
-Tu casco: ${jugador.hp}%<br>
-Enemigo: ${mision.defensa}<br>
-Munición: ${jugador.ammo}
-`;
-
-document.getElementById("playerHPBar").style.width=
-jugador.hp+"%";
-
-document.getElementById("playerCombatInfo").innerHTML=`
-
-Casco: ${jugador.hp}%<br>
-Munición: ${jugador.ammo}<br>
-Combustible: ${jugador.fuel}%
-`;
-
-document.getElementById("enemyInfo").innerHTML=`
-
-Defensa enemiga: ${mision.defensa}<br>
-Vida enemiga: ${Math.max(0,combate.enemyHP)} / ${combate.enemyMaxHP}
-`;
-
-}
-
-
-/* =========================================================
-   ARMAS
-========================================================= */
-
-const armas={
-
-canon:{
-nombre:"Cañón 406 mm",
-costo:10,
-daño:25,
-sonido:"Disparo.mp3"
-},
-
-ametralladora:{
-nombre:"Ametralladoras",
-costo:20,
-daño:8,
-sonido:"Ametralladora.mp3"
-},
-
-torpedo:{
-nombre:"Torpedos",
-costo:15,
-daño:30,
-sonido:"sonidodetorpedo.mp3"
-},
-
-misil:{
-nombre:"Misil Crucero",
-costo:25,
-daño:45,
-sonido:"misildecrucero.mp3"
-},
-
-antiaereo:{
-nombre:"Defensa Antiaérea",
-costo:15,
-daño:20,
-sonido:"bateriademisilesantiaereos.mp3"
-},
-
-bombas:{
-nombre:"Bombas Guiadas",
-costo:20,
-daño:35,
-sonido:"bonba.mp3"
-}
-
-};
-
-
-function usarArma(tipo){
-
-if(!combate || !combate.enemigoActivo){
-
-hablar("No hay combate activo.");
-
-return;
-
-}
-
-let arma=armas[tipo];
-
-if(jugador.ammo<arma.costo){
-
-hablar(
-"Munición insuficiente para "+
-arma.nombre
-);
-
-vibrar([200,100,200]);
-
-return;
-
-}
-
-jugador.ammo-=arma.costo;
-
-combate.enemyHP-=arma.daño;
-
-combate.turno++;
-
-sonido(arma.sonido);
-
-vibrar([100,50,100]);
-
-registrar(
-
-"Disparaste "+arma.nombre+
-". Daño causado: "+arma.daño+
-". Vida enemiga restante: "+
-Math.max(0,combate.enemyHP)
-
-);
-
-hablar(
-
-arma.nombre+
-" disparado. Daño "+
-arma.daño+
-". Enemigo con "+
-Math.max(0,combate.enemyHP)+
-" de vida."
-
-);
-
-actualizar();
-
-actualizarCombate();
-
-if(combate.enemyHP<=0){
-
-victoria();
+enemigoDestruido();
 
 }
 
 }
 
 
-/* =========================================================
+/* ============================================================
    IA ENEMIGA
-========================================================= */
+============================================================ */
+
+function iniciarIAEnemiga(){
+
+detenerIAEnemiga();
+
+enemigoInterval=setInterval(()=>{
+
+if(!battleActive) return;
+
+ataqueEnemigo();
+
+},6000);
+
+}
+
+
+/* ============================================================
+   ATAQUE ENEMIGO
+============================================================ */
 
 function ataqueEnemigo(){
 
-if(!combate || !combate.enemigoActivo)
-return;
+if(!battleActive) return;
 
-let dano=
+const dano =
+5+
 Math.floor(
-Math.random()*combate.enemyDamage
-)+3;
+Math.random()*11
+);
 
-jugador.hp-=dano;
+estadoJuego.vida-=dano;
 
-if(jugador.hp<0)
-jugador.hp=0;
+if(estadoJuego.vida<0){
 
-combate.turno++;
+estadoJuego.vida=0;
 
-sonido("Disparo.mp3");
+}
 
-vibrar([150,80,150]);
+reproducir(
+"audioAlarmaAtaque",
+0.8
+);
+
+setTimeout(()=>{
+
+if(vehiculoActual==="F-35"){
+
+reproducir(
+"audioAtencionF35",
+1
+);
+
+}else{
+
+reproducir(
+"audioAlerta",
+0.8
+);
+
+}
+
+},400);
 
 registrar(
-
-"IMPACTO ENEMIGO. "+
-"Daño recibido: "+
-dano+
-". Casco restante: "+
-jugador.hp+"%."
-
+"¡Alerta! Enemigo atacando."
 );
 
-hablar(
-
-"Impacto enemigo. "+
-"Daño recibido "+
-dano+
-". Casco del portaaviones "+
-jugador.hp+
-" por ciento."
-
+registrar(
+"Daño recibido: "+dano+" por ciento."
 );
 
-actualizarCombate();
+vibrar("alerta");
 
-actualizar();
+if(estadoJuego.vida<=25){
 
-if(jugador.hp<=0){
+reproducir(
+"audioEmergencia",
+1
+);
+
+reproducir(
+"audioAlarmaEmergencia",
+0.8
+);
+
+}
+
+actualizarEstado();
+
+if(estadoJuego.vida<=0){
 
 derrota();
 
@@ -1375,616 +1590,441 @@ derrota();
 }
 
 
-/* =========================================================
-   MANIOBRA DE COMBATE
-========================================================= */
+/* ============================================================
+   DETENER IA
+============================================================ */
 
-function maniobraCombate(dir){
+function detenerIAEnemiga(){
 
-if(!combate)return;
+if(enemigoInterval){
 
-combate.distancia+=3;
+clearInterval(enemigoInterval);
 
-let dano=Math.floor(Math.random()*8);
+enemigoInterval=null;
 
-jugador.hp=Math.max(0,jugador.hp-dano);
+}
+
+}
+
+
+/* ============================================================
+   ENEMIGO DESTRUIDO
+============================================================ */
+
+function enemigoDestruido(){
+
+detenerIAEnemiga();
+
+reproducir(
+"audioEnemigosDestruido",
+1
+);
 
 registrar(
-"Maniobra a "+dir+
-". Distancia aumentada. Daño recibido: "+dano
+"Enemigo destruido."
 );
 
-hablar(
-"Giro a "+
-(dir==="babor"?"babor":"estribor")+
-". Distancia enemiga aumentada."
-);
+$("situacion").textContent=
+"Enemigo destruido.";
 
-vibrar([60,60]);
-
-actualizarCombate();
-
-}
-
-
-/* =========================================================
-   RETIRADA
-========================================================= */
-
-function retirarse(){
-
-if(!combate)return;
-
-clearInterval(enemyTimer);
-
-combate=null;
-
-abrir("mapa");
-
-hablar(
-"Retirada completada. La misión no fue conquistada."
+setTimeout(
+objetivoDestruido,
+1200
 );
 
 }
 
 
-/* =========================================================
-   VICTORIA
-========================================================= */
+/* ============================================================
+   OBJETIVO DESTRUIDO
+============================================================ */
 
-function victoria(){
+function objetivoDestruido(){
 
-clearInterval(enemyTimer);
-
-combate.enemigoActivo=false;
-
-let recompensa=mision.dinero;
-
-jugador.dinero+=recompensa;
-
-jugador.minerales+=mision.minerales;
-
-jugador.puntos+=mision.puntos;
-
-jugador.xp+=mision.puntos;
-
-if(!jugador.territorios.includes(mision.nombre)){
-
-jugador.territorios.push(mision.nombre);
-
-}
-
-subirNivel();
-
-sonido("alarmadeemergencia.mp3");
-
-vibrar([200,100,200,100,400]);
+reproducir(
+"audioObjetivoDestruido",
+1
+);
 
 registrar(
-"VICTORIA. Territorio "+mision.nombre+
-" conquistado."
+"Objetivo destruido."
 );
 
-hablar(
-"Victoria. Territorio "+
-mision.nombre+
-" conquistado. "+
-"Has recibido "+
-recompensa+
-" dólares y "+
-mision.puntos+
-" puntos."
+terminarBatallaAudio();
+
+estadoJuego.victorias++;
+
+estadoJuego.misiones++;
+
+estadoJuego.dinero+=200;
+
+estadoJuego.minerales+=50;
+
+estadoJuego.combustible-=10;
+
+if(estadoJuego.combustible<0){
+
+estadoJuego.combustible=0;
+
+}
+
+estadoJuego.territorios++;
+
+setTimeout(()=>{
+
+reproducir(
+"audioVictoria",
+1
 );
+
+vibrar("victoria");
+
+registrar(
+"Victoria confirmada. Misión completada."
+);
+
+},1000);
+
+setTimeout(()=>{
+
+reproducir(
+"audioMisionCompletada",
+1
+);
+
+reproducir(
+"audioRecursos",
+1
+);
+
+},2500);
+
+if(
+estadoJuego.victorias % 3===0
+){
+
+estadoJuego.nivel++;
+
+setTimeout(()=>{
+
+reproducir(
+"audioNivel",
+1
+);
+
+registrar(
+"Nivel aumentado."
+);
+
+},4000);
+
+}
+
+actualizarEstado();
 
 guardar();
 
 setTimeout(()=>{
 
-combate=null;
+prepararSiguienteMision();
 
-abrir("mapa");
-
-},2500);
+},5500);
 
 }
 
 
-/* =========================================================
+/* ============================================================
+   SIGUIENTE MISIÓN
+============================================================ */
+
+function prepararSiguienteMision(){
+
+reproducir(
+"audioPreparando",
+0.9
+);
+
+setTimeout(()=>{
+
+reproducir(
+"audioNuevaMision",
+0.9
+);
+
+},1600);
+
+$("situacion").textContent=
+"Misión completada. Selecciona tu próximo objetivo.";
+
+mostrarObjetivos();
+
+}
+
+
+/* ============================================================
    DERROTA
-========================================================= */
+============================================================ */
 
 function derrota(){
 
-clearInterval(enemyTimer);
+detenerIAEnemiga();
 
-combate.enemigoActivo=false;
+battleActive=false;
 
-sonido("alarmadeemergencia.mp3");
+$("audioBatalla").pause();
 
-vibrar([500,150,500]);
-
-jugador.nivel=Math.max(1,jugador.nivel-1);
-
-jugador.xp=0;
-
-jugador.puntos=Math.max(
-0,
-jugador.puntos-100
+reproducir(
+"audioEmergencia",
+1
 );
 
-jugador.hp=20;
-
-registrar("DERROTA. El portaaviones fue destruido.");
-
-hablar(
-"Derrota. El portaaviones ha sido destruido. "+
-"Tu nivel ha disminuido."
+registrar(
+"Fuerzas destruidas. Misión perdida."
 );
+
+estadoJuego.nivel--;
+
+if(estadoJuego.nivel<1){
+
+estadoJuego.nivel=1;
+
+}
+
+estadoJuego.vida=100;
+
+terminarBatallaAudio();
+
+$("situacion").textContent=
+"Has perdido la batalla. Tu nivel ha disminuido.";
+
+actualizarEstado();
 
 guardar();
+
+}
+
+
+/* ============================================================
+   REABASTECIMIENTO
+============================================================ */
+
+function reabastecer(){
+
+if(estadoJuego.dinero>=100){
+
+estadoJuego.dinero-=100;
+
+estadoJuego.combustible+=25;
+
+if(estadoJuego.combustible>100){
+
+estadoJuego.combustible=100;
+
+}
+
+}
+
+if(estadoJuego.dinero>=150){
+
+estadoJuego.dinero-=150;
+
+estadoJuego.municion+=50;
+
+}
+
+if(estadoJuego.minerales>=50){
+
+estadoJuego.minerales-=50;
+
+estadoJuego.repuestos+=20;
+
+}
+
+reproducir(
+"audioReabastecimiento",
+1
+);
+
+actualizarEstado();
+
+guardar();
+
+}
+
+
+/* ============================================================
+   INICIO DE PARTIDA
+============================================================ */
+
+function comenzar(){
+
+$("inicio").classList.add("hidden");
+
+$("juego").classList.remove("hidden");
+
+reproducir(
+"audioInicio",
+1
+);
+
+iniciarAmbiente();
 
 setTimeout(()=>{
 
-combate=null;
+iniciarMusicaFondo();
 
-abrir("taller");
+},1500);
 
-},2500);
+actualizarEstado();
 
-}
+mostrarObjetivos();
 
+registrar(
+"AeroOcean: Modern War iniciado."
+);
 
-/* =========================================================
-   EXPERIENCIA
-========================================================= */
+registrar(
+"El portaaviones navega por aguas internacionales."
+);
 
-function subirNivel(){
-
-let necesario=jugador.nivel*1000;
-
-while(jugador.xp>=necesario){
-
-jugador.xp-=necesario;
-
-jugador.nivel++;
-
-necesario=jugador.nivel*1000;
-
-sonido("mensajedebienvenida.mp3");
-
-vibrar([100,100,300]);
-
-hablar(
-"Ascenso. Has alcanzado el nivel "+
-jugador.nivel
+registrar(
+"Selecciona un objetivo cuando estés preparado."
 );
 
 }
 
-}
 
+/* ============================================================
+   CONTINUAR
+============================================================ */
 
-/* =========================================================
-   VEHICULOS
-========================================================= */
+function continuar(){
 
-function desplegarF35(){
+if(!cargar()){
 
-if(jugador.f35<=0){
-
-hablar("No tienes cazas F-35 disponibles.");
-
-return;
-
-}
-
-jugador.f35--;
-
-sonido("sonidodecasaenelaire.wav");
-
-vibrar([100,100]);
-
-hablar(
-"F-35 desplegado. El escuadrón está en el aire."
+alert(
+"No existe una partida guardada."
 );
 
-actualizar();
-
-}
-
-
-function desplegarB21(){
-
-if(jugador.b21<=0){
-
-hablar("No tienes bombarderos disponibles.");
-
 return;
 
 }
 
-jugador.b21--;
+comenzar();
 
-sonido("sonidodeborbandeo.mp3");
+}
 
-vibrar([200]);
 
-hablar(
-"B-21 Raider desplegado para bombardeo estratégico."
+/* ============================================================
+   BORRAR
+============================================================ */
+
+function borrarProgreso(){
+
+localStorage.removeItem(
+"AeroOceanModernWar"
 );
 
-actualizar();
+estadoJuego={
 
-}
+nivel:1,
 
+dinero:500,
 
-function desplegarDestructor(){
+minerales:150,
 
-if(jugador.destroyers<=0){
+combustible:100,
 
-hablar("No tienes destructores disponibles.");
+municion:100,
 
-return;
+repuestos:20,
 
-}
+vida:100,
 
-jugador.destroyers--;
+victorias:0,
 
-sonido("Disparo.mp3");
+misiones:0,
 
-hablar(
-"Destructor desplegado. Sus sistemas navales están activos."
+territorios:0
+
+};
+
+alert(
+"El progreso ha sido borrado."
 );
 
-actualizar();
-
 }
 
 
-function desplegarSubmarino(){
+/* ============================================================
+   SALIR
+============================================================ */
 
-if(jugador.submarines<=0){
+function salir(){
 
-hablar("No tienes submarinos disponibles.");
+detenerIAEnemiga();
 
-return;
+if(navegacionTimeout){
 
-}
-
-jugador.submarines--;
-
-sonido("sonidodetorpedo.mp3");
-
-hablar(
-"Submarino USS Shadowhawk desplegado."
+clearTimeout(
+navegacionTimeout
 );
 
-actualizar();
+}
+
+battleActive=false;
+
+$("audioBatalla").pause();
+
+iniciarAmbiente();
+
+iniciarMusicaFondo();
+
+$("juego").classList.add("hidden");
+
+$("inicio").classList.remove("hidden");
 
 }
 
 
-/* =========================================================
-   MERCADO
-========================================================= */
+/* ============================================================
+   EVENTOS
+============================================================ */
 
-function comprar(tipo){
+$("btnComenzar").onclick=
+comenzar;
 
-if(tipo==="fuel"){
+$("btnContinuar").onclick=
+continuar;
 
-if(jugador.dinero<100){
+$("btnBorrar").onclick=
+borrarProgreso;
 
-hablar("Dinero insuficiente.");
-
-return;
-
-}
-
-jugador.dinero-=100;
-
-jugador.fuel=Math.min(100,jugador.fuel+25);
-
-hablar("Combustible aumentado en veinticinco por ciento.");
-
-}
-
-if(tipo==="ammo"){
-
-if(jugador.dinero<150){
-
-hablar("Dinero insuficiente.");
-
-return;
-
-}
-
-jugador.dinero-=150;
-
-jugador.ammo+=50;
-
-hablar("Cincuenta municiones añadidas.");
-
-}
-
-if(tipo==="parts"){
-
-if(jugador.minerales<50){
-
-hablar("Minerales insuficientes.");
-
-return;
-
-}
-
-jugador.minerales-=50;
-
-jugador.parts+=20;
-
-hablar("Veinte piezas de reparación añadidas.");
-
-}
-
-sonido("mensajedebienvenida.mp3");
-
-actualizar();
-
-}
-
-
-/* =========================================================
-   TALLER
-========================================================= */
-
-function reparar(){
-
-if(jugador.hp>=100){
-
-hablar("El portaaviones ya está completamente reparado.");
-
-return;
-
-}
-
-if(jugador.parts<=0){
-
-hablar("No tienes piezas de reparación.");
-
-return;
-
-}
-
-let cantidad=Math.min(
-20,
-100-jugador.hp,
-jugador.parts
-);
-
-jugador.hp+=cantidad;
-
-jugador.parts-=cantidad;
-
-sonido("mensajedebienvenida.mp3");
-
-vibrar([100,100]);
-
-hablar(
-"Reparación completada. Casco al "+
-jugador.hp+
-" por ciento."
-);
-
-actualizar();
-
-}
-
-
-/* =========================================================
-   CUENTA
-========================================================= */
-
-function mostrarCuenta(){
-
-document.getElementById("username").value=jugador.nombre;
-
-document.getElementById("accountInfo").innerHTML=`
-
-Nombre: ${jugador.nombre}<br>
-Nivel: ${jugador.nivel}<br>
-Experiencia: ${jugador.xp}<br>
-Puntos: ${jugador.puntos}<br>
-Territorios: ${jugador.territorios.length}
-`;
-
-}
-
-
-function guardarNombre(){
-
-let nombre=
-document.getElementById("username").value.trim();
-
-if(nombre.length<1){
-
-hablar("Debes escribir un nombre.");
-
-return;
-
-}
-
-jugador.nombre=nombre;
+$("btnGuardar").onclick=()=>{
 
 guardar();
 
-actualizar();
-
-hablar(
-"Nombre guardado como "+
-nombre
+registrar(
+"Progreso guardado."
 );
 
-}
+vibrar();
+
+};
+
+$("btnSalir").onclick=
+salir;
 
 
-/* =========================================================
-   RANKING
-========================================================= */
+/* ============================================================
+   INICIALIZACIÓN
+============================================================ */
 
-function mostrarRanking(){
+cargar();
 
-let ranking=[
-
-{
-nombre:jugador.nombre+" (Tú)",
-puntos:jugador.puntos,
-territorios:jugador.territorios.length
-},
-
-{
-nombre:"Almirante Vance (IA)",
-puntos:2500,
-territorios:4
-},
-
-{
-nombre:"Comandante Zhao (IA)",
-puntos:2100,
-territorios:3
-},
-
-{
-nombre:"Capitana Sorenson (IA)",
-puntos:1800,
-territorios:2
-}
-
-];
-
-ranking.sort((a,b)=>b.puntos-a.puntos);
-
-let html="";
-
-ranking.forEach((r,i)=>{
-
-html+=`
-
-<div class="card">
-
-<strong>
-Puesto ${i+1}: ${r.nombre}
-</strong>
-
-<br>
-
-Puntos: ${r.puntos}<br>
-
-Territorios: ${r.territorios}
-
-</div>
-
-`;
-
-});
-
-document.getElementById("rankingContent").innerHTML=html;
-
-}
-
-
-/* =========================================================
-   REGISTRO DE EVENTOS
-========================================================= */
-
-function registrar(texto){
-
-let log=document.getElementById("battleLog");
-
-if(log){
-
-let hora=
-new Date().toLocaleTimeString();
-
-log.innerHTML=
-"["+hora+"] "+texto+
-"<br>"+log.innerHTML;
-
-}
-
-document.getElementById("eventLog").textContent=texto;
-
-}
-
-
-/* =========================================================
-   ESTADO POR VOZ
-========================================================= */
-
-function hablarEstado(){
-
-hablar(
-
-"Estado del portaaviones. "+
-"Casco "+
-jugador.hp+
-" por ciento. "+
-"Combustible "+
-jugador.fuel+
-" por ciento. "+
-"Munición "+
-jugador.ammo+
-". "+
-"Dinero "+
-jugador.dinero+
-" dólares. "+
-"Nivel "+
-jugador.nivel+
-". "+
-"Territorios conquistados "+
-jugador.territorios.length
-
-);
-
-}
-
-
-/* =========================================================
-   BORRAR PARTIDA
-========================================================= */
-
-function reiniciarPartida(){
-
-if(!confirm(
-"¿Seguro que quieres borrar todo el progreso?"
-))return;
-
-localStorage.removeItem("aeroOceanSave");
-
-location.reload();
-
-}
-
-
-/* =========================================================
-   INICIO
-========================================================= */
-
-window.addEventListener(
-"DOMContentLoaded",
-()=>{
-
-actualizar();
-
-mostrarContinentes();
-
-hablar(
-"Bienvenido a AeroOcean Modern War. "+
-"Sistema táctico listo. "+
-"Selecciona un objetivo en el mapa para comenzar."
-);
-
-}
-);
+actualizarEstado();
 
 </script>
 
 </body>
-</html>
+</html> 
