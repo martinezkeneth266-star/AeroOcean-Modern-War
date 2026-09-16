@@ -1,725 +1,859 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <meta name="theme-color" content="#06131f">
-    <title>AeroOcean: Guerra Sobre el Agua</title>
-    <style>
-        :root {
-            --bg-color: #0d1b2a;
-            --panel-bg: #1b263b;
-            --btn-bg: #415a77;
-            --btn-active: #778da9;
-            --text-color: #e0e1dd;
-            --accent-color: #00b4d8;
-            --danger-color: #e63946;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            overflow: hidden;
-        }
-
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            20% { transform: translate(-3px, 0px) rotate(-1deg); }
-            40% { transform: translate(3px, -2px) rotate(1deg); }
-            60% { transform: translate(-1px, 2px) rotate(0deg); }
-            80% { transform: translate(1px, -1px) rotate(1deg); }
-            100% { transform: translate(0, 0) rotate(0deg); }
-        }
-
-        .vibrating {
-            animation: shake 0.3s ease-in-out infinite;
-        }
-
-        .top-bar, .bottom-bar {
-            background-color: var(--panel-bg);
-            padding: 10px;
-            display: flex;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            white-space: nowrap;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .top-bar {
-            border-bottom: 2px solid var(--accent-color);
-        }
-
-        .bottom-bar {
-            border-top: 2px solid var(--accent-color);
-            justify-content: space-between;
-        }
-
-        .btn-group-horizontal {
-            display: flex;
-            flex-direction: row;
-            gap: 8px;
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-
-        button, summary {
-            background-color: var(--btn-bg);
-            color: var(--text-color);
-            border: 1px solid var(--accent-color);
-            padding: 12px 16px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            white-space: nowrap;
-            display: inline-block;
-            list-style: none;
-            min-height: 45px;
-        }
-
-        button:focus, button:hover, summary:focus, summary:hover {
-            background-color: var(--btn-active);
-            outline: 3px solid #fff;
-        }
-
-        button:active, summary:active {
-            background-color: var(--accent-color);
-            color: #000;
-        }
-
-        details {
-            background-color: rgba(27, 38, 59, 0.6);
-            border: 1px solid var(--accent-color);
-            border-radius: 4px;
-            margin-bottom: 10px;
-            padding: 5px;
-        }
-
-        summary {
-            width: 100%;
-            text-align: left;
-            margin-bottom: 5px;
-        }
-
-        .dropdown-content {
-            padding: 10px;
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-        }
-
-        #viewport {
-            flex-grow: 1;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            background: radial-gradient(circle, #1b263b 0%, #0d1b2a 100%);
-            overflow-y: auto;
-        }
-
-        .screen-panel {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-color);
-            display: none;
-            flex-direction: column;
-            padding: 20px;
-            z-index: 10;
-            overflow-y: auto;
-        }
-
-        .screen-panel.active {
-            display: flex;
-        }
-
-        .status-display {
-            font-size: 16px;
-            text-align: center;
-            margin-bottom: 15px;
-            color: var(--accent-color);
-            background: #112233;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid var(--accent-color);
-        }
-
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            border: 0;
-        }
-
-        .menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent-color); padding-bottom: 10px; margin-bottom: 15px; }
-        .menu-header h2 { margin: 0; color: var(--accent-color); font-size: 18px; }
-        .breadcrumb { color: #ffaa00; font-size: 12px; margin-bottom: 12px; font-weight: bold; }
-        .map-list { display: flex; flex-direction: column; gap: 8px; }
-        .map-card { background: #112233; border: 1px solid var(--accent-color); border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; text-align: left; }
-        .map-card-info { display: flex; flex-direction: column; gap: 4px; }
-        .reward-tag { color: #ffaa00; font-size: 11px; }
-        .btn-back { border-color: #ffaa00; color: #ffaa00; margin-bottom: 10px; }
-        .btn-close { border-color: #ff5555; color: #ff5555; padding: 6px 12px; }
-        .combat-box { background: #1b263b; border: 2px solid var(--danger-color); border-radius: 8px; padding: 15px; margin-top: 10px; display: flex; flex-direction: column; gap: 12px; }
-        .navigation-radar-box { background: #0b131f; border: 2px dashed var(--accent-color); padding: 15px; border-radius: 8px; text-align: center; margin-top: 10px; }
-
-        @media (orientation: portrait) {
-            body::before {
-                content: "Gira el dispositivo a posición horizontal para una mejor experiencia táctica.";
-                position: fixed;
-                z-index: 99999;
-                top: 0; left: 0; right: 0; bottom: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                text-align: center;
-                font-size: 20px;
-                font-weight: bold;
-                padding: 30px;
-                background: #06131f;
-                color: white;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#06131f">
+<title>AeroOcean: Modern War</title>
+<style>
+:root{--bg:#0d1b2a;--panel:#1b263b;--btn:#415a77;--btn-active:#778da9;--text:#e0e1dd;--accent:#00b4d8;--danger:#e63946;--ok:#2ecc71;--warn:#ffaa00;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none;}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+.top-bar,.bottom-bar{background:var(--panel);padding:8px;display:flex;overflow-x:auto;white-space:nowrap;gap:8px;align-items:center;flex-wrap:wrap;}
+.top-bar{border-bottom:2px solid var(--accent);}
+.bottom-bar{border-top:2px solid var(--accent);justify-content:space-between;}
+.btn-row{display:flex;flex-wrap:wrap;gap:6px;}
+button,summary,select,input[type=range]{background:var(--btn);color:var(--text);border:1px solid var(--accent);padding:10px 12px;font-size:13px;font-weight:bold;border-radius:4px;cursor:pointer;min-height:42px;}
+button:focus,button:hover,summary:focus{background:var(--btn-active);outline:3px solid #fff;outline-offset:2px;}
+button:disabled{opacity:.4;cursor:not-allowed;}
+button.danger{border-color:var(--danger);color:var(--danger);}
+button.ok{border-color:var(--ok);color:var(--ok);}
+details{background:rgba(27,38,59,.6);border:1px solid var(--accent);border-radius:4px;margin-bottom:8px;padding:6px;}
+summary{width:100%;text-align:left;}
+#viewport{flex:1;position:relative;overflow-y:auto;padding:14px;background:radial-gradient(circle,#1b263b 0%,#0d1b2a 100%);}
+.screen{position:absolute;top:0;left:0;width:100%;height:100%;background:var(--bg);display:none;flex-direction:column;padding:14px;z-index:10;overflow-y:auto;}
+.screen.active{display:flex;}
+.status{font-size:14px;text-align:center;margin-bottom:10px;color:var(--accent);background:#112233;padding:8px;border-radius:6px;border:1px solid var(--accent);}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--accent);padding-bottom:8px;margin-bottom:10px;}
+.hdr h2{color:var(--accent);font-size:16px;}
+.bc{color:var(--warn);font-size:11px;margin-bottom:10px;font-weight:bold;}
+.list{display:flex;flex-direction:column;gap:6px;}
+.card{background:#112233;border:1px solid var(--accent);border-radius:6px;padding:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;text-align:left;}
+.card-info{display:flex;flex-direction:column;gap:2px;}
+.tag{color:var(--warn);font-size:10px;}
+.panel{background:#1b263b;border:2px solid var(--accent);border-radius:8px;padding:12px;margin-top:8px;}
+.panel.combat{border-color:var(--danger);}
+.sysbar{display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid #223;}
+.conquered{color:var(--ok);font-weight:bold;}
+@media(orientation:portrait){body::before{content:"Gira el dispositivo a posición horizontal.";position:fixed;z-index:99999;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:18px;font-weight:bold;padding:24px;background:#06131f;color:#fff;}}
+</style>
 </head>
 <body>
+<div id="sr-announcer" class="sr-only" aria-live="assertive"></div>
 
-    <div id="sr-announcer" class="sr-only" aria-live="assertive"></div>
+<header class="top-bar" role="navigation" aria-label="Menú principal">
+  <div class="btn-row">
+    <button onclick="UI.open('s-hud')">Estado (HUD)</button>
+    <button onclick="UI.open('s-ajustes')">Ajustes</button>
+    <button onclick="UI.open('s-market')">Mercado</button>
+    <button onclick="UI.open('s-taller')">Taller</button>
+    <button onclick="UI.open('s-vehiculos')">Vehículos</button>
+    <button onclick="UI.open('s-mapas'); Mapa.mostrarContinentes();">Mapa y Conquista</button>
+    <button onclick="UI.open('s-ranking'); Ranking.render();">Ranking</button>
+    <button onclick="Juego.pausar()">Pausa</button>
+  </div>
+</header>
 
-    <header class="top-bar" role="navigation" aria-label="Menú Principal Superior">
-        <div class="btn-group-horizontal">
-            <button onclick="openScreen('menu-ajustes')">1. Ajustes</button>
-            <button onclick="openScreen('menu-market')">2. Market Store</button>
-            <button onclick="openScreen('menu-vehiculos')">3. Vehículos</button>
-            <button onclick="openScreen('menu-taller')">4. Taller</button>
-            <button onclick="openScreen('menu-mapas'); mostrarContinentes();">5. Mapas y Conquista</button>
-            <button onclick="openScreen('menu-ranking'); actualizarRankingUI();">6. Ranking Global</button>
+<main id="viewport">
+
+  <section id="s-hud" class="screen active" aria-label="Estado general">
+    <div class="hdr"><h2>AEROOCEAN: MODERN WAR</h2></div>
+    <div class="status" id="hud-resumen" aria-live="polite">Cargando…</div>
+    <button onclick="HUD.anunciarCompleto()" style="margin-bottom:8px;">Consultar estado completo por voz</button>
+    <div class="list" id="hud-unidades"></div>
+    <div class="btn-row" style="margin-top:10px;">
+      <button class="ok" onclick="Juego.guardar(true)">Guardar partida</button>
+      <button onclick="UI.open('s-mapas'); Mapa.mostrarContinentes();">Ir a conquista</button>
+    </div>
+  </section>
+
+  <section id="s-ajustes" class="screen" aria-label="Ajustes">
+    <div class="hdr"><h2>Ajustes</h2><button class="danger" onclick="UI.close('s-ajustes')">Cerrar</button></div>
+    <details><summary onclick="Audio2.efecto(SFX.seleccion)">Audio y voz</summary>
+      <div class="list">
+        <label>Música <input type="range" min="0" max="1" step="0.1" value="0.3" oninput="Audio2.setVolumen('musica', this.value)"></label>
+        <label>Efectos <input type="range" min="0" max="1" step="0.1" value="0.6" oninput="Audio2.setVolumen('efectos', this.value)"></label>
+        <label>Velocidad de voz <input type="range" min="0.6" max="1.6" step="0.1" value="1" oninput="Voz.setVelocidad(this.value)"></label>
+        <button onclick="UI.toggleVibracion()">Vibración: <span id="vib-estado">activada</span></button>
+      </div>
+    </details>
+    <details><summary onclick="Audio2.efecto(SFX.seleccion)">Cuenta y progreso</summary>
+      <div class="list">
+        <div class="status">Progreso guardado localmente en este dispositivo. No hay cuenta en línea ni ranking global conectado a un servidor: eso requiere backend y no está simulado aquí.</div>
+        <button onclick="Voz.decir('La sincronización en la nube no está disponible. Se necesita un servidor conectado.', 'normal')">Sincronizar en la nube</button>
+        <button class="danger" onclick="Juego.borrarProgreso()">Borrar progreso guardado</button>
+      </div>
+    </details>
+  </section>
+
+  <section id="s-market" class="screen" aria-label="Mercado">
+    <div class="hdr"><h2>Mercado</h2><button class="danger" onclick="UI.close('s-market')">Cerrar</button></div>
+    <div class="bc">Selecciona la unidad activa para comprar recursos específicos de ella.</div>
+    <div id="market-list" class="list"></div>
+  </section>
+
+  <section id="s-taller" class="screen" aria-label="Taller">
+    <div class="hdr"><h2>Taller de reparación</h2><button class="danger" onclick="UI.close('s-taller')">Cerrar</button></div>
+    <div class="bc">Repara sistemas específicos de la unidad activa. Cada sistema tiene un costo independiente.</div>
+    <div id="taller-list" class="list"></div>
+  </section>
+
+  <section id="s-vehiculos" class="screen" aria-label="Vehículos">
+    <div class="hdr"><h2>Flota y unidad activa</h2><button class="danger" onclick="UI.close('s-vehiculos')">Cerrar</button></div>
+    <div id="vehiculos-list" class="list"></div>
+  </section>
+
+  <section id="s-mapas" class="screen" aria-label="Mapa mundial">
+    <div class="hdr"><h2 id="mapTitle">🌍 MAPA MUNDIAL</h2><button class="danger" onclick="UI.close('s-mapas')">Cerrar</button></div>
+    <div id="breadcrumb" class="bc" aria-live="polite">Continentes habitados</div>
+    <button id="btnMapBack" style="display:none;margin-bottom:8px;" onclick="Mapa.retroceder()">⬅ Regresar</button>
+    <div id="mapList" class="list" aria-live="polite"></div>
+  </section>
+
+  <section id="s-mision" class="screen" aria-label="Misión activa">
+    <div class="hdr"><h2 id="misionTitle">Misión</h2><button class="danger" onclick="Mision.abandonar()">Abandonar misión</button></div>
+    <div id="misionBody"></div>
+  </section>
+
+  <section id="s-ranking" class="screen" aria-label="Ranking">
+    <div class="hdr"><h2>Ranking (local)</h2><button class="danger" onclick="UI.close('s-ranking')">Cerrar</button></div>
+    <div class="bc">Este ranking es solo local, guardado en este dispositivo. No hay ranking global en línea porque no hay servidor conectado.</div>
+    <div id="ranking-list" class="list"></div>
+  </section>
+
+</main>
+
+<footer class="bottom-bar" role="navigation" aria-label="Controles base">
+  <div class="btn-row">
+    <button onclick="Juego.guardar(true)">Guardar</button>
+    <button onclick="UI.open('s-mapas'); Mapa.mostrarContinentes();">Conquista</button>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   AEROOCEAN: MODERN WAR — MOTOR DE JUEGO
+   Arquitectura: Estado | Audio | Voz | Vibración | UI |
+   Vehículos | Armas | Radar | Navegación | Misión | IA |
+   Mapa | Mercado/Taller | Economía | Ranking | Guardado
+   ========================================================= */
+
+const AUDIO_BASE = './';
+const SFX = {
+  seleccion:'Tenis.ogg', teclado:'Tonos.ogg', bienvenida:'mensajedebienvenida.mp3', iniciarPartida:'Iniciandopartida.mp3',
+  moneda:'Moneda de Mario.mp3', tiro:'tiro.mp3', fuego:'Fuego.mp3', disparo:'Disparo.mp3', mp40:'mp40.mp3',
+  recarga:'recargapistola.mp3', sinBala:'nosalelabala.mp3', municionBaja:'municionbajarecargatusarmasinmediatamente.wav',
+  ganaPunto:'ganapunto.mp3', ametralladoraSel:'ametralladoraseleccionada.wav', ametralladoraFuego:'Ametralladora.mp3',
+  trazadoras:'trazadoras.mp3', torreta:'Torreta.mp3', misilAireSel:'misilaire-aireseleccionado.wav', misilAireLanz:'misilaire-airelanzado.wav',
+  misilCruceroListo:'misildecrucerolistoparadisparar.wav', misilCruceroLanz:'misildecrucerolanzado.wav', misilCrucero:'misildecrucero.mp3',
+  misilGenerico:'misil.mp3', bombaPrecisionSel:'bombadeprecisionseleccionada.wav', bombaPrecisionLanz:'bombadeprecisionlanzada.wav',
+  bomba:'bonba.mp3', bombardeado:'bombardeado.wav', bombardeoSonido:'sonidodeborbandeo.mp3', bombarderoAire:'borbanderoenelaire.mp3',
+  bateriaAntiaerea:'bateriademisilesantiaereos.mp3', torpedoFalla:'sonidodetorpedo.mp3', torpedoImpacto:'sonidodetorpedoimpactandoenelobjetivo.mp3',
+  seleccionaArma:'seleccionaelarmaquedeseasutilizar.wav', seleccionaArmamento:'seleccionaelarmamentodisponible.wav',
+  impactoConfirmado:'impactoconfirmado.wav', impacto50:'impactoconfirmadodanoenemigo50%.wav', objetivoIdentificado:'objetivoidentificado.wav',
+  objetivoDestruido:'objetivodestruido-prepárateparalasiguientemision.wav', enemigoDetectado:'enemigodetectado.wav', enemigosDestruidos:'enemigosdestruido.wav',
+  contactoRadar:'contactoderadar.mp3', combateIniciado:'combateiniciado.mp3', alarmaAtaque:'Alarmadeataqueenemigo.mp3', alerta:'alerta.mp3',
+  alarmaEmergencia:'alarmadeemergencia.mp3', emergencia:'emergencia.wav', llegadaCombate:'haslletadoalareadecombate.wav', nuevaMision:'nuevamisiondisponible.wav',
+  nivelAumentado:'nivelaumentado.wav', misionCompletada:'misioncompletada-recompensasrecibidas.wav', recursosObtenidos:'hasobtenidorecursosdelterritorioconquistado.wav',
+  preparandoFuerzas:'preparandofuerzasparalapróximamision.wav', victoria:'victoriaconfirmada-hascompletadolamision.wav', reabastecimiento:'reabastecimientoyrearmecompletados.wav',
+  aterrizaje:'aterrizaje.mp3', f35Desplegado:'vehículo-f35desplegado.wav', f35Listo:'vr-a-f35.wav', f35ArmasListas:'armasdel-f35disponibles.wav',
+  f35EnRuta:'avion-f35enrutahaciaelobjetivo.wav', f35BajoFuego:'atenciontu-f35estarecibiendofuegoenemigo.wav', f35Motor:'sonidode-f-35.mp3',
+  avionMotor:'sonidodeavion.mp3', f35Ambiente:'sonidodecasaenelaire.wav', b21Desplegado:'bombardero-b-21raiderdesplegado.wav',
+  b21ArmasListas:'armamentodel-b-21raiderlisto.wav', b21EnRuta:'b-21raiderenrutahaciaelobjetivo.wav', b21Regresando:'b-21raiderregresandoalportaaviones.wav',
+  b21Aterrizado:'b-21raiderhaaterrizadoenelportaaviones.wav', b21Recomendado:'vehiculorecomendadobombardero-b-21rayder.wav',
+  destructorDesplegado:'destructordesplegado.wav', destructorEnRuta:'destructorenrutahaciaelobjetivo.wav', destructorRecomendado:'vehiculorecomendadodestructor.wav',
+  mar:'mar.mp3', portaaviones:'Sonidoportaaviones.mp3', portaaviones1:'sonidoportaaviones1.mp3', batallaAeronaval:'Batalla_Aeronaval.mp3'
+};
+
+/* ---------- VOZ: cola de mensajes con prioridad ---------- */
+const Voz = {
+  cola: [], hablando: false, velocidad: 1,
+  setVelocidad(v){ this.velocidad = parseFloat(v); },
+  decir(texto, prioridad){
+    const announcer = document.getElementById('sr-announcer');
+    if (announcer) announcer.innerText = texto;
+    if (prioridad === 'urgente') { if('speechSynthesis' in window) window.speechSynthesis.cancel(); this.cola = []; this.hablando=false; }
+    this.cola.push(texto);
+    this._procesar();
+  },
+  _procesar(){
+    if (this.hablando || this.cola.length === 0) return;
+    if (!('speechSynthesis' in window)) { this.cola.shift(); return; }
+    this.hablando = true;
+    const texto = this.cola.shift();
+    const u = new SpeechSynthesisUtterance(texto);
+    u.lang = 'es-ES'; u.rate = this.velocidad;
+    u.onend = () => { this.hablando = false; this._procesar(); };
+    u.onerror = () => { this.hablando = false; this._procesar(); };
+    window.speechSynthesis.speak(u);
+  }
+};
+
+/* ---------- VIBRACIÓN por tipo de evento ---------- */
+const Patrones = { disparo:[40], impacto:[100], explosion:[200,80,200], alerta:[80,40,80,40,80], misilEntrante:[60,60,60,60,60,60], victoria:[200,100,200,100,300], derrota:[400,150,400], critico:[300,100,300,100,300] };
+const Vibrar = (tipo) => { if(!Config.vibracion) return; if('vibrate' in navigator){ try{ navigator.vibrate(Patrones[tipo]||[60]); }catch(e){} } };
+
+/* ---------- AUDIO: pistas continuas + efectos ---------- */
+const Config = { musica:0.3, efectos:0.6, vibracion:true };
+const Audio2 = {
+  pistas:{},
+  setVolumen(tipo, v){ Config[tipo] = parseFloat(v); Object.values(this.pistas).forEach(a=>a.volume=Config.musica); },
+  continuo(nombre, archivo, base){
+    if (this.pistas[nombre]) return;
+    try{ const a = new Audio(AUDIO_BASE+archivo); a.loop=true; a.volume = base*Config.musica; a.play().catch(()=>{}); this.pistas[nombre]=a; }catch(e){}
+  },
+  detener(nombre){ if(this.pistas[nombre]){ this.pistas[nombre].pause(); delete this.pistas[nombre]; } },
+  duck(factor){ Object.values(this.pistas).forEach(a => a.volume = a.volume*factor); },
+  efecto(archivo){ if(!archivo) return; try{ const a = new Audio(AUDIO_BASE+archivo); a.volume = Config.efectos; a.play().catch(()=>{}); }catch(e){} }
+};
+
+/* ---------- UI: navegación de pantallas ---------- */
+const UI = {
+  open(id){
+    Audio2.efecto(SFX.seleccion);
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    const p = document.getElementById(id);
+    p.classList.add('active');
+    const f = p.querySelector('button, summary, input, select');
+    if (f) f.focus();
+  },
+  close(id){ Audio2.efecto(SFX.teclado); document.getElementById(id).classList.remove('active'); UI.open('s-hud'); },
+  toggleVibracion(){ Config.vibracion = !Config.vibracion; document.getElementById('vib-estado').innerText = Config.vibracion?'activada':'desactivada'; Voz.decir(Config.vibracion?'Vibración activada':'Vibración desactivada','normal'); }
+};
+
+/* ---------- DEFINICIÓN DE ARMAS (independientes) ---------- */
+function crearArma(def){ return Object.assign({municionActual:def.municionMax, recargando:false}, def); }
+const ARMAS_BASE = {
+  canon:{ id:'canon', label:'Cañón Naval', municionMax:100, alcanceKm:8, danoMin:10, danoMax:22, recargaMs:1200, precisionBase:0.75, sonidoDisparo:SFX.disparo, tipos:['naval','costero'] },
+  ametralladora:{ id:'ametralladora', label:'Ametralladora', municionMax:500, alcanceKm:2, danoMin:4, danoMax:10, recargaMs:400, precisionBase:0.65, sonidoSel:SFX.ametralladoraSel, sonidoDisparo:SFX.ametralladoraFuego, sonidoExtra:SFX.trazadoras, tipos:['aereo','naval'] },
+  torreta:{ id:'torreta', label:'Torreta Principal', municionMax:60, alcanceKm:6, danoMin:14, danoMax:24, recargaMs:1000, precisionBase:0.7, sonidoDisparo:SFX.torreta, tipos:['naval','costero'] },
+  misil:{ id:'misil', label:'Misil Aire-Aire', municionMax:12, alcanceKm:15, danoMin:22, danoMax:38, recargaMs:2500, precisionBase:0.8, sonidoSel:SFX.misilAireSel, sonidoDisparo:SFX.misilAireLanz, tipos:['aereo'] },
+  misilCrucero:{ id:'misilCrucero', label:'Misil de Crucero', municionMax:6, alcanceKm:40, danoMin:32, danoMax:52, recargaMs:4000, precisionBase:0.85, sonidoSel:SFX.misilCruceroListo, sonidoDisparo:SFX.misilCruceroLanz, tipos:['naval','costero'] },
+  bomba:{ id:'bomba', label:'Bomba de Precisión', municionMax:20, alcanceKm:5, danoMin:28, danoMax:48, recargaMs:1800, precisionBase:0.72, sonidoSel:SFX.bombaPrecisionSel, sonidoDisparo:SFX.bombaPrecisionLanz, tipos:['naval','costero'] },
+  torpedo:{ id:'torpedo', label:'Torpedo', municionMax:8, alcanceKm:6, danoMin:28, danoMax:44, recargaMs:3000, precisionBase:0.65, sonidoDisparo:SFX.misilGenerico, sonidoImpacto:SFX.torpedoImpacto, sonidoFallo:SFX.torpedoFalla, tipos:['naval'] },
+  antiaerea:{ id:'antiaerea', label:'Batería Antiaérea', municionMax:30, alcanceKm:10, danoMin:18, danoMax:32, recargaMs:1500, precisionBase:0.7, sonidoDisparo:SFX.bateriaAntiaerea, tipos:['aereo'] }
+};
+function clonarArmas(ids){ const o={}; ids.forEach(id => o[id]=crearArma(ARMAS_BASE[id])); return o; }
+
+/* ---------- UNIDADES JUGABLES ---------- */
+function nuevaUnidad(base){
+  return Object.assign({
+    casco:100, cascoMax:100, motores:100, radar:100, comunicaciones:100, defensaAntiaerea:100,
+    combustible:100, combustibleMax:100, destruida:false, estadoVuelo:'hangar'
+  }, base);
+}
+
+let Flota = {};
+function crearFlotaInicial(){
+  Flota = {
+    portaaviones: nuevaUnidad({ id:'portaaviones', nombre:'Portaaviones Insignia', tipo:'naval', esBase:true, armas: clonarArmas(['canon','ametralladora','misilCrucero','antiaerea']) }),
+    destructor: nuevaUnidad({ id:'destructor', nombre:'Destructor 1', tipo:'naval', estado:'enBase', armas: clonarArmas(['canon','misilCrucero','torpedo','antiaerea']) }),
+    f35: nuevaUnidad({ id:'f35', nombre:'F-35 Uno', tipo:'aereo', combustibleMax:60, combustible:60, armas: clonarArmas(['ametralladora','misil','bomba']) }),
+    b21: nuevaUnidad({ id:'b21', nombre:'B-21 Raider Uno', tipo:'aereo', combustibleMax:80, combustible:80, armas: clonarArmas(['bomba','misilCrucero']) })
+  };
+}
+let unidadActivaId = 'portaaviones';
+function unidadActiva(){ return Flota[unidadActivaId]; }
+
+/* ---------- ESTADO GENERAL DEL JUEGO ---------- */
+let Estado = {
+  nivel:1, experiencia:0, dinero:1200, minerales:350, piezas:20,
+  victorias:0, derrotas:0, misiones:0, conquistados:{}, pausado:false
+};
+
+function sanear(){
+  Estado.dinero = Math.max(0, Math.round(Estado.dinero)||0);
+  Estado.minerales = Math.max(0, Math.round(Estado.minerales)||0);
+  Estado.piezas = Math.max(0, Math.round(Estado.piezas)||0);
+  Estado.nivel = Math.max(1, Math.round(Estado.nivel)||1);
+  Estado.experiencia = Math.max(0, Math.round(Estado.experiencia)||0);
+  Object.values(Flota).forEach(u=>{
+    u.casco = Math.min(u.cascoMax, Math.max(0, u.casco));
+    u.motores = Math.min(100, Math.max(0, u.motores));
+    u.radar = Math.min(100, Math.max(0, u.radar));
+    u.defensaAntiaerea = Math.min(100, Math.max(0, u.defensaAntiaerea));
+    u.combustible = Math.min(u.combustibleMax, Math.max(0, u.combustible));
+    Object.values(u.armas).forEach(a => a.municionActual = Math.min(a.municionMax, Math.max(0, a.municionActual)));
+  });
+}
+
+/* ---------- GUARDADO ---------- */
+const Juego = {
+  guardar(anunciar){
+    try{
+      localStorage.setItem('AeroOceanModernWar_estado', JSON.stringify(Estado));
+      localStorage.setItem('AeroOceanModernWar_flota', JSON.stringify(Flota));
+      if (anunciar) Voz.decir('Progreso guardado correctamente.', 'normal');
+    }catch(e){ if(anunciar) Voz.decir('No se pudo guardar el progreso.', 'urgente'); }
+  },
+  cargar(){
+    crearFlotaInicial();
+    try{
+      const e = localStorage.getItem('AeroOceanModernWar_estado');
+      const f = localStorage.getItem('AeroOceanModernWar_flota');
+      if (e) Estado = Object.assign(Estado, JSON.parse(e));
+      if (f) Flota = Object.assign(Flota, JSON.parse(f));
+    }catch(err){}
+    sanear();
+  },
+  borrarProgreso(){
+    localStorage.removeItem('AeroOceanModernWar_estado');
+    localStorage.removeItem('AeroOceanModernWar_flota');
+    location.reload();
+  },
+  pausar(){
+    Estado.pausado = !Estado.pausado;
+    if (Estado.pausado){ Audio2.duck(0.15); Voz.decir('Juego en pausa.', 'urgente'); }
+    else { Voz.decir('Juego reanudado.', 'normal'); }
+  }
+};
+
+/* ---------- HUD ---------- */
+const HUD = {
+  render(){
+    const u = unidadActiva();
+    const resumen = document.getElementById('hud-resumen');
+    if (resumen) resumen.innerHTML = `Nivel ${Estado.nivel} | Dinero $${Estado.dinero} | Minerales ${Estado.minerales} | Piezas ${Estado.piezas} | Unidad activa: <strong>${u.nombre}</strong>`;
+    const lista = document.getElementById('hud-unidades');
+    if (!lista) return;
+    lista.innerHTML = '';
+    Object.values(Flota).forEach(un => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `<div class="card-info"><strong>${un.nombre}${un.id===unidadActivaId?' (activa)':''}</strong>
+        <span class="tag">Casco ${un.casco}% | Combustible ${un.combustible}% | ${un.destruida?'Destruida':(un.estadoVuelo||un.estado||'operativa')}</span></div>`;
+      lista.appendChild(card);
+    });
+  },
+  anunciarCompleto(){
+    const u = unidadActiva();
+    const texto = `${u.nombre}. Integridad de casco ${u.casco} por ciento. Motores al ${u.motores} por ciento. Radar al ${u.radar} por ciento. Defensa antiaérea al ${u.defensaAntiaerea} por ciento. Combustible ${u.combustible} por ciento. Nivel de capitán ${Estado.nivel}. Dinero ${Estado.dinero} dólares. Minerales ${Estado.minerales}.`;
+    Voz.decir(texto, 'urgente');
+  }
+};
+
+/* ---------- MERCADO Y TALLER ---------- */
+const Mercado = {
+  precios:{ combustible:2, canon:5, ametralladora:1, misil:60, misilCrucero:120, bomba:70, torpedo:90, antiaerea:40, torreta:8 },
+  render(){
+    const u = unidadActiva();
+    const cont = document.getElementById('market-list');
+    cont.innerHTML = '';
+    const filaComb = document.createElement('div');
+    filaComb.className = 'card';
+    filaComb.innerHTML = `<div class="card-info"><strong>Combustible de ${u.nombre}</strong><span class="tag">${u.combustible}/${u.combustibleMax} — $${this.precios.combustible} por unidad</span></div>
+      <button aria-label="Comprar 20 de combustible" onclick="Mercado.comprarCombustible(20)">Comprar 20</button>`;
+    cont.appendChild(filaComb);
+    Object.values(u.armas).forEach(a => {
+      const precio = this.precios[a.id] || 10;
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `<div class="card-info"><strong>${a.label}</strong><span class="tag">${a.municionActual}/${a.municionMax} — $${precio} por unidad de munición</span></div>
+        <button aria-label="Comprar munición de ${a.label}" onclick="Mercado.comprarMunicion('${a.id}')">Comprar 10</button>`;
+      cont.appendChild(card);
+    });
+  },
+  comprarCombustible(cant){
+    const u = unidadActiva();
+    const costo = cant*this.precios.combustible;
+    if (Estado.dinero < costo){ Voz.decir('Fondos insuficientes.', 'normal'); return; }
+    Estado.dinero -= costo;
+    u.combustible = Math.min(u.combustibleMax, u.combustible+cant);
+    Audio2.efecto(SFX.moneda); setTimeout(()=>Audio2.efecto(SFX.reabastecimiento),400);
+    Voz.decir(`Combustible reabastecido en ${u.nombre}.`,'normal');
+    HUD.render(); Mercado.render(); Juego.guardar(false);
+  },
+  comprarMunicion(armaId){
+    const u = unidadActiva();
+    const a = u.armas[armaId];
+    if (!a) return;
+    const cant = Math.min(10, a.municionMax-a.municionActual);
+    if (cant<=0){ Voz.decir('Munición al máximo.','normal'); return; }
+    const costo = cant*(this.precios[armaId]||10);
+    if (Estado.dinero < costo){ Voz.decir('Fondos insuficientes.','normal'); return; }
+    Estado.dinero -= costo;
+    a.municionActual += cant;
+    Audio2.efecto(SFX.moneda); setTimeout(()=>Audio2.efecto(SFX.reabastecimiento),400);
+    Voz.decir(`Munición de ${a.label} reabastecida.`,'normal');
+    HUD.render(); Mercado.render(); Juego.guardar(false);
+  }
+};
+
+const Taller = {
+  costoPorSistema:{ casco:3, motores:2, radar:2, defensaAntiaerea:2, comunicaciones:2 },
+  render(){
+    const u = unidadActiva();
+    const cont = document.getElementById('taller-list');
+    cont.innerHTML = '';
+    ['casco','motores','radar','defensaAntiaerea','comunicaciones'].forEach(sis => {
+      if (!(sis in u)) return;
+      const card = document.createElement('div');
+      card.className = 'card';
+      const costo = Math.max(1, Math.round((100-u[sis])*this.costoPorSistema[sis]/10));
+      card.innerHTML = `<div class="card-info"><strong>${sis}</strong><span class="tag">${Math.round(u[sis])}% — costo estimado ${costo} minerales</span></div>
+        <button aria-label="Reparar ${sis} de ${u.nombre}" onclick="Taller.reparar('${sis}')">Reparar</button>`;
+      cont.appendChild(card);
+    });
+  },
+  reparar(sistema){
+    const u = unidadActiva();
+    if (u[sistema] >= 100){ Voz.decir('Sistema ya está al cien por ciento.','normal'); return; }
+    const costo = Math.max(1, Math.round((100-u[sistema])*this.costoPorSistema[sistema]/10));
+    if (Estado.minerales < costo){ Voz.decir('Minerales insuficientes.','normal'); return; }
+    Estado.minerales -= costo;
+    u[sistema] = 100;
+    Audio2.efecto(SFX.moneda); setTimeout(()=>Audio2.efecto(SFX.reabastecimiento),400);
+    Voz.decir(`${sistema} de ${u.nombre} reparado al cien por ciento.`,'normal');
+    HUD.render(); Taller.render(); Juego.guardar(false);
+  }
+};
+
+/* ---------- VEHÍCULOS: despliegue, vuelo, aterrizaje ---------- */
+const Vehiculos = {
+  render(){
+    const cont = document.getElementById('vehiculos-list');
+    cont.innerHTML = '';
+    Object.values(Flota).forEach(u => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      let controles = `<button aria-label="Seleccionar ${u.nombre} como unidad activa" onclick="Vehiculos.seleccionar('${u.id}')">Seleccionar</button>`;
+      if (u.tipo === 'aereo' && !u.destruida) {
+        if (u.estadoVuelo === 'hangar') controles += `<button onclick="Vehiculos.despegar('${u.id}')">Despegar</button>`;
+        if (['envuelo','encombate'].includes(u.estadoVuelo)) controles += `<button onclick="Vehiculos.regresar('${u.id}')">Regresar al portaaviones</button>`;
+        if (u.estadoVuelo === 'aproximacion') controles += `<button onclick="Vehiculos.aterrizar('${u.id}')">Aterrizar</button>`;
+      }
+      card.innerHTML = `<div class="card-info"><strong>${u.nombre}${u.id===unidadActivaId?' (activa)':''}</strong>
+        <span class="tag">Estado: ${u.destruida?'destruida':(u.estadoVuelo||u.estado||'operativa')} | Casco ${u.casco}% | Combustible ${u.combustible}%</span></div>
+        <div class="btn-row">${controles}</div>`;
+      cont.appendChild(card);
+    });
+  },
+  seleccionar(id){
+    if (Flota[id].destruida){ Voz.decir('Esa unidad está destruida.','normal'); return; }
+    unidadActivaId = id;
+    Audio2.efecto(SFX.seleccion);
+    Voz.decir(`Unidad activa: ${Flota[id].nombre}.`,'normal');
+    HUD.render(); Vehiculos.render();
+  },
+  despegar(id){
+    const u = Flota[id];
+    if (u.combustible < 15){ Voz.decir(`${u.nombre} no tiene combustible suficiente para despegar.`,'urgente'); return; }
+    u.estadoVuelo = 'preparando';
+    Audio2.efecto(id==='f35'?SFX.f35Desplegado:SFX.b21Desplegado);
+    setTimeout(()=>{
+      u.estadoVuelo = 'envuelo';
+      if (id==='f35'){ Audio2.efecto(SFX.f35Listo); setTimeout(()=>Audio2.efecto(SFX.f35ArmasListas),500); Audio2.continuo(id, SFX.f35Ambiente, 0.3); }
+      else { Audio2.efecto(SFX.b21ArmasListas); Audio2.continuo(id, SFX.bombardeoSonido, 0.3); }
+      Voz.decir(`${u.nombre} en vuelo.`,'normal');
+      Vehiculos.render(); HUD.render();
+    }, 900);
+  },
+  regresar(id){
+    const u = Flota[id];
+    u.estadoVuelo = 'regresando';
+    Audio2.efecto(id==='b21'?SFX.b21Regresando:SFX.f35EnRuta);
+    setTimeout(()=>{ u.estadoVuelo = 'aproximacion'; Voz.decir(`${u.nombre} en aproximación al portaaviones.`,'normal'); Vehiculos.render(); }, 1200);
+  },
+  aterrizar(id){
+    const u = Flota[id];
+    if (Flota.portaaviones.destruida){ Voz.decir('El portaaviones está destruido. No hay plataforma para aterrizar.','urgente'); return; }
+    u.estadoVuelo = 'aterrizando';
+    setTimeout(()=>{
+      u.estadoVuelo = 'hangar';
+      Audio2.detener(id);
+      Audio2.efecto(id==='b21'?SFX.b21Aterrizado:SFX.aterrizaje);
+      Voz.decir(`${u.nombre} aterrizado y asegurado.`,'normal');
+      Vehiculos.render(); HUD.render(); Juego.guardar(false);
+    }, 800);
+  }
+};
+
+/* ---------- RECOMENDACIÓN TÁCTICA ---------- */
+function recomendarVehiculo(){
+  const op = [SFX.b21Recomendado, SFX.destructorRecomendado];
+  Audio2.efecto(op[Math.floor(Math.random()*op.length)]);
+}
+
+/* ---------- RANKING (local) ---------- */
+const Ranking = {
+  render(){
+    const cont = document.getElementById('ranking-list');
+    cont.innerHTML = '';
+    const local = [{nombre:'Capitán (tú)', puntos:Estado.experiencia, territorios:Object.keys(Estado.conquistados).length}];
+    local.forEach((c,i) => {
+      const card = document.createElement('div');
+      card.className='card';
+      card.innerHTML = `<div class="card-info"><strong>#${i+1} - ${c.nombre}</strong><span class="tag">Experiencia: ${c.puntos} | Territorios: ${c.territorios}</span></div>`;
+      cont.appendChild(card);
+    });
+  }
+};
+
+/* =========================================================
+   MAPA MUNDIAL (completo, con conquista persistente)
+   ========================================================= */
+const worldData = {
+"América":{"América del Norte":[{nombre:"Canadá",tipo:"País",dinero:800,minerales:350},{nombre:"Estados Unidos",tipo:"País",dinero:1200,minerales:500},{nombre:"México",tipo:"País",dinero:700,minerales:300},{nombre:"Groenlandia",tipo:"Isla",dinero:500,minerales:600}],
+"América Central":[{nombre:"Costa Rica",tipo:"País",dinero:550,minerales:220},{nombre:"Panamá",tipo:"País",dinero:650,minerales:280},{nombre:"Guatemala",tipo:"País",dinero:500,minerales:230}],
+"El Caribe":[{nombre:"Cuba",tipo:"Isla",dinero:550,minerales:240},{nombre:"Jamaica",tipo:"Isla",dinero:450,minerales:210},{nombre:"República Dominicana",tipo:"País",dinero:520,minerales:230}],
+"América del Sur":[{nombre:"Brasil",tipo:"País",dinero:1100,minerales:550},{nombre:"Argentina",tipo:"País",dinero:850,minerales:420},{nombre:"Chile",tipo:"País",dinero:750,minerales:600},{nombre:"Colombia",tipo:"País",dinero:700,minerales:380},{nombre:"Perú",tipo:"País",dinero:680,minerales:490}]},
+"Europa":{"Europa Occidental":[{nombre:"Alemania",tipo:"País",dinero:1050,minerales:400},{nombre:"Francia",tipo:"País",dinero:1000,minerales:380},{nombre:"Reino Unido",tipo:"Isla",dinero:1000,minerales:350}],
+"Europa del Norte":[{nombre:"Noruega",tipo:"País",dinero:950,minerales:500},{nombre:"Suecia",tipo:"País",dinero:880,minerales:420},{nombre:"Islandia",tipo:"Isla",dinero:600,minerales:380}],
+"Europa del Sur":[{nombre:"España",tipo:"País",dinero:900,minerales:350},{nombre:"Italia",tipo:"País",dinero:950,minerales:360},{nombre:"Grecia",tipo:"País",dinero:650,minerales:270}],
+"Europa Oriental":[{nombre:"Rusia (Parte Europea)",tipo:"País",dinero:1100,minerales:650},{nombre:"Polonia",tipo:"País",dinero:780,minerales:370},{nombre:"Ucrania",tipo:"País",dinero:650,minerales:450}]},
+"Asia":{"Asia Oriental":[{nombre:"China",tipo:"País",dinero:1300,minerales:650},{nombre:"Japón",tipo:"Archipiélago",dinero:1150,minerales:400},{nombre:"Corea del Sur",tipo:"País",dinero:950,minerales:380}],
+"Sudeste Asiático":[{nombre:"Indonesia",tipo:"Archipiélago",dinero:850,minerales:500},{nombre:"Filipinas",tipo:"Archipiélago",dinero:750,minerales:380},{nombre:"Vietnam",tipo:"País",dinero:680,minerales:340}],
+"Sur de Asia":[{nombre:"India",tipo:"País",dinero:1100,minerales:520},{nombre:"Pakistán",tipo:"País",dinero:650,minerales:380}],
+"Oriente Medio":[{nombre:"Arabia Saudita",tipo:"País",dinero:1100,minerales:600},{nombre:"Emiratos Árabes Unidos",tipo:"País",dinero:1050,minerales:450},{nombre:"Irán",tipo:"País",dinero:800,minerales:520}]},
+"África":{"África del Norte":[{nombre:"Egipto",tipo:"País",dinero:750,minerales:380},{nombre:"Argelia",tipo:"País",dinero:700,minerales:450},{nombre:"Marruecos",tipo:"País",dinero:650,minerales:320}],
+"África Occidental":[{nombre:"Nigeria",tipo:"País",dinero:850,minerales:520},{nombre:"Ghana",tipo:"País",dinero:580,minerales:360}],
+"África Oriental":[{nombre:"Kenia",tipo:"País",dinero:600,minerales:320},{nombre:"Etiopía",tipo:"País",dinero:550,minerales:300}],
+"África Central y del Sur":[{nombre:"Sudáfrica",tipo:"País",dinero:850,minerales:580},{nombre:"Angola",tipo:"País",dinero:650,minerales:480}]},
+"Oceanía":{"Australasia":[{nombre:"Australia",tipo:"País",dinero:1100,minerales:600},{nombre:"Nueva Zelanda",tipo:"Isla",dinero:800,minerales:350}],
+"Melanesia":[{nombre:"Papúa Nueva Guinea",tipo:"País",dinero:550,minerales:420},{nombre:"Fiyi",tipo:"Archipiélago",dinero:480,minerales:220}],
+"Micronesia":[{nombre:"Guam",tipo:"Isla",dinero:420,minerales:180}],
+"Polinesia":[{nombre:"Hawái",tipo:"Archipiélago",dinero:750,minerales:280},{nombre:"Samoa",tipo:"Archipiélago",dinero:370,minerales:170}]}
+};
+
+let mapNivel='continentes', mapContinente='', mapSubregion='';
+const Mapa = {
+  mostrarContinentes(){
+    mapNivel='continentes';
+    document.getElementById('mapTitle').innerText='🌍 MAPA MUNDIAL';
+    document.getElementById('breadcrumb').innerText='Continentes habitados';
+    document.getElementById('btnMapBack').style.display='none';
+    const l = document.getElementById('mapList'); l.innerHTML='';
+    Object.keys(worldData).forEach(c=>{
+      const card=document.createElement('div'); card.className='card';
+      card.innerHTML=`<div class="card-info"><strong>${c}</strong><span class="tag">Región de conquista</span></div>
+        <button aria-label="Explorar continente ${c}" onclick="Audio2.efecto(SFX.nuevaMision); Mapa.subregiones('${c}')">Explorar ${c}</button>`;
+      l.appendChild(card);
+    });
+    const b=l.querySelector('button'); if(b) b.focus();
+  },
+  subregiones(c){
+    mapNivel='subregiones'; mapContinente=c;
+    document.getElementById('mapTitle').innerText=`🌍 ${c.toUpperCase()}`;
+    document.getElementById('breadcrumb').innerText=`${c} > Subregiones`;
+    document.getElementById('btnMapBack').style.display='inline-block';
+    const l=document.getElementById('mapList'); l.innerHTML='';
+    Object.keys(worldData[c]).forEach(s=>{
+      const card=document.createElement('div'); card.className='card';
+      card.innerHTML=`<div class="card-info"><strong>${s}</strong><span class="tag">Zona operativa</span></div>
+        <button aria-label="Ver objetivos de ${s}" onclick="Audio2.efecto(SFX.seleccion); Mapa.territorios('${s}')">Ver objetivos de ${s}</button>`;
+      l.appendChild(card);
+    });
+    Voz.decir(`Continente ${c} seleccionado.`,'normal');
+    const b=l.querySelector('button'); if(b) b.focus();
+  },
+  territorios(s){
+    mapNivel='territorios'; mapSubregion=s;
+    document.getElementById('mapTitle').innerText=`📍 ${s.toUpperCase()}`;
+    document.getElementById('breadcrumb').innerText=`${mapContinente} > ${s} > Objetivos`;
+    const l=document.getElementById('mapList'); l.innerHTML='';
+    worldData[mapContinente][s].forEach(t=>{
+      const key = `${mapContinente}|${s}|${t.nombre}`;
+      const conquistado = !!Estado.conquistados[key];
+      const defensa = t.tipo==='País'?'Guarnición Nacional':(t.tipo==='Isla'?'Batería Costera':'Flotilla de Patrulla');
+      const card=document.createElement('div'); card.className='card';
+      card.innerHTML=`<div class="card-info"><strong>${t.nombre} (${t.tipo})</strong>
+        <span class="tag ${conquistado?'conquered':''}">${conquistado?'Conquistado':'Recompensa: $'+t.dinero+' | 💎 '+t.minerales+' | Defensa: '+defensa}</span></div>
+        <button aria-label="Atacar ${t.nombre}" ${conquistado?'disabled':''} onclick="Mision.iniciar('${key}','${t.nombre}',${t.dinero},${t.minerales},'${defensa}')">${conquistado?'Ya conquistado':'Navegar hacia objetivo'}</button>`;
+      l.appendChild(card);
+    });
+    Voz.decir(`Región ${s}. Mostrando objetivos.`,'normal');
+    const b=l.querySelector('button:not([disabled])'); if(b) b.focus();
+  },
+  retroceder(){
+    Audio2.efecto(SFX.teclado);
+    if (mapNivel==='territorios') Mapa.subregiones(mapContinente);
+    else Mapa.mostrarContinentes();
+  }
+};
+
+/* =========================================================
+   MISIÓN: navegación manual, radar, combate, IA enemiga
+   ========================================================= */
+let Nav = null;      // {rumboActual, rumboObjetivo, velocidad, distanciaKm}
+let Radar = [];       // contactos
+let Enemigo = null;   // unidad enemiga generada para la misión
+let misionActual = null;
+let tickInterval = null;
+let iaInterval = null;
+
+const Mision = {
+  iniciar(key, nombre, dinero, minerales, defensa){
+    const u = unidadActiva();
+    if (u.combustible < 20){ Voz.decir(`${u.nombre} no tiene combustible suficiente para zarpar.`,'urgente'); return; }
+    misionActual = { key, nombre, dinero, minerales, defensa, fase:'navegacion' };
+    Nav = { rumboActual: Math.floor(Math.random()*360), rumboObjetivo: Math.floor(Math.random()*360), velocidad:0, distanciaKm: 40+Math.floor(Math.random()*40) };
+    Radar = Mision.generarContactos(defensa);
+    Enemigo = Mision.generarEnemigo(defensa, dinero);
+
+    Audio2.efecto(SFX.enemigoDetectado);
+    UI.open('s-mision');
+    document.getElementById('misionTitle').innerText = `Ruta a ${nombre}`;
+    Voz.decir(`Rumbo establecido hacia ${nombre}. Usa los controles de navegación para avanzar.`,'urgente');
+    Mision.renderNavegacion();
+
+    clearInterval(tickInterval);
+    tickInterval = setInterval(Mision.tick, 1000);
+  },
+  generarContactos(defensa){
+    const n = 2+Math.floor(Math.random()*2);
+    const tipos = ['buque enemigo','avión enemigo','mina naval','base costera'];
+    const arr = [];
+    for(let i=0;i<n;i++){
+      arr.push({ tipo: tipos[Math.floor(Math.random()*tipos.length)], distancia: 5+Math.floor(Math.random()*20), rumbo: Math.floor(Math.random()*360), avisado:false });
+    }
+    return arr;
+  },
+  generarEnemigo(defensa, dinero){
+    const dificultad = Math.min(3, Math.max(1, Math.round(dinero/500)));
+    const esNaval = defensa !== 'Batería Costera';
+    return {
+      nombre: defensa, casco:100, cascoMax:100,
+      danoMin: 6*dificultad, danoMax: 12*dificultad,
+      precision: 0.4 + dificultad*0.08,
+      tipo: esNaval ? 'naval' : 'costero',
+      alcanceKm: esNaval ? 8 : 12,
+      destruido:false
+    };
+  },
+  renderNavegacion(){
+    const u = unidadActiva();
+    const body = document.getElementById('misionBody');
+    body.innerHTML = `
+      <div class="status" aria-live="polite">Rumbo actual: ${Nav.rumboActual}° | Rumbo al objetivo: ${Nav.rumboObjetivo}° | Velocidad: ${Nav.velocidad} nudos | Distancia: ${Nav.distanciaKm} km | Combustible: ${u.combustible}%</div>
+      <div class="panel">
+        <div class="btn-row">
+          <button onclick="Mision.girar(-15)">Girar izquierda</button>
+          <button onclick="Mision.girar(15)">Girar derecha</button>
+          <button onclick="Mision.mantenerRumbo()">Mantener rumbo hacia objetivo</button>
+          <button onclick="Mision.cambiarVelocidad(5)">Acelerar</button>
+          <button onclick="Mision.cambiarVelocidad(-5)">Reducir velocidad</button>
+          <button onclick="Mision.cambiarVelocidad(-99)">Detener</button>
+          <button onclick="Mision.consultarRadar()">Consultar radar</button>
+          <button onclick="Mision.consultarNav()">Consultar rumbo y distancia</button>
         </div>
-    </header>
+      </div>
+      <div class="panel" id="radar-panel"></div>
+    `;
+    Mision.renderRadar();
+  },
+  renderRadar(){
+    const p = document.getElementById('radar-panel');
+    if (!p) return;
+    p.innerHTML = '<strong>Radar</strong>' + Radar.map((c,i)=>`<div class="sysbar"><span>Contacto ${i+1}: ${c.tipo}</span><span>${c.distancia} km, rumbo ${c.rumbo}°</span></div>`).join('');
+  },
+  girar(delta){
+    Audio2.efecto(SFX.teclado);
+    Nav.rumboActual = ((Nav.rumboActual + delta) % 360 + 360) % 360;
+    Mision.renderNavegacion();
+  },
+  mantenerRumbo(){ Nav.rumboActual = Nav.rumboObjetivo; Voz.decir('Rumbo fijado hacia el objetivo.','normal'); Mision.renderNavegacion(); },
+  cambiarVelocidad(delta){
+    if (delta === -99) Nav.velocidad = 0;
+    else Nav.velocidad = Math.max(0, Math.min(30, Nav.velocidad+delta));
+    Mision.renderNavegacion();
+  },
+  consultarRadar(){
+    if (Radar.length===0){ Voz.decir('Radar. Sin contactos detectados.','urgente'); return; }
+    let texto = 'Radar. ';
+    Radar.forEach((c,i)=> texto += `Contacto ${i+1}: ${c.tipo}, distancia ${c.distancia} kilómetros, rumbo ${c.rumbo} grados. `);
+    Voz.decir(texto,'urgente');
+  },
+  consultarNav(){
+    Voz.decir(`Rumbo actual ${Nav.rumboActual} grados. Objetivo a ${Nav.distanciaKm} kilómetros, rumbo ${Nav.rumboObjetivo} grados. Velocidad ${Nav.velocidad} nudos.`,'urgente');
+  },
+  tick(){
+    if (Estado.pausado || !misionActual) return;
+    const u = unidadActiva();
 
-    <main id="viewport">
-        <div id="main-hud" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-            <h1 style="color: var(--accent-color); margin-bottom: 10px;">PORTAAVIONES INSIGNIA (BASE)</h1>
-            <div class="status-display" id="hud-status">Cargando estado táctico...</div>
-            <div class="btn-group-horizontal" style="margin-top: 15px;">
-                <button onclick="openScreen('menu-mapas'); mostrarContinentes();" style="background-color: var(--danger-color);">¡Iniciar Misiones de Conquista!</button>
-                <button onclick="guardarProgreso()">Guardar Partida</button>
-            </div>
+    if (misionActual.fase === 'navegacion'){
+      if (Nav.velocidad > 0){
+        u.combustible = Math.max(0, u.combustible - 0.4);
+        const diff = Math.abs(((Nav.rumboActual - Nav.rumboObjetivo + 540) % 360) - 180);
+        const factor = Math.max(0.15, Math.cos(diff*Math.PI/180));
+        Nav.distanciaKm = Math.max(0, Nav.distanciaKm - (Nav.velocidad*0.05*factor));
+        if (u.combustible <= 15) Voz.decir('Advertencia: combustible bajo.','urgente');
+      }
+      Radar.forEach(c=>{
+        if (c.distancia > 0) c.distancia = Math.max(0, c.distancia - (Nav.velocidad*0.03));
+        if (c.distancia <= 3 && !c.avisado){ c.avisado=true; Audio2.efecto(SFX.contactoRadar); Voz.decir(`Contacto próximo: ${c.tipo} a corta distancia.`,'urgente'); }
+      });
+      Mision.renderNavegacion();
+      if (Nav.distanciaKm <= 0){
+        Audio2.efecto(SFX.llegadaCombate);
+        Mision.entrarCombate();
+      }
+    } else if (misionActual.fase === 'combate'){
+      HUD.render();
+    }
+  },
+  entrarCombate(){
+    misionActual.fase='combate';
+    clearInterval(tickInterval);
+    Audio2.duck(0.3);
+    Audio2.efecto(SFX.objetivoIdentificado);
+    setTimeout(()=>Audio2.efecto(SFX.alarmaAtaque),500);
+    setTimeout(()=>Audio2.efecto(SFX.combateIniciado),1100);
+    setTimeout(()=>Audio2.efecto(Math.random()<0.5?SFX.seleccionaArma:SFX.seleccionaArmamento),1900);
+    Voz.decir(`Combate iniciado contra ${Enemigo.nombre}.`,'urgente');
+    Mision.renderCombate();
+    iaInterval = setInterval(Mision.turnoIA, 3200);
+  },
+  renderCombate(){
+    const u = unidadActiva();
+    const body = document.getElementById('misionBody');
+    document.getElementById('misionTitle').innerText = `Combate: ${misionActual.nombre}`;
+    const armasHtml = Object.values(u.armas).filter(a=>a.tipos.includes(Enemigo.tipo)).map(a => {
+      const enAlcance = true;
+      const sinMunicion = a.municionActual<=0;
+      return `<button ${a.recargando||sinMunicion?'disabled':''} aria-label="Disparar ${a.label}, munición ${a.municionActual} de ${a.municionMax}" onclick="Mision.disparar('${a.id}')">${a.label} (${a.municionActual})</button>`;
+    }).join('');
+    body.innerHTML = `
+      <div class="status" aria-live="polite">Enemigo: ${Enemigo.nombre} — Casco ${Enemigo.casco}%</div>
+      <div class="panel combat">
+        <div class="btn-row">${armasHtml}</div>
+        <div class="btn-row" style="margin-top:8px;">
+          <button onclick="Mision.consultarAmenazas()">Consultar amenazas</button>
+          <button onclick="Mision.maniobrar()">Maniobra evasiva</button>
+          <button class="danger" onclick="Mision.retirarse()">Retirarse</button>
         </div>
+      </div>
+      <div class="panel">
+        <div class="sysbar"><span>Casco propio</span><span>${u.casco}%</span></div>
+        <div class="sysbar"><span>Motores</span><span>${u.motores}%</span></div>
+        <div class="sysbar"><span>Radar</span><span>${u.radar}%</span></div>
+        <div class="sysbar"><span>Defensa antiaérea</span><span>${u.defensaAntiaerea}%</span></div>
+      </div>
+    `;
+  },
+  disparar(armaId){
+    const u = unidadActiva();
+    const a = u.armas[armaId];
+    if (!a || a.recargando || a.municionActual<=0){ Audio2.efecto(SFX.sinBala); return; }
+    a.municionActual--;
+    a.recargando = true;
+    if (a.sonidoSel) Audio2.efecto(a.sonidoSel);
+    Audio2.efecto(a.sonidoDisparo);
+    if (a.sonidoExtra) setTimeout(()=>Audio2.efecto(a.sonidoExtra),150);
+    Vibrar('disparo');
 
-        <section id="menu-ajustes" class="screen-panel" aria-label="Menú de Ajustes">
-            <h2>Ajustes del Juego</h2>
-            <div class="top-bar"><button onclick="closeScreen('menu-ajustes')">Regresar</button></div>
-            <br>
-            <details>
-                <summary onclick="playSFX('alerta.mp3')">Opciones de Cuenta</summary>
-                <div class="dropdown-content">
-                    <button onclick="triggerTTS('Perfil de Capitán activo')">Ver Perfil</button>
-                    <button onclick="borrarProgreso()" style="border-color: var(--danger-color); color: var(--danger-color);">Borrar Progreso Guardado</button>
-                </div>
-            </details>
-            <details>
-                <summary onclick="playSFX('alerta.mp3')">Sonido y Vibración</summary>
-                <div class="dropdown-content">
-                    <button onclick="toggleVibration()">Activar/Desactivar Vibración</button>
-                </div>
-            </details>
-        </section>
+    if (a.municionActual <= Math.round(a.municionMax*0.2)) Audio2.efecto(SFX.municionBaja);
 
-        <section id="menu-market" class="screen-panel" aria-label="Market Store">
-            <h2>Market Store & Recursos</h2>
-            <div class="top-bar"><button onclick="closeScreen('menu-market')">Regresar</button></div>
-            <br>
-            <div class="map-card" style="margin-bottom: 10px;">
-                <div class="map-card-info">
-                    <strong>Reabastecimiento de Combustible y Municiones</strong>
-                    <span class="reward-tag">Costo: 100 Dólares</span>
-                </div>
-                <button onclick="reabastecerRecursos()">Reabastecer</button>
-            </div>
-            <div class="status-display" id="market-status-box"></div>
-        </section>
+    setTimeout(()=>{
+      const precisionFinal = a.precisionBase * (u.radar/100);
+      const impacta = Math.random() <= precisionFinal;
+      if (impacta){
+        const dano = a.danoMin + Math.floor(Math.random()*(a.danoMax-a.danoMin));
+        Enemigo.casco = Math.max(0, Enemigo.casco - dano);
+        Audio2.efecto(a.sonidoImpacto || SFX.impactoConfirmado);
+        Vibrar('impacto');
+        if (Enemigo.casco <= 50 && !Mision._aviso50){ Mision._aviso50=true; Audio2.efecto(SFX.impacto50); }
+        Voz.decir(`Impacto confirmado. Enemigo al ${Enemigo.casco} por ciento.`,'normal');
+      } else {
+        Audio2.efecto(a.sonidoFallo || SFX.torpedoFalla);
+        Voz.decir('Disparo fallido.','normal');
+      }
+      if (Enemigo.casco <= 0) { Mision.victoria(); return; }
+      Mision.renderCombate();
+    }, 350);
 
-        <section id="menu-vehiculos" class="screen-panel" aria-label="Menú Vehículos">
-            <h2>Escuadrones y Fleet Maneuver</h2>
-            <div class="top-bar">
-                <div class="btn-group-horizontal">
-                    <button onclick="closeScreen('menu-vehiculos')">Regresar</button>
-                    <button onclick="activarVehiculoEnAire('f35')">1. Desplegar Cazas F-35</button>
-                    <button onclick="activarVehiculoEnAire('b21')">2. Desplegar B-21 Raider</button>
-                    <button onclick="aterrizarVehiculo()">Aterrizar Vehículo Activo</button>
-                </div>
-            </div>
-        </section>
+    setTimeout(()=>{ a.recargando=false; Mision.renderCombate(); }, a.recargaMs);
+  },
+  turnoIA(){
+    if (Estado.pausado || !misionActual || misionActual.fase!=='combate' || !Enemigo || Enemigo.casco<=0) return;
+    const u = unidadActiva();
+    const huye = Enemigo.casco <= 20 && Math.random()<0.4;
+    if (huye){ Voz.decir(`${Enemigo.nombre} intenta escapar.`,'normal'); return; }
 
-        <section id="menu-taller" class="screen-panel" aria-label="Taller y Reparaciones">
-            <h2>Taller y Reparaciones</h2>
-            <div class="top-bar"><button onclick="closeScreen('menu-taller')">Regresar</button></div>
-            <br>
-            <button onclick="repararCasco()">Reparar Casco e Integridad (Usa Minerales)</button>
-        </section>
+    const impacta = Math.random() <= (Enemigo.precision * (1 - u.defensaAntiaerea/200));
+    if (impacta){
+      const dano = Enemigo.danoMin + Math.floor(Math.random()*(Enemigo.danoMax-Enemigo.danoMin));
+      const sistemas = ['casco','motores','radar','defensaAntiaerea'];
+      const sis = Math.random()<0.5 ? 'casco' : sistemas[Math.floor(Math.random()*sistemas.length)];
+      u[sis] = Math.max(0, u[sis] - dano);
+      Audio2.efecto(dano>15 ? SFX.bombardeado : SFX.alerta);
+      Vibrar(dano>15?'explosion':'alerta');
+      if (unidadActivaId==='f35') Audio2.efecto(SFX.f35BajoFuego);
+      Voz.decir(`Impacto recibido. Daño en ${sis}. ${sis} operativo al ${u[sis]} por ciento.`,'urgente');
+      if (u.casco>0 && u.casco<=30) Audio2.efecto(SFX.alarmaEmergencia);
+      if (u.casco<=0){ Mision.derrota(); return; }
+    } else {
+      Voz.decir(`${Enemigo.nombre} falló su ataque.`,'normal');
+    }
+    HUD.render();
+  },
+  consultarAmenazas(){ Voz.decir(`${Enemigo.nombre}: casco al ${Enemigo.casco} por ciento.`,'urgente'); },
+  maniobrar(){ Audio2.efecto(SFX.teclado); Voz.decir('Maniobra evasiva realizada.','normal'); },
+  retirarse(){
+    clearInterval(iaInterval);
+    Audio2.duck(1/0.3);
+    Voz.decir('Te has retirado del combate.','urgente');
+    Mision.abandonar();
+  },
+  victoria(){
+    clearInterval(iaInterval); clearInterval(tickInterval);
+    Audio2.duck(1/0.3);
+    Audio2.efecto(SFX.enemigosDestruidos);
+    setTimeout(()=>Audio2.efecto(SFX.objetivoDestruido),400);
+    setTimeout(()=>Audio2.efecto(SFX.victoria),900);
+    setTimeout(()=>Audio2.efecto(SFX.ganaPunto),1400);
+    setTimeout(()=>Audio2.efecto(SFX.recursosObtenidos),1850);
+    setTimeout(()=>Audio2.efecto(SFX.misionCompletada),2300);
+    setTimeout(()=>Audio2.efecto(SFX.preparandoFuerzas),2800);
+    Vibrar('victoria');
 
-        <section id="menu-mapas" class="screen-panel" aria-label="Menú Mapas">
-            <div class="menu-header">
-                <h2 id="mapTitle">🌍 MAPA MUNDIAL Y NAVEGACIÓN</h2>
-                <button class="btn-close" onclick="closeScreen('menu-mapas')">✖ Volver</button>
-            </div>
-            <div id="breadcrumb" class="breadcrumb">Ubicación: Continentes Habitados</div>
-            <button id="btnMapBack" class="btn-back" style="display:none;" onclick="retrocederNivel()">⬅ Regresar</button>
-            <div id="mapList" class="map-list"></div>
-        </section>
+    Estado.dinero += misionActual.dinero;
+    Estado.minerales += misionActual.minerales;
+    Estado.victorias++; Estado.misiones++;
+    Estado.experiencia += misionActual.dinero;
+    Estado.conquistados[misionActual.key] = true;
+    if (Estado.victorias % 2 === 0){ Estado.nivel++; setTimeout(()=>Audio2.efecto(SFX.nivelAumentado),3300); Voz.decir('Nivel de capitán aumentado.','normal'); }
 
-        <section id="menu-ranking" class="screen-panel" aria-label="Ranking Global">
-            <div class="menu-header">
-                <h2>🏆 RANKING GLOBAL DE CAPITANES</h2>
-                <button class="btn-close" onclick="closeScreen('menu-ranking')">✖ Volver</button>
-            </div>
-            <p class="breadcrumb">Tabla competitiva basada en tus victorias y puntos</p>
-            <div id="rankingList" class="map-list"></div>
-        </section>
-    </main>
+    Voz.decir('Victoria confirmada. Territorio conquistado.','urgente');
+    Juego.guardar(false);
+    Mision._aviso50=false;
+    setTimeout(()=>{ UI.open('s-mapas'); Mapa.mostrarContinentes(); }, 3400);
+    misionActual=null; Enemigo=null;
+  },
+  derrota(){
+    clearInterval(iaInterval); clearInterval(tickInterval);
+    Audio2.duck(1/0.3);
+    Audio2.efecto(SFX.emergencia);
+    Vibrar('derrota');
+    const u = unidadActiva();
+    u.destruida = true;
+    Estado.derrotas++;
+    Estado.dinero = Math.max(0, Estado.dinero - Math.round(misionActual.dinero*0.3));
+    Voz.decir(`${u.nombre} ha sido destruida. Misión fallida.`,'urgente');
+    Juego.guardar(false);
+    Mision._aviso50=false;
+    setTimeout(()=>{ UI.open('s-vehiculos'); Vehiculos.render(); }, 1500);
+    misionActual=null; Enemigo=null;
+  },
+  abandonar(){
+    clearInterval(iaInterval); clearInterval(tickInterval);
+    Audio2.duck(1/0.3);
+    misionActual=null; Enemigo=null; Nav=null; Radar=[];
+    UI.open('s-mapas'); Mapa.mostrarContinentes();
+  }
+};
 
-    <footer class="bottom-bar" role="navigation" aria-label="Controles Base">
-        <div class="btn-group-horizontal">
-            <button onclick="guardarProgreso()">Guardar Partida</button>
-            <button onclick="openScreen('menu-mapas'); mostrarContinentes();">Ir a Conquista</button>
-        </div>
-    </footer>
-
-    <script>
-        // --- ESTADO COMPETITIVO Y PROGRESIÓN ---
-        let estadoJuego = {
-            nivel: 1,
-            dinero: 1200,
-            minerales: 350,
-            combustible: 100,
-            municion: 100,
-            vida: 100,
-            victorias: 0,
-            misiones: 0,
-            territorios: 0
-        };
-
-        let rankingData = [
-            { nombre: "Capitán Insignia (Tú)", puntos: 1200, territorios: 0 },
-            { nombre: "Almirante Vance (IA)", puntos: 2500, territorios: 4 },
-            { nombre: "Comandante Zhao (IA)", puntos: 2100, territorios: 3 },
-            { nombre: "Capitana Sorenson (IA)", puntos: 1800, territorios: 2 }
-        ];
-
-        let vibrationEnabled = true;
-        let seaAudio = null;
-        let battleAudio = null;
-        let carrierAudio = null;
-        let activeVehicleAudio = null;
-        let battleActive = false;
-
-        let worldData = {
-            "América": {
-                "América del Norte": [
-                    { nombre: "Canadá", dinero: 800, puntos: 300, defensa: "Batería Costera del Norte", vida: 100 },
-                    { nombre: "Estados Unidos", dinero: 1200, puntos: 500, defensa: "Escudo Antiaéreo VLS", vida: 100 },
-                    { nombre: "México", dinero: 700, puntos: 250, defensa: "Patrulla Naval del Golfo", vida: 100 }
-                ],
-                "América Central": [
-                    { nombre: "Costa Rica", dinero: 550, puntos: 200, defensa: "Guarnición Costera", vida: 100 },
-                    { nombre: "Honduras", dinero: 500, puntos: 200, defensa: "Defensa Costera Caribeña", vida: 100 }
-                ]
-            }
-        };
-
-        let currentLevel = 'continentes';
-        let selectedContinent = '';
-        let activeMission = null;
-        let navigationDistance = 0;
-
-        // --- PERSISTENCIA (LOCALSTORAGE) ---
-        function guardarProgreso() {
-            localStorage.setItem("AeroOceanModernWar", JSON.stringify(estadoJuego));
-            triggerTTS("Progreso guardado correctamente.");
-        }
-
-        function cargarProgreso() {
-            const datos = localStorage.getItem("AeroOceanModernWar");
-            if (datos) {
-                try {
-                    estadoJuego = Object.assign(estadoJuego, JSON.parse(datos));
-                } catch(e) {}
-            }
-            actualizarHUD();
-        }
-
-        function borrarProgreso() {
-            localStorage.removeItem("AeroOceanModernWar");
-            location.reload();
-        }
-
-        // --- GESTIÓN DE AUDIO INTELIGENTE ---
-        function inicializarAmbienteAudio() {
-            seaAudio = new Audio('./mar.mp3');
-            seaAudio.loop = true;
-            seaAudio.volume = 0.35;
-
-            carrierAudio = new Audio('./Sonidoportaaviones.mp3');
-            carrierAudio.loop = true;
-            carrierAudio.volume = 0.25;
-
-            battleAudio = new Audio('./Batalla_Aeronaval.mp3');
-            battleAudio.loop = true;
-            battleAudio.volume = 0.30;
-
-            seaAudio.play().catch(() => {});
-            carrierAudio.play().catch(() => {});
-            battleAudio.play().catch(() => {});
-        }
-
-        function playSFX(fileName) {
-            const audio = new Audio('./' + fileName);
-            audio.play().catch(e => console.warn("Audio no encontrado:", fileName));
-            triggerVibration([80, 40, 80]);
-        }
-
-        function iniciarBatallaAudioModo() {
-            battleActive = true;
-            if (battleAudio) battleAudio.pause(); // Silencia música general en combate
-        }
-
-        function terminarBatallaAudioModo() {
-            battleActive = false;
-            if (battleAudio) battleAudio.play().catch(() => {}); // Restaura música general
-        }
-
-        // --- CONTROL DE VEHÍCULOS EN EL AIRE ---
-        function activarVehiculoEnAire(tipo) {
-            if (activeVehicleAudio) {
-                activeVehicleAudio.pause();
-                activeVehicleAudio = null;
-            }
-
-            if (tipo === 'f35') {
-                playSFX('vehículo-f35desplegado.wav');
-                activeVehicleAudio = new Audio('./sonidodecasaenelaire.wav');
-            } else if (tipo === 'b21') {
-                playSFX('bombardero-b-21raiderdesplegado.wav');
-                activeVehicleAudio = new Audio('./sonidodeborbandeo.mp3');
-            }
-
-            if (activeVehicleAudio) {
-                activeVehicleAudio.loop = true;
-                activeVehicleAudio.volume = 0.30;
-                activeVehicleAudio.play().catch(e => {});
-            }
-            triggerTTS("Vehículo desplegado y en patrulla continua.");
-        }
-
-        function aterrizarVehiculo() {
-            playSFX('aterrizaje.mp3');
-            if (activeVehicleAudio) {
-                activeVehicleAudio.pause();
-                activeVehicleAudio = null;
-            }
-            triggerTTS("Vehículo asegurado en plataforma.");
-        }
-
-        // --- UTILIDADES ---
-        function triggerTTS(text) {
-            const announcer = document.getElementById('sr-announcer');
-            if (announcer) announcer.innerText = text;
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'es-ES';
-                window.speechSynthesis.speak(utterance);
-            }
-        }
-
-        function triggerVibration(pattern) {
-            if (!vibrationEnabled) return;
-            if ('vibrate' in navigator) {
-                try { navigator.vibrate(pattern); } catch(err) {}
-            }
-        }
-
-        function toggleVibration() {
-            vibrationEnabled = !vibrationEnabled;
-            triggerTTS(vibrationEnabled ? "Vibración activada" : "Vibración desactivada");
-        }
-
-        function openScreen(id) {
-            document.getElementById(id).classList.add('active');
-        }
-
-        function closeScreen(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-
-        function actualizarHUD() {
-            const hud = document.getElementById('hud-status');
-            if (hud) {
-                hud.innerHTML = `Nivel: <strong>${estadoJuego.nivel}</strong> | Dinero: <strong>$${estadoJuego.dinero}</strong> | Minerales: <strong>${estadoJuego.minerales}</strong> | Combustible: <strong>${estadoJuego.combustible}%</strong> | Munición: <strong>${estadoJuego.municion}</strong> | Vida: <strong>${estadoJuego.vida}%</strong> | Victorias: <strong>${estadoJuego.victorias}</strong>`;
-            }
-        }
-
-        // --- NAVEGACIÓN Y CONQUISTA COMPETITIVA ---
-        function mostrarContinentes() {
-            currentLevel = 'continentes';
-            document.getElementById('mapTitle').innerText = "🌍 MAPA MUNDIAL";
-            document.getElementById('breadcrumb').innerText = "Ubicación: Continentes Habitados";
-            document.getElementById('btnMapBack').style.display = 'none';
-
-            const mapList = document.getElementById('mapList');
-            mapList.innerHTML = '';
-
-            Object.keys(worldData).forEach(continente => {
-                const card = document.createElement('div');
-                card.className = 'map-card';
-                card.innerHTML = `
-                    <div class="map-card-info">
-                        <strong>${continente}</strong>
-                        <span class="reward-tag">Región de Conquista</span>
-                    </div>
-                    <button onclick="playSFX('nuevamisiondisponible.wav'); mostrarSubregiones('${continente}')">Explorar</button>
-                `;
-                mapList.appendChild(card);
-            });
-        }
-
-        function mostrarSubregiones(continente) {
-            currentLevel = 'subregiones';
-            selectedContinent = continente;
-            document.getElementById('mapTitle').innerText = `🌍 ${continente.toUpperCase()}`;
-            document.getElementById('breadcrumb').innerText = `Ubicación: ${continente} > Subregiones`;
-            document.getElementById('btnMapBack').style.display = 'inline-block';
-
-            const mapList = document.getElementById('mapList');
-            mapList.innerHTML = '';
-
-            Object.keys(worldData[continente]).forEach(subregión => {
-                const card = document.createElement('div');
-                card.className = 'map-card';
-                card.innerHTML = `
-                    <div class="map-card-info">
-                        <strong>${subregión}</strong>
-                        <span class="reward-tag">Zona Operativa</span>
-                    </div>
-                    <button onclick="mostrarTerritorios('${subregión}')">Ver Objetivos</button>
-                `;
-                mapList.appendChild(card);
-            });
-        }
-
-        function mostrarTerritorios(subregion) {
-            currentLevel = 'territorios';
-            document.getElementById('breadcrumb').innerText = `Ubicación: ${selectedContinent} > ${subregion} > Objetivos`;
-
-            const mapList = document.getElementById('mapList');
-            mapList.innerHTML = '';
-
-            worldData[selectedContinent][subregion].forEach(territorio => {
-                const card = document.createElement('div');
-                card.className = 'map-card';
-                card.innerHTML = `
-                    <div class="map-card-info">
-                        <strong>${territorio.nombre}</strong>
-                        <span class="reward-tag">Recompensa: $${territorio.dinero} | Defensa: ${territorio.defensa}</span>
-                    </div>
-                    <button onclick="iniciarViajeMision('${territorio.nombre}', ${territorio.dinero}, ${territorio.puntos}, '${territorio.defensa}')">Navegar hacia Objetivo</button>
-                `;
-                mapList.appendChild(card);
-            });
-        }
-
-        function retrocederNivel() {
-            if (currentLevel === 'territorios') mostrarSubregiones(selectedContinent);
-            else if (currentLevel === 'subregiones') mostrarContinentes();
-            else mostrarContinentes();
-        }
-
-        function iniciarViajeMision(nombre, dinero, puntos, defensa) {
-            currentLevel = 'navegacion';
-            activeMission = { nombre, dinero, puntos, defensa, vida: 100 };
-            navigationDistance = 50;
-
-            playSFX('haslletadoalareadecombate.wav');
-            document.getElementById('mapTitle').innerText = `⚓ RUTA A ${nombre.toUpperCase()}`;
-            document.getElementById('breadcrumb').innerText = `Trayecto Marítimo - Evitando Obstáculos`;
-            document.getElementById('btnMapBack').style.display = 'inline-block';
-
-            const mapList = document.getElementById('mapList');
-            mapList.innerHTML = `
-                <div class="navigation-radar-box">
-                    <h3>Radar de Trayecto</h3>
-                    <p>Destino: <strong>${nombre}</strong></p>
-                    <br>
-                    <div class="btn-group-horizontal">
-                        <button onclick="esquivarObstaculo()">Esquivar Minas y Avanzar</button>
-                    </div>
-                </div>
-            `;
-            triggerTTS(`Estableciendo rumbo a ${nombre}. Navega con precaución.`);
-        }
-
-        function esquivarObstaculo() {
-            playSFX('sonidoportaaviones1.mp3');
-            triggerVibration([50, 50]);
-            iniciarCombateMision();
-        }
-
-        function iniciarCombateMision() {
-            currentLevel = 'combate';
-            iniciarBatallaAudioModo(); // Silencia música general, deja mar y portaaviones
-
-            playSFX('combateiniciado.mp3');
-            triggerTTS(`¡Atención! ${activeMission.nombre} ha activado su defensa: ${activeMission.defensa}. ¡Comienza el ataque táctico!`);
-
-            const mapList = document.getElementById('mapList');
-            mapList.innerHTML = `
-                <div class="combat-box">
-                    <h3>⚔ ZONA DE COMBATE ACTIVA</h3>
-                    <p>Enemigo: <strong>${activeMission.nombre}</strong> (Defensa: ${activeMission.defensa})</p>
-                    <p>Vida Enemiga: <strong id="enemigo-vida-txt">100%</strong></p>
-                    <div class="btn-group-horizontal">
-                        <button onclick="atacarEnemigo(35)">Disparar Misil / Cañón Principal</button>
-                        <button onclick="atacarEnemigo(55)">Lanzar Bombardeo Pesado</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function atacarEnemigo(dano) {
-            playSFX('Disparo.mp3');
-            playSFX('impactoconfirmado.wav');
-            triggerVibration(100);
-
-            activeMission.vida -= dano;
-            if (activeMission.vida < 0) activeMission.vida = 0;
-
-            const vidaTxt = document.getElementById('enemigo-vida-txt');
-            if (vidaTxt) vidaTxt.innerText = activeMission.vida + "%";
-
-            if (activeMission.vida <= 0) {
-                finalizarVictoriaMision();
-            } else {
-                // Daño de respuesta de la IA enemiga al jugador
-                let dannoRecibido = Math.floor(Math.random() * 15) + 5;
-                estadoJuego.vida -= dannoRecibido;
-                if (estadoJuego.vida < 0) estadoJuego.vida = 0;
-                playSFX('alerta.mp3');
-                actualizarHUD();
-                if (estadoJuego.vida <= 0) {
-                    alert("¡Tus fuerzas han sufrido daños críticos! Misión fallida.");
-                    terminarBatallaAudioModo();
-                    mostrarContinentes();
-                    estadoJuego.vida = 100;
-                }
-            }
-        }
-
-        function finalizarVictoriaMision() {
-            terminarBatallaAudioModo();
-            playSFX('victoriaconfirmada-hascompletadolamision.wav');
-            triggerVibration([200, 100, 200]);
-
-            estadoJuego.victorias++;
-            estadoJuego.misiones++;
-            estadoJuego.dinero += activeMission.dinero;
-            estadoJuego.territorios++;
-            estadoJuego.combustible -= 10;
-            if (estadoJuego.combustible < 0) estadoJuego.combustible = 0;
-
-            if (estadoJuego.victorias % 2 === 0) {
-                estadoJuego.nivel++;
-                playSFX('nivelaumentado.wav');
-                triggerTTS("¡Nivel de Capitán aumentado!");
-            }
-
-            // Actualizar ranking competitivo
-            let jugadorEntry = rankingData.find(r => r.nombre.includes("Capitán Insignia"));
-            if (jugadorEntry) {
-                jugadorEntry.puntos += activeMission.puntos;
-                jugadorEntry.territorios += 1;
-            }
-            rankingData.sort((a, b) => b.puntos - a.puntos);
-
-            actualizarHUD();
-            guardarProgreso();
-
-            triggerTTS(`¡Victoria confirmada! Territorio conquistado. Recompensas acreditadas.`);
-            mostrarContinentes();
-        }
-
-        function reabastecerRecursos() {
-            if (estadoJuego.dinero >= 100) {
-                estadoJuego.dinero -= 100;
-                estadoJuego.combustible = 100;
-                estadoJuego.municion = 100;
-                playSFX('reabastecimientoyrearmecompletados.wav');
-                triggerTTS("Reabastecimiento completado con éxito.");
-                actualizarHUD();
-                guardarProgreso();
-            } else {
-                triggerTTS("Fondos insuficientes para reabastecer.");
-            }
-        }
-
-        function repararCasco() {
-            if (estadoJuego.minerales >= 50) {
-                estadoJuego.minerales -= 50;
-                estadoJuego.vida = 100;
-                playSFX('reabastecimientoyrearmecompletados.wav');
-                triggerTTS("Reparación de casco finalizada al 100 por ciento.");
-                actualizarHUD();
-                guardarProgreso();
-            } else {
-                triggerTTS("Minerales insuficientes en el inventario.");
-            }
-        }
-
-        function actualizarRankingUI() {
-            const rankingList = document.getElementById('rankingList');
-            rankingList.innerHTML = '';
-            rankingData.forEach((capitan, index) => {
-                const card = document.createElement('div');
-                card.className = 'map-card';
-                card.innerHTML = `
-                    <div class="map-card-info">
-                        <strong>#${index + 1} - ${capitan.nombre}</strong>
-                        <span class="reward-tag">Puntos: ${capitan.puntos} | Territorios: ${capitan.territorios}</span>
-                    </div>
-                `;
-                rankingList.appendChild(card);
-            });
-        }
-
-        // --- INICIALIZACIÓN GENERAL ---
-        window.addEventListener('DOMContentLoaded', () => {
-            cargarProgreso();
-            inicializarAmbienteAudio();
-            actualizarHUD();
-            triggerTTS("Sistema táctico AeroOcean integrado con éxito, Capitán.");
-        });
-    </script>
+/* ---------- INICIALIZACIÓN ---------- */
+window.addEventListener('DOMContentLoaded', () => {
+  Juego.cargar();
+  Audio2.continuo('mar', SFX.mar, 0.35);
+  Audio2.continuo('portaaviones', SFX.portaaviones, 0.25);
+  Audio2.continuo('batalla', SFX.batallaAeronaval, 0.20);
+  Audio2.efecto(SFX.iniciarPartida);
+  setTimeout(()=>Audio2.efecto(SFX.bienvenida),700);
+  setTimeout(()=>Voz.decir('Sistema táctico AeroOcean Modern War integrado con éxito, Capitán.','normal'),1500);
+  HUD.render(); Vehiculos.render(); Mercado.render(); Taller.render();
+});
+</script>
 </body>
-</html>
+    </html>
