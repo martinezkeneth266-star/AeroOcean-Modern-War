@@ -48,7 +48,7 @@ input{color:#000;background:#fff;min-height:48px;}
 
 <div id="gate">
   <h1 style="color:#00b4d8;">AEROOCEAN: MODERN WAR</h1>
-  <div id="auth-status" class="status">Sin sesión iniciada. Puedes jugar sin cuenta, pero el progreso solo se guardará en este dispositivo.</div>
+  <div id="auth-status" class="status">Cargando servicios en línea…</div>
 
   <div class="auth-box" id="auth-options">
     <button class="ok" onclick="Cuenta.loginGoogle()">Iniciar sesión con Google</button>
@@ -161,8 +161,22 @@ input{color:#000;background:#fff;min-height:48px;}
 </div>
 
 <script>
+/* ---------- RED DE SEGURIDAD: si algo falla, avisar por voz en vez de quedarse mudo ---------- */
+window.onerror = function(mensaje){
+  try {
+    if (window.speechSynthesis) {
+      var u = new SpeechSynthesisUtterance('Ha ocurrido un error técnico: ' + mensaje);
+      u.lang = 'es-ES';
+      speechSynthesis.speak(u);
+    }
+  } catch(e) {}
+  return false;
+};
+
 /* =========================================================
-   FIREBASE — reemplaza esto solo si cambias de proyecto
+   FIREBASE — protegido con try/catch para que, si falla
+   (por ejemplo sin conexión a internet), el resto del
+   juego y todos los botones sigan funcionando con normalidad
    ========================================================= */
 const firebaseConfig = {
   apiKey: "AIzaSyDcQhLnvt51gBAcJxAYWfg5d9wq3et8Hy0",
@@ -173,27 +187,43 @@ const firebaseConfig = {
   appId: "1:35640679870:web:a778abb92df5d66345edef",
   measurementId: "G-BYD2E9GSZL"
 };
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+let firebaseListo = false;
+let auth = null, db = null;
+try {
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db = firebase.firestore();
+  firebaseListo = true;
+} catch(e) {
+  firebaseListo = false;
+}
 let confirmationResult = null;
 
 const Cuenta = {
   usuarioActual: null,
+  _sinServicio(){ 
+    const st = document.getElementById('auth-status');
+    if (st) st.innerText = 'Los servicios en línea no están disponibles ahora mismo (sin conexión, o el navegador los bloqueó). Puedes jugar sin cuenta; tu progreso se guardará en este dispositivo.';
+    Voz.decir('Los servicios en línea no están disponibles ahora mismo. Puedes jugar sin cuenta.','urgente');
+  },
   loginGoogle(){
+    if(!firebaseListo){ Cuenta._sinServicio(); return; }
     const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).then(r => Cuenta._entrar(r.user)).catch(e => Voz.decir('No se pudo iniciar sesión con Google. ' + e.message,'urgente'));
+    auth.signInWithPopup(provider).then(r => Cuenta._entrar(r.user)).catch(e => Voz.decir('No se pudo iniciar sesión con Google. Si estás dentro de la app empaquetada, prueba abrir el juego en el navegador Chrome del teléfono, ya que Google bloquea el inicio de sesión dentro de aplicaciones empaquetadas. Detalle: ' + e.message,'urgente'));
   },
   enviarCodigoTelefono(){
+    if(!firebaseListo){ Cuenta._sinServicio(); return; }
     const numero = document.getElementById('telefono-numero').value.trim();
     if(!numero){ Voz.decir('Escribe tu número con el código de país.','normal'); return; }
-    if(!window.recaptchaVerifier) window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {size:'invisible'});
-    auth.signInWithPhoneNumber(numero, window.recaptchaVerifier).then(res => {
-      confirmationResult = res;
-      document.getElementById('telefono-codigo').style.display='block';
-      document.getElementById('telefono-confirmar').style.display='block';
-      Voz.decir('Código enviado por mensaje de texto.','normal');
-    }).catch(e => Voz.decir('No se pudo enviar el código. ' + e.message,'urgente'));
+    try{
+      if(!window.recaptchaVerifier) window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {size:'invisible'});
+      auth.signInWithPhoneNumber(numero, window.recaptchaVerifier).then(res => {
+        confirmationResult = res;
+        document.getElementById('telefono-codigo').style.display='block';
+        document.getElementById('telefono-confirmar').style.display='block';
+        Voz.decir('Código enviado por mensaje de texto.','normal');
+      }).catch(e => Voz.decir('No se pudo enviar el código. ' + e.message,'urgente'));
+    }catch(e){ Voz.decir('No se pudo preparar la verificación telefónica. ' + e.message,'urgente'); }
   },
   confirmarCodigoTelefono(){
     const codigo = document.getElementById('telefono-codigo').value.trim();
@@ -201,11 +231,13 @@ const Cuenta = {
     confirmationResult.confirm(codigo).then(r => Cuenta._entrar(r.user)).catch(e => Voz.decir('Código incorrecto.','urgente'));
   },
   loginCorreo(){
+    if(!firebaseListo){ Cuenta._sinServicio(); return; }
     const email = document.getElementById('correo-email').value.trim();
     const clave = document.getElementById('correo-clave').value;
     auth.signInWithEmailAndPassword(email, clave).then(r => Cuenta._entrar(r.user)).catch(e => Voz.decir('No se pudo iniciar sesión. ' + e.message,'urgente'));
   },
   registrarCorreo(){
+    if(!firebaseListo){ Cuenta._sinServicio(); return; }
     const email = document.getElementById('correo-email').value.trim();
     const clave = document.getElementById('correo-clave').value;
     auth.createUserWithEmailAndPassword(email, clave).then(r => Cuenta._entrar(r.user)).catch(e => Voz.decir('No se pudo crear la cuenta. ' + e.message,'urgente'));
@@ -217,15 +249,15 @@ const Cuenta = {
     Cuenta.cargarDeNube(true);
     Arranque.iniciar();
   },
-  cerrarSesion(){ auth.signOut(); Cuenta.usuarioActual=null; Voz.decir('Sesión cerrada. El progreso seguirá guardándose en este dispositivo.','normal'); UI.close(); },
+  cerrarSesion(){ if(firebaseListo) auth.signOut(); Cuenta.usuarioActual=null; Voz.decir('Sesión cerrada. El progreso seguirá guardándose en este dispositivo.','normal'); UI.close(); },
   guardarEnNube(){
-    if(!Cuenta.usuarioActual){ Voz.decir('Debes iniciar sesión para guardar en la nube.','urgente'); return; }
+    if(!firebaseListo || !Cuenta.usuarioActual){ Voz.decir('Debes iniciar sesión para guardar en la nube.','urgente'); return; }
     db.collection('progreso').doc(Cuenta.usuarioActual.uid).set({ Estado, Flota, actualizado: Date.now() })
       .then(()=>Voz.decir('Progreso guardado en la nube.','normal'))
       .catch(e=>Voz.decir('No se pudo guardar en la nube. ' + e.message,'urgente'));
   },
   cargarDeNube(silencioso){
-    if(!Cuenta.usuarioActual){ if(!silencioso) Voz.decir('Debes iniciar sesión para cargar desde la nube.','urgente'); return; }
+    if(!firebaseListo || !Cuenta.usuarioActual){ if(!silencioso) Voz.decir('Debes iniciar sesión para cargar desde la nube.','urgente'); return; }
     db.collection('progreso').doc(Cuenta.usuarioActual.uid).get().then(doc=>{
       if(doc.exists){
         const d = doc.data();
@@ -238,7 +270,7 @@ const Cuenta = {
     }).catch(e=>{ if(!silencioso) Voz.decir('No se pudo cargar desde la nube. ' + e.message,'urgente'); });
   }
 };
-auth.onAuthStateChanged(u => { if(u) Cuenta.usuarioActual = u; });
+if(firebaseListo){ auth.onAuthStateChanged(u => { if(u) Cuenta.usuarioActual = u; }); }
 
 const AUDIO_BASE='./';
 const SFX={
@@ -275,6 +307,11 @@ this.cola.push(t);this._p();},
 _p(){if(this.hablando||this.cola.length===0)return;if(!('speechSynthesis'in window)){this.cola.shift();return;}
 this.hablando=true;const t=this.cola.shift();const u=new SpeechSynthesisUtterance(t);u.lang='es-ES';u.rate=this.velocidad;
 u.onend=()=>{this.hablando=false;this._p();};u.onerror=()=>{this.hablando=false;this._p();};window.speechSynthesis.speak(u);}};
+
+document.getElementById('auth-status').innerText = firebaseListo
+  ? 'Servicios en línea listos. Elige cómo iniciar sesión, o juega sin cuenta.'
+  : 'No se pudo conectar con los servicios en línea ahora mismo. Puedes jugar sin cuenta; tu progreso se guardará en este dispositivo.';
+if(!firebaseListo) Voz.decir('No se pudo conectar con los servicios en línea. Puedes jugar sin cuenta.','normal');
 
 const Patrones={disparo:[40],impacto:[100],explosion:[200,80,200],alerta:[80,40,80,40,80],victoria:[200,100,200,100,300],derrota:[400,150,400]};
 const Vibrar=(t)=>{if(!Config.vibracion)return;if('vibrate'in navigator){try{navigator.vibrate(Patrones[t]||[60]);}catch(e){}}};
@@ -358,7 +395,7 @@ Object.values(u.armas).forEach(a=>a.municionActual=Math.min(a.municionMax,Math.m
 });}
 
 const Juego={
-guardar(av){ try{ localStorage.setItem('AOMW_estado',JSON.stringify(Estado)); localStorage.setItem('AOMW_flota',JSON.stringify(Flota)); if(Cuenta.usuarioActual) Cuenta.guardarEnNube(); if(av)Voz.decir('Progreso guardado.','normal'); }catch(e){ if(av)Voz.decir('No se pudo guardar.','urgente'); } },
+guardar(av){ try{ localStorage.setItem('AOMW_estado',JSON.stringify(Estado)); localStorage.setItem('AOMW_flota',JSON.stringify(Flota)); if(firebaseListo && Cuenta.usuarioActual) Cuenta.guardarEnNube(); if(av)Voz.decir('Progreso guardado.','normal'); }catch(e){ if(av)Voz.decir('No se pudo guardar.','urgente'); } },
 cargar(){ crearFlotaInicial(); try{ const e=localStorage.getItem('AOMW_estado'),f=localStorage.getItem('AOMW_flota'); if(e)Estado=Object.assign(Estado,JSON.parse(e)); if(f)Flota=Object.assign(Flota,JSON.parse(f)); }catch(err){} sanear(); },
 borrarProgreso(){ localStorage.removeItem('AOMW_estado'); localStorage.removeItem('AOMW_flota'); location.reload(); },
 pausar(){ tap(()=>{ Estado.pausado=!Estado.pausado; Voz.decir(Estado.pausado?'Juego en pausa.':'Juego reanudado.','urgente'); }); }
@@ -524,7 +561,7 @@ render(){ const c=document.getElementById('vehiculos-list'); c.innerHTML=''; Obj
 card.innerHTML=`<div class="card-info"><strong>${u.nombre}</strong><span class="tag">${u.destruida?'Destruida':(u.tipo==='aereo'?u.estadoVuelo:u.estadoNaval)}</span></div><button aria-label="Abrir panel de ${u.nombre}" onclick="tap(()=>Vehiculos.abrirPanel('${u.id}'))">Abrir panel</button>`; c.appendChild(card); }); },
 abrirPanel(id){
 if(Flota[id].destruida){ Voz.decir('Esa unidad está destruida.','normal'); return; }
-if(id!=='portaaviones' && Math.random()<1){ const tip=[SFX.b21Recomendado,SFX.destructorRecomendado]; Audio2.efecto(tip[Math.floor(Math.random()*tip.length)]); }
+if(id!=='portaaviones'){ const tip=[SFX.b21Recomendado,SFX.destructorRecomendado]; Audio2.efecto(tip[Math.floor(Math.random()*tip.length)]); }
 const previa=unidadActivaId; if(previa && Flota[previa] && Flota[previa].tipo==='aereo') Audio2.detener(previa);
 unidadActivaId=id; const u=Flota[id];
 if(id==='f35' && u.estadoVuelo!=='hangar') Audio2.continuo('f35',SFX.f35Ambiente,0.3);
@@ -554,7 +591,7 @@ setTimeout(()=>{ u.estadoVuelo='hangar'; Audio2.detener(id); Audio2.efecto(id===
 Voz.decir(`${u.nombre} aterrizado. Puedes seleccionar otra unidad para continuar el ataque.`,'normal');
 Vehiculos.volverAlMenu(); HUD.render(); Juego.guardar(false); },800); },
 desplegarNaval(id){ const u=Flota[id]; if(u.combustible<10){Voz.decir(`${u.nombre} no tiene combustible suficiente.`,'urgente');return;}
-u.estadoNaval='desplegado'; Audio2.efecto(id==='destructor'?SFX.destructorDesplegado:SFX.torpedoFalla===null?null:SFX.destructorDesplegado);
+u.estadoNaval='desplegado'; Audio2.efecto(SFX.destructorDesplegado);
 Voz.decir(`${u.nombre} desplegado junto a la flota.`,'normal'); Vehiculos.abrirPanel(id); HUD.render(); },
 regresarNaval(id){ const u=Flota[id]; u.estadoNaval='enBase'; Voz.decir(`${u.nombre} regresa a base.`,'normal'); Vehiculos.abrirPanel(id); HUD.render(); Juego.guardar(false); }
 };
@@ -653,4 +690,169 @@ setTimeout(()=>Audio2.efecto(a.sonidoDisparo),300);
 if(a.sonidoExtra) setTimeout(()=>Audio2.efecto(a.sonidoExtra),450);
 if(u.id==='portaaviones') setTimeout(()=>Audio2.efecto(SFX.portaaviones1),200);
 Vibrar('disparo');
-if(a.municionActual
+if(a.municionActual<=Math.round(a.municionMax*0.2)) Audio2.efecto(SFX.municionBaja);
+setTimeout(()=>{
+const precision=a.precisionBase*(u.radar/100)*(u.sumergido?1.15:1);
+if(Math.random()<=precision){
+const dano=a.danoMin+Math.floor(Math.random()*(a.danoMax-a.danoMin));
+obj.casco=Math.max(0,obj.casco-dano);
+Audio2.efecto(a.sonidoImpacto||SFX.impactoConfirmado); Vibrar('impacto');
+if(obj.casco<=obj.cascoMax*0.5 && !obj._aviso50){ obj._aviso50=true; Audio2.efecto(SFX.impacto50); }
+Voz.decir(`Impacto en ${obj.nombre}. Al ${Math.round(obj.casco/obj.cascoMax*100)} por ciento.`,'normal');
+if(obj.casco<=0){ Audio2.efecto(SFX.enemigosDestruidos); Voz.decir(`${obj.nombre} destruido.`,'normal'); Combate.objetivoId=null; }
+} else { Audio2.efecto(a.sonidoFallo||SFX.torpedoFalla); Voz.decir('Disparo fallido.','normal'); }
+if(Combate.enemigos.every(e=>e.casco<=0)){ Mision.victoria(); return; }
+Controles.combate(unidadActiva());
+},700);
+setTimeout(()=>{ a.recargando=false; Controles.combate(unidadActiva()); }, a.recargaMs);
+},
+consultarAmenazas(){ let t='Amenazas: '; Combate.enemigos.forEach(e=>t+=`${e.nombre}, ${e.casco>0?Math.round(e.casco/e.cascoMax*100)+' por ciento':'destruido'}. `); Voz.decir(t,'urgente'); },
+turnoIA(){
+if(Estado.pausado || !misionActual || misionActual.fase!=='combate') return;
+const vivos = Combate.enemigos.filter(e=>e.casco>0);
+if(vivos.length===0) return;
+const atacante = vivos[Math.floor(Math.random()*vivos.length)];
+const u = unidadActiva();
+const reduccionSumergido = u.sumergido ? 0.45 : 1;
+if(Math.random() <= (atacante.precision*(1-u.defensaAntiaerea/220)*reduccionSumergido)){
+const dano=atacante.danoMin+Math.floor(Math.random()*(atacante.danoMax-atacante.danoMin));
+const sistemas=['casco','motores','radar','defensaAntiaerea','comunicaciones'];
+const sis=Math.random()<0.5?'casco':sistemas[Math.floor(Math.random()*sistemas.length)];
+u[sis]=Math.max(0,u[sis]-dano);
+Audio2.efecto(atacante.sonidoAtaque || (dano>15?SFX.bombardeado:SFX.alerta)); Vibrar(dano>15?'explosion':'alerta');
+if(unidadActivaId==='f35') Audio2.efecto(SFX.f35BajoFuego);
+Voz.decir(`${atacante.nombre} disparó. Impacto en ${u.nombre}, daño en ${sis}, ahora al ${u[sis]} por ciento.`,'urgente');
+if(u.casco>0 && u.casco<=30) Audio2.efecto(SFX.alarmaEmergencia);
+if(u.casco<=0){ Mision.derrota(); return; }
+} else { Voz.decir(`${atacante.nombre} falló su disparo.`,'normal'); }
+HUD.render();
+}
+};
+
+const Mision={
+iniciar(key,nombre,dinero,minerales,defensa,ruta){
+const u=Flota.portaaviones;
+if(u.destruida){ Voz.decir('El portaaviones está destruido.','urgente'); return; }
+if(u.combustible<25){ Voz.decir('Combustible insuficiente para zarpar.','urgente'); return; }
+UI.modoUnidad(false,''); unidadActivaId='portaaviones';
+misionActual={key,nombre,dinero,minerales,defensa,ruta,fase:'viaje',tramoActual:0};
+const nTramos = ruta==='defensa' ? 2 : (ruta==='enemiga' ? 3 : 4);
+const distBase = ruta==='defensa' ? 7 : (ruta==='enemiga' ? 14 : 11);
+misionActual.tramos=[];
+for(let i=0;i<nTramos;i++) misionActual.tramos.push({distanciaKm:distBase+Math.floor(Math.random()*6), rumboObjetivo:Math.floor(Math.random()*360), contactos:Mision.generarContactos(ruta), bloqueoResuelto:false});
+u.nav.rumboActual=Math.floor(Math.random()*360); u.nav.rumboObjetivo=misionActual.tramos[0].rumboObjetivo; u.nav.velocidad=0;
+Combate.enemigos = Mision.generarFlotaDefensiva(defensa,dinero,ruta);
+Combate.objetivoId = Combate.enemigos[0].id;
+
+if(Flota.destructor.estadoNaval==='desplegado') Audio2.efecto(SFX.destructorEnRuta);
+
+Audio2.efecto(SFX.enemigoDetectado);
+UI.open('s-mision');
+document.getElementById('misionTitle').innerText = ruta==='defensa' ? `Acudiendo en defensa de ${nombre} — Tramo 1 de ${nTramos}` : `Ruta ${ruta} a ${nombre} — Tramo 1 de ${nTramos}`;
+document.getElementById('misionBody').innerHTML='<div class="status" aria-live="polite">Toda la flota navega junto al portaaviones. Usa los controles inferiores.</div>';
+Voz.decir(ruta==='defensa' ? `Acudiendo en defensa de ${nombre}. Tramo 1 de ${nTramos}.` : `Ruta ${ruta} elegida. Zarpando hacia ${nombre}, tramo 1 de ${nTramos}.`,'urgente');
+Controles.navegacion(u,`Tramo 1 de ${nTramos}`);
+clearInterval(tickInterval); tickInterval=setInterval(Mision.tick,1000);
+},
+iniciarDefensa(key,nombre){
+if(!Amenazas.activa || Amenazas.activa.key!==key){ Voz.decir('Esa amenaza ya no está activa.','normal'); return; }
+Mision.iniciar(key,nombre,220,90,'Fuerzas Invasoras','defensa');
+},
+generarContactos(ruta){
+const n = ruta==='enemiga' ? 2+Math.floor(Math.random()*2) : 1+Math.floor(Math.random()*2);
+const arr=[];
+for(let i=0;i<n;i++){
+const esBloqueoEnemigo = ruta==='enemiga' ? Math.random()<0.55 : Math.random()<0.2;
+arr.push({ esBloqueoEnemigo, distancia:5+Math.floor(Math.random()*18), avisado:false });
+}
+return arr;
+},
+generarFlotaDefensiva(defensa,dinero,ruta){
+const dificultad = ruta==='defensa' ? Math.min(4,Math.max(2,Estado.nivel)) : Math.min(4,Math.max(2,Math.round(dinero/400)));
+const base=(hp)=>hp*(1+dificultad*0.35);
+return [
+{id:'principal',nombre:defensa,tipo:'naval',casco:base(140),cascoMax:base(140),danoMin:8*dificultad,danoMax:16*dificultad,precision:0.5+dificultad*0.08,sonidoAtaque:SFX.disparo,_aviso50:false},
+{id:'escoltaAerea',nombre:'Escuadrón de Cazas de Defensa',tipo:'aereo',casco:base(80),cascoMax:base(80),danoMin:6*dificultad,danoMax:12*dificultad,precision:0.45+dificultad*0.08,sonidoAtaque:SFX.misilAireLanz,_aviso50:false},
+{id:'bateriaAA',nombre:'Batería Antiaérea del Territorio',tipo:'costero',casco:base(70),cascoMax:base(70),danoMin:5*dificultad,danoMax:11*dificultad,precision:0.5+dificultad*0.06,sonidoAtaque:SFX.bateriaAntiaerea,_aviso50:false}
+];
+},
+girar(d){ const u=Flota.portaaviones; u.nav.rumboActual=((u.nav.rumboActual+d)%360+360)%360; Controles.navegacion(u,Mision._ctx()); },
+mantenerRumbo(){ const u=Flota.portaaviones; u.nav.rumboActual=u.nav.rumboObjetivo; Voz.decir('Rumbo fijado.','normal'); Controles.navegacion(u,Mision._ctx()); },
+cambiarVelocidad(d){ const u=Flota.portaaviones; u.nav.velocidad = d===-99?0:Math.max(0,Math.min(30,u.nav.velocidad+d)); Controles.navegacion(u,Mision._ctx()); },
+_ctx(){ return misionActual? `Tramo ${misionActual.tramoActual+1} de ${misionActual.tramos.length}` : ''; },
+tramoActivo(){ return misionActual.tramos[misionActual.tramoActual]; },
+consultarRadar(){ const t=Mision.tramoActivo(); if(!t||t.contactos.length===0){Voz.decir('Radar. Sin contactos.','urgente');return;}
+Audio2.efecto(SFX.contactoRadar);
+let txt='Radar. '; t.contactos.forEach((c,i)=>txt+=`Contacto ${i+1}: ${c.esBloqueoEnemigo?'posible bloqueo enemigo':'obstáculo'}, distancia ${c.distancia} kilómetros. `); Voz.decir(txt,'urgente'); },
+consultarNav(){ const u=Flota.portaaviones,t=Mision.tramoActivo(); Voz.decir(`Rumbo ${u.nav.rumboActual} grados. Objetivo a ${t?Math.round(t.distanciaKm):0} kilómetros. Velocidad ${u.nav.velocidad} nudos.`,'urgente'); },
+tick(){
+if(Estado.pausado||!misionActual||misionActual.fase!=='viaje') return;
+const u=Flota.portaaviones, t=Mision.tramoActivo();
+if(u.nav.velocidad>0){
+u.combustible=Math.max(0,u.combustible-0.3);
+const diff=Math.abs(((u.nav.rumboActual-u.nav.rumboObjetivo+540)%360)-180);
+const factor=Math.max(0.15,Math.cos(diff*Math.PI/180));
+t.distanciaKm=Math.max(0,t.distanciaKm-(u.nav.velocidad*0.045*factor));
+if(u.combustible<=15) Voz.decir('Advertencia: combustible del portaaviones bajo.','urgente');
+}
+t.contactos.forEach(c=>{
+if(c.distancia>0) c.distancia=Math.max(0,c.distancia-(u.nav.velocidad*0.03));
+if(c.distancia<=4 && !c.avisado){
+c.avisado=true;
+if(c.esBloqueoEnemigo){ Audio2.efecto(SFX.alarmaAtaque); Voz.decir('Alerta: bloqueo enemigo detectado en la ruta.','urgente'); }
+else { Audio2.efecto(SFX.alerta); Audio2.efecto(SFX.bombarderoAire); Voz.decir('Alerta: obstáculo detectado en la ruta. Maniobra recomendada.','urgente'); }
+}
+});
+if(t.distanciaKm<=0){
+misionActual.tramoActual++;
+if(misionActual.tramoActual>=misionActual.tramos.length){ Audio2.efecto(SFX.llegadaCombate); Mision.entrarCombate(); }
+else{ const sig=Mision.tramoActivo(); u.nav.rumboObjetivo=sig.rumboObjetivo;
+document.getElementById('misionTitle').innerText=`Ruta ${misionActual.ruta} a ${misionActual.nombre} — Tramo ${misionActual.tramoActual+1} de ${misionActual.tramos.length}`;
+Voz.decir(`Tramo ${misionActual.tramoActual+1}. Nuevo rumbo requerido.`,'urgente'); Controles.navegacion(u,Mision._ctx()); }
+} else Controles.navegacion(u,Mision._ctx());
+},
+entrarCombate(){
+misionActual.fase='combate'; clearInterval(tickInterval);
+Audio2.continuo('batalla', SFX.batallaAeronaval, 0.22);
+Voz.decir(`Objetivo alcanzado. El Portaaviones Insignia sitía las costas de ${misionActual.nombre}.`,'urgente');
+Audio2.efecto(SFX.objetivoIdentificado);
+setTimeout(()=>Audio2.efecto(SFX.alarmaAtaque),500);
+setTimeout(()=>Audio2.efecto(SFX.combateIniciado),1100);
+setTimeout(()=>Audio2.efecto(Math.random()<0.5?SFX.seleccionaArma:SFX.seleccionaArmamento),1900);
+document.getElementById('misionTitle').innerText=`Sitio de ${misionActual.nombre}`;
+document.getElementById('misionBody').innerHTML='<div class="status">Defensa del territorio: portaaviones, cazas y baterías antiaéreas. Selecciona y bloquea un objetivo antes de disparar. Puedes cambiar de vehículo desde Flota si se agota munición o combustible.</div>';
+Controles.combate(unidadActiva());
+clearInterval(iaInterval); iaInterval=setInterval(Combate.turnoIA,2600);
+},
+retirarse(){ clearInterval(iaInterval); Audio2.detener('batalla'); Voz.decir('Te has retirado.','urgente'); Mision.abandonar(); },
+victoria(){
+clearInterval(iaInterval); clearInterval(tickInterval); Audio2.detener('batalla');
+Audio2.efecto(SFX.enemigosDestruidos);
+setTimeout(()=>Audio2.efecto(SFX.objetivoDestruido),400); setTimeout(()=>Audio2.efecto(SFX.victoria),900);
+setTimeout(()=>Audio2.efecto(SFX.ganaPunto),1400); setTimeout(()=>Audio2.efecto(SFX.recursosObtenidos),1850);
+setTimeout(()=>Audio2.efecto(SFX.misionCompletada),2300); setTimeout(()=>Audio2.efecto(SFX.preparandoFuerzas),2800);
+Vibrar('victoria');
+Estado.dinero+=misionActual.dinero; Estado.minerales+=misionActual.minerales; Estado.victorias++; Estado.misiones++;
+Estado.experiencia+=misionActual.dinero; Estado.conquistados[misionActual.key]=true;
+if(misionActual.ruta==='defensa'){ clearInterval(Amenazas._cuenta); Amenazas.activa=null; }
+if(Estado.victorias%2===0){ Estado.nivel++; setTimeout(()=>Audio2.efecto(SFX.nivelAumentado),3300); Voz.decir('Nivel de capitán aumentado.','normal'); }
+Voz.decir(`Victoria confirmada. ${misionActual.nombre} pasa a formar parte del territorio bajo protección estadounidense.`,'urgente');
+Juego.guardar(false);
+setTimeout(()=>{ UI.open('s-mapas'); Mapa.mostrarContinentes(); Controles.mostrarInactivo(); Vehiculos.volverAlMenu(); },3400);
+misionActual=null; Combate.enemigos=null;
+},
+derrota(){
+clearInterval(iaInterval); clearInterval(tickInterval); Audio2.detener('batalla');
+Audio2.efecto(SFX.emergencia); Vibrar('derrota');
+const u=unidadActiva(); u.destruida=true; Estado.derrotas++;
+if(misionActual && misionActual.ruta==='defensa'){ delete Estado.conquistados[misionActual.key]; clearInterval(Amenazas._cuenta); Amenazas.activa=null; }
+Estado.dinero=Math.max(0,Estado.dinero-Math.round(misionActual.dinero*0.3));
+Voz.decir(`${u.nombre} ha sido destruida. Selecciona otra unidad de tu flota para continuar el ataque.`,'urgente');
+Juego.guardar(false);
+setTimeout(()=>{ UI.open('s-vehiculos'); Vehiculos.render(); Controles.mostrarInactivo(); Vehiculos.volverAlMenu(); },1500);
+},
+abandonar(){ clearInterval(iaInterval); clearInterval(tickInterval); Audio2.detener('batalla'); misionActual=null; Combate.enemigos=null; UI.open('s-mapas'); Mapa.mostrarContinentes(); Controles.mostrarInactivo(); Vehiculos.volverAlMenu(); }
+};
+</script>
+</body>
+</html>
