@@ -2,903 +2,750 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#06131f">
 <title>AEROOCEAN: MODERN WAR</title>
-<!-- Tailwind CSS CDN -->
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-theme: {
-extend: {
-colors: {
-navy: { 900: '#0a192f', 800: '#172a45', 700: '#303f53' },
-military: { 500: '#4a5d4e', 600: '#3b4a3e', 700: '#2c362f' }
-}
-}
-}
-}
-</script>
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-body {
-font-family: 'Share Tech Mono', monospace;
-background-color: #050b14;
-color: #c7d2fe;
-user-select: none;
--webkit-user-select: none;
-}
-.landscape-warning {
-display: none;
-position: fixed;
-top: 0; left: 0; width: 100vw; height: 100vh;
-background: #000;
-z-index: 9999;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-text-align: center;
-padding: 2rem;
-color: #ef4444;
-}
-@media screen and (orientation: portrait) {
-.landscape-warning { display: flex; }
-}
-/* Custom Scrollbar for tactical panels */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #0a192f; }
-::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 3px; }
+:root{--bg:#0d1b2a;--panel:#1b263b;--btn:#415a77;--btn-active:#778da9;--text:#e0e1dd;--accent:#00b4d8;--danger:#e63946;--ok:#2ecc71;--warn:#ffaa00;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-user-select:none;user-select:none;}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+.top-bar{background:var(--panel);padding:8px;display:flex;overflow-x:auto;white-space:nowrap;gap:8px;align-items:center;border-bottom:3px solid var(--accent);}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;}
+button,input,select{background:var(--btn);color:var(--text);border:2px solid var(--accent);padding:14px 16px;font-size:15px;font-weight:bold;border-radius:6px;cursor:pointer;min-height:52px;}
+button:focus,button:hover{background:var(--btn-active);outline:4px solid #fff;outline-offset:2px;}
+button:disabled{opacity:.35;cursor:not-allowed;}
+button.danger{border-color:var(--danger);color:var(--danger);}
+button.ok{border-color:var(--ok);color:var(--ok);}
+button.big{min-width:85%;font-size:22px;padding:24px;min-height:76px;}
+input{color:#000;background:#fff;min-height:48px;}
+#viewport{flex:1;position:relative;overflow-y:auto;padding:10px;background:radial-gradient(circle,#1b263b 0%,#0d1b2a 100%);}
+.screen{position:absolute;top:0;left:0;width:100%;height:100%;background:var(--bg);display:none;flex-direction:column;padding:10px;z-index:10;overflow-y:auto;}
+.screen.active{display:flex;}
+.status{font-size:14px;text-align:center;margin-bottom:8px;color:var(--accent);background:#112233;padding:10px;border-radius:6px;border:1px solid var(--accent);}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--accent);padding-bottom:8px;margin-bottom:8px;}
+.hdr h2{color:var(--accent);font-size:16px;}
+.bc{color:var(--warn);font-size:12px;margin-bottom:8px;font-weight:bold;}
+.list{display:flex;flex-direction:column;gap:8px;}
+.card{background:#112233;border:1px solid var(--accent);border-radius:6px;padding:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;text-align:left;}
+.card-info{display:flex;flex-direction:column;gap:2px;}
+.tag{color:var(--warn);font-size:11px;}
+.conquered{color:var(--ok);font-weight:bold;}
+#gate{position:fixed;inset:0;background:#020b14;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center;overflow-y:auto;}
+#unit-header{background:#0b131f;border-bottom:3px solid var(--accent);padding:8px 10px;text-align:center;font-size:14px;color:var(--accent);}
+#control-bar{background:#0b131f;border-top:4px solid var(--accent);padding:10px;min-height:64px;}
+#control-bar .btn-row{justify-content:flex-start;}
+.auth-box{display:flex;flex-direction:column;gap:10px;width:90%;max-width:360px;}
+@media(orientation:portrait){body::before{content:"Por favor, gira el dispositivo a posición horizontal para jugar.";position:fixed;z-index:99999;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:18px;font-weight:bold;padding:24px;background:#06131f;color:#fff;}}
 </style>
 </head>
-<body class="h-screen w-screen overflow-hidden flex flex-col justify-between">
-​<!-- Landscape Warning for Mobile -->
-<div id="landscapeWarning" class="landscape-warning" role="alert" aria-live="assertive">
-<svg class="w-16 h-16 mb-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-<h2 class="text-2xl font-bold mb-2">¡ORIENTACIÓN VERTICAL DETECTADA!</h2>
-<p class="text-gray-300">Por favor, gira tu dispositivo a posición horizontal (landscape) para jugar AEROOCEAN: MODERN WAR correctamente.</p>
+<body>
+<div id="sr-announcer" class="sr-only" aria-live="assertive"></div>
+<div id="recaptcha-container"></div>
+
+<div id="gate">
+  <h1 style="color:#00b4d8;">AEROOCEAN: MODERN WAR</h1>
+  <div id="auth-status" class="status">Inicializando sistema táctico…</div>
+
+  <div class="auth-box" id="auth-options">
+    <button class="ok" onclick="Cuenta.loginGoogle()">Iniciar sesión con Google</button>
+    <button onclick="UI.mostrarBloque('auth-telefono')">Iniciar sesión con teléfono</button>
+    <button onclick="UI.mostrarBloque('auth-correo')">Iniciar sesión con correo</button>
+    <button class="big ok" onclick="Arranque.iniciar()">Jugar sin cuenta (Modo Local)</button>
+  </div>
+
+  <div class="auth-box" id="auth-telefono" style="display:none;">
+    <input id="telefono-numero" type="tel" placeholder="Número con código de país, ej. +52...">
+    <button onclick="Cuenta.enviarCodigoTelefono()">Enviar código</button>
+    <input id="telefono-codigo" type="text" placeholder="Código recibido por SMS" style="display:none;">
+    <button id="telefono-confirmar" style="display:none;" onclick="Cuenta.confirmarCodigoTelefono()">Confirmar código</button>
+    <button onclick="UI.mostrarBloque('auth-options')">Volver</button>
+  </div>
+
+  <div class="auth-box" id="auth-correo" style="display:none;">
+    <input id="correo-email" type="email" placeholder="Correo electrónico">
+    <input id="correo-clave" type="password" placeholder="Contraseña">
+    <button onclick="Cuenta.loginCorreo()">Iniciar sesión</button>
+    <button onclick="Cuenta.registrarCorreo()">Crear cuenta nueva</button>
+    <button onclick="UI.mostrarBloque('auth-options')">Volver</button>
+  </div>
 </div>
-​<!-- Screen Reader / Live Announcer Region -->
-<div id="srAnnouncer" class="sr-only" style="position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;" aria-live="assertive" aria-atomic="true"></div>
-​<!-- Top Status Header / HUD -->
-<header class="bg-navy-900 border-b border-blue-900/50 px-4 py-2 flex items-center justify-between z-10 shadow-lg" role="banner">
-<div class="flex items-center space-x-3">
-<span class="text-xl font-black tracking-wider text-blue-400">AEROOCEAN <span class="text-xs px-2 py-0.5 bg-blue-900/60 rounded text-blue-200">MODERN WAR v1.0</span></span>
-<div id="userBadge" class="text-xs bg-navy-800 px-2.5 py-1 rounded border border-blue-800 text-gray-300 hidden md:block">Modo Local</div>
-</div>
-<!-- Global Resources Bar -->
-<div class="flex items-center space-x-4 text-xs md:text-sm font-semibold">
-<div class="flex items-center space-x-1" title="Nivel y Experiencia">
-<span class="text-blue-400">NIV:</span> <span id="hudLevel" class="text-white">1</span> (<span id="hudXp">0</span>/<span id="hudNextXp">1000</span>)
-</div>
-<div class="flex items-center space-x-1" title="Fondos / Dólares">
-<span class="text-green-400">$</span> <span id="hudMoney" class="text-white">5000</span>
-</div>
-<div class="flex items-center space-x-1" title="Minerales">
-<span class="text-amber-400">MIN:</span> <span id="hudMinerals" class="text-white">1200</span>
-</div>
-<div class="flex items-center space-x-1" title="Piezas de Repuesto">
-<span class="text-indigo-400">PZ:</span> <span id="hudParts" class="text-white">50</span>
-</div>
-<button onclick="Game.togglePause()" id="pauseBtn" class="bg-red-900/60 hover:bg-red-800 text-red-200 px-3 py-1 rounded border border-red-700 transition" aria-label="Pausar juego">PAUSA</button>
-</div>
+
+<div id="app-shell" style="display:none;flex-direction:column;height:100%;">
+<div id="unit-header">Sin unidad seleccionada</div>
+
+<header class="top-bar" id="menu-general" role="navigation" aria-label="Menú principal">
+  <div class="btn-row">
+    <button onclick="UI.open('s-hud')">Estado</button>
+    <button onclick="UI.open('s-cuenta')">Cuenta</button>
+    <button onclick="UI.open('s-ajustes')">Ajustes</button>
+    <button onclick="UI.open('s-market')">Mercado</button>
+    <button onclick="UI.open('s-taller')">Taller</button>
+    <button onclick="UI.open('s-vehiculos')">Flota</button>
+    <button onclick="UI.open('s-mapas'); Mapa.mostrarContinentes();">Mapa</button>
+    <button onclick="Juego.pausar()">Pausa</button>
+  </div>
 </header>
-​<!-- Main Dynamic Application Container -->
-<main class="flex-1 relative overflow-hidden flex" id="mainContainer" role="main">
-​<!-- 1. AUTH SCREEN -->
-<section id="screenAuth" class="absolute inset-0 bg-navy-900 flex flex-col items-center justify-center p-6 z-30">
-<div class="max-w-md w-full bg-navy-800 border border-blue-900 p-8 rounded-xl shadow-2xl space-y-6">
-<div class="text-center">
-<h1 class="text-3xl font-black text-blue-400 tracking-wider">AEROOCEAN</h1>
-<p class="text-sm text-gray-400 mt-1">MODERN WAR - Estrategia Aeronaval Táctica</p>
-</div>
-<div class="space-y-4">
-<button onclick="Auth.loginGoogle()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded transition flex items-center justify-center space-x-2" aria-label="Iniciar sesión con Google">
-<svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h5.51c-.24 1.38-1.04 2.55-2.22 3.33v2.77h3.59c2.1-1.93 3.31-4.78 3.31-8.17 0-.75-.07-1.48-.22-2.16z"/><path fill="currentColor" d="M12.18 21.5c3.24 0 5.96-1.08 7.95-2.93l-3.59-2.77c-1.08.73-2.45 1.16-4.36 1.16-3.35 0-6.19-2.26-7.2-5.31H1.27v2.85c2.01 3.99 6.13 6.75 10.91 6.75z"/><path fill="currentColor" d="M4.98 11.35c-.26-.75-.41-1.56-.41-2.35s.15-1.6.41-2.35V3.8H1.27C.46 5.43 0 7.27 0 9.25s.46 3.82 1.27 5.45l3.71-2.85z"/><path fill="currentColor" d="M12.18 4.58c1.76 0 3.34.6 4.58 1.79l3.43-3.43C18.14 1.15 15.42 0 12.18 0 7.4 0 3.28 2.76 1.27 6.75l3.71 2.85c1.01-3.05 3.85-5.02 7.2-5.02z"/></svg>
-<span>Iniciar Sesión con Google</span>
-</button>
-<div class="relative flex py-2 items-center">
-<div class="flex-grow border-t border-blue-900"></div>
-<span class="flex-shrink mx-4 text-gray-500 text-xs">O</span>
-<div class="flex-grow border-t border-blue-900"></div>
-</div>
-<button onclick="Auth.playOffline()" class="w-full bg-military-600 hover:bg-military-500 text-white font-bold py-3 px-4 rounded transition border border-military-500" aria-label="Jugar sin cuenta en modo local">
-Jugar sin Cuenta (Modo Local)
-</button>
-</div>
-<p class="text-xs text-gray-500 text-center">El modo local guarda tus datos únicamente en este dispositivo. Las cuentas con Google sincronizan con Firebase Firestore.</p>
-</div>
-</section>
-​<!-- 2. MAIN MENU SCREEN -->
-<section id="screenMenu" class="absolute inset-0 bg-navy-900 flex flex-col p-6 hidden z-20 overflow-y-auto">
-<div class="max-w-4xl mx-auto w-full my-auto space-y-6">
-<div class="flex justify-between items-center border-b border-blue-900 pb-4">
-<div>
-<h2 class="text-2xl font-bold text-blue-400">CENTRO DE MANDO PRINCIPAL</h2>
-<p class="text-sm text-gray-400" id="welcomeUserText">Comandante en Jefe</p>
-</div>
-<div class="flex space-x-2">
-<button onclick="Game.showScreen('screenSettings')" class="bg-navy-800 hover:bg-navy-700 text-white px-4 py-2 rounded border border-blue-800 text-sm" aria-label="Abrir ajustes">Ajustes</button>
-<button onclick="Auth.logout()" class="bg-red-950 hover:bg-red-900 text-red-200 px-4 py-2 rounded border border-red-800 text-sm" aria-label="Cerrar sesión">Salir</button>
-</div>
-</div>
-​<!-- Navigation Hub Grid -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-<button onclick="Game.showScreen('screenMap')" class="bg-navy-800 hover:bg-blue-900/50 border border-blue-800/80 p-6 rounded-lg text-center transition flex flex-col items-center space-y-2 group" aria-label="Abrir mapa mundial y misiones">
-<svg class="w-8 h-8 text-blue-400 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-<span class="font-bold text-lg">Mapa Mundial</span>
-<span class="text-xs text-gray-400">Conquista y Misiones</span>
-</button>
-<button onclick="Game.showScreen('screenFleet')" class="bg-navy-800 hover:bg-blue-900/50 border border-blue-800/80 p-6 rounded-lg text-center transition flex flex-col items-center space-y-2 group" aria-label="Ver y gestionar flota naval y aérea">
-<svg class="w-8 h-8 text-blue-400 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-<span class="font-bold text-lg">Flota Activa</span>
-<span class="text-xs text-gray-400">Portaaviones, F-35, Destructor, Submarino</span>
-</button>
-<button onclick="Game.showScreen('screenWorkshop')" class="bg-navy-800 hover:bg-blue-900/50 border border-blue-800/80 p-6 rounded-lg text-center transition flex flex-col items-center space-y-2 group" aria-label="Abrir taller de reparaciones">
-<svg class="w-8 h-8 text-amber-400 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-<span class="font-bold text-lg">Taller</span>
-<span class="text-xs text-gray-400">Reparar cascos y sistemas</span>
-</button>
-<button onclick="Game.showScreen('screenMarket')" class="bg-navy-800 hover:bg-blue-900/50 border border-blue-800/80 p-6 rounded-lg text-center transition flex flex-col items-center space-y-2 group" aria-label="Abrir mercado de suministros">
-<svg class="w-8 h-8 text-green-400 group-hover:scale-110 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-<span class="font-bold text-lg">Mercado</span>
-<span class="text-xs text-gray-400">Comprar combustible y munición</span>
-</button>
-</div>
-​<!-- Secondary Menu Row -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-<button onclick="Game.showScreen('screenProfile')" class="bg-navy-800 hover:bg-navy-700 border border-blue-900 p-4 rounded-lg flex items-center justify-between" aria-label="Ver perfil y estadísticas">
-<span class="font-bold">Perfil del Comandante</span>
-<span class="text-blue-400 text-sm" id="menuProfileLevel">Nivel 1</span>
-</button>
-<button onclick="Game.showScreen('screenRanking')" class="bg-navy-800 hover:bg-navy-700 border border-blue-900 p-4 rounded-lg flex items-center justify-between" aria-label="Ver ranking global">
-<span class="font-bold">Ranking Global</span>
-<span class="text-amber-400 text-sm">Ver Posiciones</span>
-</button>
-<button onclick="Game.saveGameManual()" class="bg-blue-900 hover:bg-blue-800 border border-blue-700 p-4 rounded-lg flex items-center justify-between" aria-label="Guardar partida manualmente">
-<span class="font-bold text-white">Guardar Partida</span>
-<span class="text-blue-200 text-xs">Cloud / Local</span>
-</button>
-</div>
-</div>
-</section>
-​<!-- 3. MAP SCREEN (WORLD CONQUEST) -->
-<section id="screenMap" class="absolute inset-0 bg-navy-900 flex flex-col p-6 hidden z-20 overflow-y-auto">
-<div class="max-w-5xl mx-auto w-full space-y-4">
-<div class="flex justify-between items-center border-b border-blue-900 pb-3">
-<div>
-<h2 class="text-2xl font-bold text-blue-400">MAPA MUNDIAL ESTRATÉGICO</h2>
-<p class="text-sm text-gray-400">Selecciona un territorio para iniciar misión o defensa.</p>
-</div>
-<button onclick="Game.showScreen('screenMenu')" class="bg-navy-800 hover:bg-navy-700 text-white px-4 py-2 rounded border border-blue-800" aria-label="Volver al menú principal">Volver al Menú</button>
-</div>
-<!-- Continent Tabs -->
-<div class="flex space-x-2 overflow-x-auto pb-2" id="continentTabs" role="tablist">
-<!-- Dynamic continent tabs -->
-</div>
-<!-- Territories Grid -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="territoriesGrid">
-<!-- Populated via JS -->
-</div>
-</div>
-</section>
-​<!-- 4. FLEET MANAGEMENT SCREEN -->
-<section id="screenFleet" class="absolute inset-0 bg-navy-900 flex flex-col p-6 hidden z-20 overflow-y-auto">
-<div class="max-w-5xl mx-auto w-full space-y-4">
-<div class="flex justify-between items-center border-b border-blue-900 pb-3">
-<div>
-<h2 class="text-2xl font-bold text-blue-400">GESTIÓN DE FLOTA</h2>
-<p class="text-sm text-gray-400">Estado operativo y control de unidades aeronavales.</p>
-</div>
-<button onclick="Game.showScreen('screenMenu')" class="bg-navy-800 hover:bg-navy-700 text-white px-4 py-2 rounded border border-blue-800" aria-label="Volver al menú principal">Volver al Menú</button>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="fleetUnitsContainer">
-<!-- Populated via JS -->
-</div>
-</div>
-</section>
-​<!-- 5. WORKSHOP SCREEN (REPAIR) -->
-<section id="screenWorkshop" class="absolute inset-0 bg-navy-900 flex flex-col p-6 hidden z-20 overflow-y-auto">
-<div class="max-w-4xl mx-auto w-full space-y-4">
-<div class="flex justify-between items-center border-b border-blue-900 pb-3">
-<div>
-<h2 class="text-2xl font-bold text-amber-400">TALLER DE MANTENIMIENTO</h2>
-<p class="text-sm text-gray-400">Repara cascos, motores, radares y sistemas de defensa.</p>
-</div>
-<button onclick="Game.showScreen('screenMenu')" class="bg-navy-800 hover:bg-navy-700 text-white px-4 py-2 rounded border border-blue-800" aria-label="Volver al menú principal">Volver al Menú</button>
-</div>
-<div class="space-y-4" id="workshopUnitsList">
-<!-- Populated via JS -->
-</div>
-</div>
-</section>
-​<!-- 6. MARKET SCREEN (SUPPLIES) -->
-<section id="screenMarket" class="absolute inset-0 bg-navy-900 flex flex-col p-6 hidden z-20 overflow-y-auto">
-<div class="max-w-4xl mx-auto w-full space-y-4">
-<div class="flex justify-between items-center border-b border-blue-900 pb-3">
-<div>
-<h2 class="text-2xl font-bold text-green-400">MERCADO DE SUMINISTROS</h2>
-<p class="text-sm text-gray-400">Adquiere combustible y munición para tus unidades.</p>
-</div>
-<button onclick="Game.showScreen('screenMenu')" class="bg-navy-800 hover:bg-navy-700 text-white px-4 py-2 rounded border border-blue-800" aria-label="Volver al menú principal">Volver al Menú</button>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="marketUnitsContainer">
-<!-- Populated via JS -->
-</div>
-</div>
-</section>
-​<!-- 7. COMBAT & MISSION PLAY SCREEN -->
-<section id="screenCombat" class="absolute inset-0 bg-navy-900 flex flex-col p-4 hidden z-20 overflow-hidden">
-<!-- Mission Header Info -->
-<div class="bg-navy-800 border border-blue-900 p-3 rounded-lg mb-3 flex flex-wrap justify-between items-center text-sm">
-<div>
-<span class="text-blue-400 font-bold" id="combatMissionTitle">Misión: Conquista</span> |
-<span class="text-gray-300" id="combatTerritoryName">Territorio</span>
-</div>
-<div class="flex items-center space-x-4">
-<div>Rumbo: <span id="hudHeading" class="text-white">000</span>°</div>
-<div>Velocidad: <span id="hudSpeed" class="text-white">0</span> Nudos</div>
-<div>Combustible: <span id="hudFuel" class="text-white">100</span>%</div>
-</div>
-</div>
-​<!-- Main Tactical Combat View Grid -->
-<div class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 overflow-hidden">
-<!-- Left Column: Active Unit & Navigation Controls -->
-<div class="bg-navy-800/80 border border-blue-900 p-4 rounded-lg flex flex-col justify-between overflow-y-auto">
-<div class="space-y-4">
-<div>
-<h3 class="text-sm text-blue-400 font-bold mb-1">UNIDAD ACTIVA EN MISIÓN</h3>
-<div id="activeUnitName" class="text-lg font-bold text-white">Portaaviones Insignia</div>
-<div class="text-xs text-gray-400 mt-1">Casco: <span id="activeUnitHull">100</span>% | Motores: <span id="activeUnitEngines">100</span>%</div>
-</div>
-<!-- Selector of units available in mission -->
-<div>
-<label for="missionUnitSelector" class="text-xs text-gray-400 block mb-1">Cambiar Unidad Activa:</label>
-<select id="missionUnitSelector" onchange="Combat.switchActiveUnit(this.value)" class="w-full bg-navy-900 border border-blue-800 text-white p-2 rounded text-sm" aria-label="Seleccionar unidad activa"></select>
-</div>
-<!-- Navigation Manual Controls -->
-<div class="border-t border-blue-900 pt-3 space-y-2">
-<h4 class="text-xs text-blue-400 font-bold">CONTROL DE NAVEGACIÓN</h4>
-<div class="grid grid-cols-3 gap-2">
-<button onclick="Combat.adjustHeading(-15)" class="bg-navy-700 hover:bg-blue-900 text-white p-2 rounded text-xs border border-blue-800" aria-label="Girar a babor 15 grados">Girar Izquierda</button>
-<button onclick="Combat.adjustSpeed(5)" class="bg-navy-700 hover:bg-blue-900 text-white p-2 rounded text-xs border border-blue-800" aria-label="Aumentar velocidad">Acelerar</button>
-<button onclick="Combat.adjustHeading(15)" class="bg-navy-700 hover:bg-blue-900 text-white p-2 rounded text-xs border border-blue-800" aria-label="Girar a estribor 15 grados">Girar Derecha</button>
-<button onclick="Combat.adjustSpeed(-5)" class="bg-navy-700 hover:bg-blue-900 text-white p-2 rounded text-xs border border-blue-800" aria-label="Reducir velocidad">Frenar</button>
-<button onclick="Combat.stopUnit()" class="bg-red-950/60 hover:bg-red-900 text-red-200 p-2 rounded text-xs border border-red-800" aria-label="Detener unidad">Detener</button>
-<button onclick="Combat.consultStatus()" class="bg-blue-950/60 hover:bg-blue-900 text-blue-200 p-2 rounded text-xs border border-blue-800" aria-label="Consultar estado y rumbo por voz">Consultar</button>
-</div>
-</div>
-<!-- Submarine / Aircraft specific toggles -->
-<div id="specialUnitControls" class="border-t border-blue-900 pt-3 hidden">
-<h4 class="text-xs text-blue-400 font-bold mb-2">CONTROLES ESPECIALES</h4>
-<div class="flex space-x-2" id="specialButtonsContainer"></div>
-</div>
-</div>
-</div>
-​<!-- Center Column: Radar & Tactical Situation -->
-<div class="bg-navy-800/80 border border-blue-900 p-4 rounded-lg flex flex-col justify-between overflow-y-auto">
-<div>
-<div class="flex justify-between items-center mb-2">
-<h3 class="text-sm text-blue-400 font-bold">RADAR / SONAR TÁCTICO</h3>
-<button onclick="Combat.scanRadar()" class="bg-blue-900 hover:bg-blue-800 text-white px-2.5 py-1 rounded text-xs" aria-label="Escanear radar">Escanear</button>
-</div>
-<div id="radarOutput" class="bg-navy-900 border border-blue-900 p-3 rounded h-36 overflow-y-auto text-xs space-y-1 font-mono text-green-400" role="region" aria-label="Pantalla de radar">
-[Radar activo] Buscando contactos enemigos...
-</div>
-</div>
-<div class="mt-4">
-<h3 class="text-sm text-blue-400 font-bold mb-2">SELECCIÓN DE OBJETIVOS</h3>
-<div id="targetsList" class="space-y-2 max-h-40 overflow-y-auto">
-<!-- Populated via JS -->
-</div>
-</div>
-</div>
-​<!-- Right Column: Weaponry & Attack Actions -->
-<div class="bg-navy-800/80 border border-blue-900 p-4 rounded-lg flex flex-col justify-between overflow-y-auto">
-<div class="space-y-3">
-<h3 class="text-sm text-blue-400 font-bold">SISTEMA DE ARMAS</h3>
-<div id="weaponsList" class="space-y-2">
-<!-- Populated via JS -->
-</div>
-</div>
-<div class="border-t border-blue-900 pt-3 mt-4 space-y-2">
-<button onclick="Combat.fireWeapon()" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-3 px-4 rounded text-sm transition shadow-lg" aria-label="Disparar arma seleccionada contra objetivo bloqueado">DISPARAR ARMA SELECCIONADA</button>
-<button onclick="Combat.retireFromMission()" class="w-full bg-navy-900 hover:bg-navy-700 text-gray-300 py-2 px-4 rounded text-xs border border-blue-800" aria-label="Retirarse de la misión actual">Retirarse / Salir</button>
-</div>
-</div>
-</div>
-</section>
-​<!-- 8. PROFILE SCREEN -->
-<section id="screenProfile" class="absolute inset-0 bg-navy-900 flex flex-col p-6 hidden z-20 overflow-y-auto">
-<div class="max-w-2xl mx-auto w-full space-y-4">
-<div class="flex justify-between items-center border-b border-blue-900 pb-3">
-<h2 class="text-2xl font-bold text-blue-400">PERFIL DEL COMANDANTE</h2>
-<button onclick="Game.showScreen('screenMenu')" class="bg-navy-800 hover:bg-navy-700 text-white px-4 py-2 rounded border border-blue-800" aria-label="Volver al menú principal">Volver</button>
-</div>
-<div class="bg-navy-800 border border-blue-900 p-6 rounded-lg space-y-4" id="profileDetails">
-<!-- Populated via JS -->
-</div>
-</div>
-</section>
-​<!-- 9. RANKING SCREEN -->
-<section id="screenRanking" class="absolute inset-0 bg-navy-900 flex flex-col p-6 hidden z-20 overflow-y-auto">
-<div class="max-w-3xl mx-auto w-full space-y-4">
-<div class="flex justify-between items-center border-b border-blue-900 pb-3">
-<h2 class="text-2xl font-bold text-amber-400">RANKING GLOBAL DE COMANDANTES</h2>
-<button onclick="Game.showScreen('screenMenu')" class="bg-navy-800 hover:bg-navy-700 text-white px-4 py-2 rounded border border-blue-800" aria-label="Volver al menú principal">Volver</button>
-</div>
-<div class="bg-navy-800 border border-blue-900 rounded-lg overflow-hidden">
-<table class="w-full text-left border-collapse" role="table">
-<thead>
-<tr class="bg-navy-900 border-b border-blue-900 text-xs text-blue-400">
-<th class="p-3">Pos</th>
-<th class="p-3">Comandante</th>
-<th class="p-3">Nivel</th>
-<th class="p-3">Victorias</th>
-<th class="p-3">Territorios</th>
-</tr>
-</thead>
-<tbody id="rankingTableBody" class="text-sm">
-<!-- Populated via JS -->
-</tbody>
-</table>
-</div>
-</div>
-</section>
-​<!-- 10. SETTINGS SCREEN -->
-<section id="screenSettings" class="absolute inset-0 bg-navy-900 flex flex-col p-6 hidden z-20 overflow-y-auto">
-<div class="max-w-2xl mx-auto w-full space-y-4">
-<div class="flex justify-between items-center border-b border-blue-900 pb-3">
-<h2 class="text-2xl font-bold text-blue-400">AJUSTES DEL SISTEMA</h2>
-<button onclick="Game.showScreen('screenMenu')" class="bg-navy-800 hover:bg-navy-700 text-white px-4 py-2 rounded border border-blue-800" aria-label="Volver al menú principal">Volver</button>
-</div>
-<div class="bg-navy-800 border border-blue-900 p-6 rounded-lg space-y-4">
-<div class="flex items-center justify-between">
-<span>Sistema de Voz (SpeechSynthesis)</span>
-<input type="checkbox" id="settingVoice" onchange="Settings.update('voice', this.checked)" class="w-5 h-5 accent-blue-600" checked aria-label="Activar o desactivar voz">
-</div>
-<div class="flex items-center justify-between">
-<span>Efectos de Sonido</span>
-<input type="checkbox" id="settingAudio" onchange="Settings.update('audio', this.checked)" class="w-5 h-5 accent-blue-600" checked aria-label="Activar o desactivar efectos de sonido">
-</div>
-<div class="flex items-center justify-between">
-<span>Vibración Háptica</span>
-<input type="checkbox" id="settingVibration" onchange="Settings.update('vibration', this.checked)" class="w-5 h-5 accent-blue-600" checked aria-label="Activar o desactivar vibración">
-</div>
-<div>
-<label class="block text-sm mb-1">Velocidad de Voz</label>
-<input type="range" min="0.5" max="2" step="0.1" value="1" id="settingVoiceRate" onchange="Settings.update('voiceRate', parseFloat(this.value))" class="w-full accent-blue-600" aria-label="Velocidad de voz">
-</div>
-</div>
-</div>
-</section>
-​<!-- 11. VICTORY / DEFEAT MODAL SCREENS -->
-<div id="modalResult" class="absolute inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50">
-<div class="bg-navy-800 border border-blue-900 p-6 rounded-xl max-w-md w-full text-center space-y-4">
-<h3 id="resultTitle" class="text-3xl font-black text-blue-400">VICTORIA CONFIRMADA</h3>
-<p id="resultDescription" class="text-sm text-gray-300">Territorio conquistado con éxito.</p>
-<div id="resultRewards" class="text-xs bg-navy-900 p-3 rounded border border-blue-900 text-green-400">
-<!-- Rewards summary -->
-</div>
-<button onclick="Game.closeResultModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded transition" aria-label="Continuar juego">Continuar</button>
-</div>
-</div>
-​</main>
-​<!-- Footer Status Bar -->
-<footer class="bg-navy-900 border-t border-blue-900/50 px-4 py-1.5 text-xs text-gray-400 flex justify-between items-center z-10" role="contentinfo">
-<div id="footerStatus" class="truncate">Sistema operativo táctico en línea. Listo para operaciones.</div>
-<div class="hidden md:block">AEROOCEAN: MODERN WAR © 2026</div>
+
+<main id="viewport">
+  <section id="s-hud" class="screen active" aria-label="Estado general">
+    <div class="hdr"><h2>Estado general</h2></div>
+    <div class="status" id="hud-resumen" aria-live="polite">Cargando…</div>
+    <button onclick="HUD.anunciarCompleto()" style="margin-bottom:8px;">Consultar estado completo por voz</button>
+    <div class="list" id="hud-unidades"></div>
+    <div class="btn-row" style="margin-top:10px;"><button class="ok" onclick="Juego.guardar(true)">Guardar partida</button></div>
+  </section>
+
+  <section id="s-cuenta" class="screen" aria-label="Cuenta">
+    <div class="hdr"><h2>Cuenta</h2><button class="danger" onclick="UI.close()">Cerrar</button></div>
+    <div class="status" id="cuenta-info">Sin sesión.</div>
+    <div class="btn-row">
+      <button class="ok" onclick="Cuenta.guardarEnNube()">Guardar progreso en la nube</button>
+      <button onclick="Cuenta.cargarDeNube()">Cargar progreso desde la nube</button>
+      <button class="danger" onclick="Cuenta.cerrarSesion()">Cerrar sesión</button>
+    </div>
+  </section>
+
+  <section id="s-ajustes" class="screen" aria-label="Ajustes">
+    <div class="hdr"><h2>Ajustes</h2><button class="danger" onclick="UI.close()">Cerrar</button></div>
+    <div class="list">
+      <label>Música <input type="range" min="0" max="1" step="0.1" value="0.3" oninput="Audio2.setVolumen('musica', this.value)"></label>
+      <label>Efectos <input type="range" min="0" max="1" step="0.1" value="0.6" oninput="Audio2.setVolumen('efectos', this.value)"></label>
+      <label>Velocidad de voz <input type="range" min="0.6" max="1.6" step="0.1" value="1" oninput="Voz.setVelocidad(this.value)"></label>
+      <button onclick="UI.toggleVibracion()">Vibración: <span id="vib-estado">activada</span></button>
+      <button onclick="UI.toggleVoz()">Voz: <span id="voz-estado">activada</span></button>
+      <button class="danger" onclick="Juego.borrarProgreso()">Borrar progreso local</button>
+    </div>
+  </section>
+
+  <section id="s-market" class="screen" aria-label="Mercado">
+    <div class="hdr"><h2>Mercado — <span id="market-unidad"></span></h2><button class="danger" onclick="UI.close()">Cerrar</button></div>
+    <div id="market-list" class="list"></div>
+  </section>
+
+  <section id="s-taller" class="screen" aria-label="Taller">
+    <div class="hdr"><h2>Taller — <span id="taller-unidad"></span></h2><button class="danger" onclick="UI.close()">Cerrar</button></div>
+    <div id="taller-list" class="list"></div>
+  </section>
+
+  <section id="s-vehiculos" class="screen" aria-label="Flota">
+    <div class="hdr"><h2>Flota</h2><button class="danger" onclick="UI.close()">Cerrar</button></div>
+    <div class="bc">Al abrir el panel de una unidad, solo verás sus propios controles hasta que aterrice o regrese al portaaviones.</div>
+    <div id="vehiculos-list" class="list"></div>
+  </section>
+
+  <section id="s-mapas" class="screen" aria-label="Mapa mundial">
+    <div class="hdr"><h2 id="mapTitle">🌍 MAPA MUNDIAL</h2><button class="danger" onclick="UI.close()">Cerrar</button></div>
+    <div id="breadcrumb" class="bc" aria-live="polite">Continentes habitados</div>
+    <button id="btnMapBack" style="display:none;margin-bottom:8px;" onclick="Mapa.retroceder()">⬅ Regresar</button>
+    <div id="mapList" class="list" aria-live="polite"></div>
+  </section>
+
+  <section id="s-ruta" class="screen" aria-label="Selección de ruta">
+    <div class="hdr"><h2>Elegir ruta hacia el objetivo</h2><button class="danger" onclick="UI.close()">Cancelar</button></div>
+    <div id="ruta-body" class="list"></div>
+  </section>
+
+  <section id="s-mision" class="screen" aria-label="Misión activa">
+    <div class="hdr"><h2 id="misionTitle">Misión</h2><button class="danger" onclick="Mision.abandonar()">Abandonar</button></div>
+    <div id="misionBody"></div>
+  </section>
+</main>
+
+<footer id="control-bar" aria-label="Controles de la unidad activa" aria-live="polite">
+  <div class="status" id="control-bar-titulo">Sin misión activa. Ve a Mapa para elegir un objetivo.</div>
+  <div class="btn-row" id="control-bar-botones"></div>
 </footer>
-​<!-- GAME ENGINE & LOGIC SCRIPT -->
+</div>
+
 <script>
-// --- 1. CONFIG & AUDIO SYSTEM ---
-const CONFIG = {
-saveVersion: 1,
-firebaseConfig: { apiKey: "demo-key", projectId: "aeroocean-demo" } // Fallback safe demo configuration
+window.onerror = function(msg,url,line,col,err){
+  console.error('Error técnico AeroOcean:', msg, url, line, col, err);
+  return true;
 };
-​const SFX = {
-play(type) {
-if (!GameState.settings.audio) return;
+
+let firebaseListo = false;
+let auth = null, db = null;
 try {
-const ctx = new (window.AudioContext || window.webkitAudioContext)();
-const osc = ctx.createOscillator();
-const gain = ctx.createGain();
-osc.connect(gain);
-gain.connect(ctx.destination);
-​if (type === 'fire') {
-osc.type = 'sawtooth';
-osc.frequency.setValueAtTime(300, ctx.currentTime);
-osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.2);
-gain.gain.setValueAtTime(0.3, ctx.currentTime);
-gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-osc.start(); osc.stop(ctx.currentTime + 0.2);
-} else if (type === 'explosion') {
-osc.type = 'square';
-osc.frequency.setValueAtTime(100, ctx.currentTime);
-osc.frequency.linearRampToValueAtTime(20, ctx.currentTime + 0.5);
-gain.gain.setValueAtTime(0.5, ctx.currentTime);
-gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-osc.start(); osc.stop(ctx.currentTime + 0.5);
-} else if (type === 'victory') {
-osc.type = 'sine';
-osc.frequency.setValueAtTime(440, ctx.currentTime);
-osc.frequency.setValueAtTime(554.37, ctx.currentTime + 0.15);
-osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.3);
-gain.gain.setValueAtTime(0.3, ctx.currentTime);
-gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.6);
-osc.start(); osc.stop(ctx.currentTime + 0.6);
-} else { // click / select
-osc.type = 'sine';
-osc.frequency.setValueAtTime(600, ctx.currentTime);
-gain.gain.setValueAtTime(0.1, ctx.currentTime);
-gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.08);
-osc.start(); osc.stop(ctx.currentTime + 0.08);
+  if (typeof firebase !== 'undefined' && firebaseConfig) {
+    firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    firebaseListo = true;
+  }
+} catch(e) {
+  firebaseListo = false;
 }
-} catch(e) { console.warn("AudioContext error:", e); }
-}
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDcQhLnvt51gBAcJxAYWfg5d9wq3et8Hy0",
+  authDomain: "aeroocean-modern-war.firebaseapp.com",
+  projectId: "aeroocean-modern-war",
+  storageBucket: "aeroocean-modern-war.firebasestorage.app",
+  messagingSenderId: "35640679870",
+  appId: "1:35640679870:web:a778abb92df5d66345edef",
+  measurementId: "G-BYD2E9GSZL"
 };
-​const Accessibility = {
-lastSpoken: '',
-speak(text, priority = 'normal') {
-document.getElementById('srAnnouncer').innerText = text;
-document.getElementById('footerStatus').innerText = text;
-if (!GameState.settings.voice) return;
-if ('speechSynthesis' in window) {
-window.speechSynthesis.cancel();
-const utter = new SpeechSynthesisUtterance(text);
-utter.lang = 'es-ES';
-utter.rate = GameState.settings.voiceRate || 1;
-window.speechSynthesis.speak(utter);
-}
-},
-vibrate(pattern = 50) {
-if (!GameState.settings.vibration) return;
-if ('navigator' in window && 'vibrate' in navigator) {
-try { navigator.vibrate(pattern); } catch(e) {}
-}
-}
-};
-​// --- 2. GAME STATE & DATA ---
-let GameState = {
-saveVersion: 1,
-auth: { loggedIn: false, user: null, mode: 'local' },
-level: 1,
-xp: 0,
-nextXp: 1000,
-money: 5000,
-minerals: 1200,
-parts: 50,
-victories: 0,
-defeats: 0,
-settings: { voice: true, audio: true, vibration: true, voiceRate: 1.0 },
-fleet: [
-{ id: 'carrier', name: 'Portaaviones Insignia', type: 'carrier', hull: 100, maxHull: 100, engines: 100, radar: 100, aa: 100, fuel: 100, maxFuel: 100, ammo: 50, maxAmmo: 50, speed: 0, maxSpeed: 25, heading: 0, state: 'active', destroyed: false },
-{ id: 'f35_1', name: 'F-35 Uno', type: 'f35', hull: 100, maxHull: 100, engines: 100, radar: 100, aa: 100, fuel: 100, maxFuel: 100, ammo: 30, maxAmmo: 30, speed: 0, maxSpeed: 600, heading: 0, state: 'hangar', destroyed: false },
-{ id: 'b21_1', name: 'B-21 Raider', type: 'b21', hull: 100, maxHull: 100, engines: 100, radar: 100, aa: 100, fuel: 100, maxFuel: 100, ammo: 20, maxAmmo: 20, speed: 0, maxSpeed: 500, heading: 0, state: 'hangar', destroyed: false },
-{ id: 'destroyer', name: 'Destructor Escolta', type: 'destroyer', hull: 100, maxHull: 100, engines: 100, radar: 100, aa: 100, fuel: 100, maxFuel: 100, ammo: 40, maxAmmo: 40, speed: 0, maxSpeed: 30, heading: 0, state: 'active', destroyed: false },
-{ id: 'submarine', name: 'Submarino Táctico', type: 'submarine', hull: 100, maxHull: 100, engines: 100, radar: 100, aa: 100, fuel: 100, maxFuel: 100, ammo: 20, maxAmmo: 20, speed: 0, maxSpeed: 20, heading: 0, state: 'surface', destroyed: false }
-],
-territories: [
-{ id: 'amer_norte_1', continent: 'América del Norte', name: 'Base Golfo de México', conquered: true, rewardMoney: 800, rewardMin: 350, difficulty: 'Media', defense: 40, underAttack: false },
-{ id: 'amer_norte_2', continent: 'América del Norte', name: 'Alaska Frontera Norte', conquered: false, rewardMoney: 1200, rewardMin: 600, difficulty: 'Alta', defense: 70, underAttack: false },
-{ id: 'caribe_1', continent: 'Caribe', name: 'Archipiélago Antillas', conquered: false, rewardMoney: 900, rewardMin: 400, difficulty: 'Baja', defense: 30, underAttack: false },
-{ id: 'amer_sur_1', continent: 'América del Sur', name: 'Costa Atlántica Brasil', conquered: false, rewardMoney: 1100, rewardMin: 550, difficulty: 'Media', defense: 50, underAttack: false },
-{ id: 'europa_1', continent: 'Europa', name: 'Mar del Norte UK', conquered: false, rewardMoney: 1500, rewardMin: 800, difficulty: 'Alta', defense: 80, underAttack: false },
-{ id: 'asia_1', continent: 'Asia', name: 'Mar de la China', conquered: false, rewardMoney: 1800, rewardMin: 1000, difficulty: 'Muy Alta', defense: 95, underAttack: false },
-{ id: 'africa_1', continent: 'África', name: 'Cuerno de África', conquered: false, rewardMoney: 1000, rewardMin: 500, difficulty: 'Media', defense: 45, underAttack: false },
-{ id: 'oceania_1', continent: 'Oceania', name: 'Mar de Coral', conquered: false, rewardMoney: 1300, rewardMin: 700, difficulty: 'Media', defense: 55, underAttack: false }
-],
-currentMission: null
-};
-​// --- 3. AUTH & PERSISTENCE MODULE ---
-const Auth = {
-loginGoogle() {
-SFX.play('click');
-// Simulate Firebase Auth Google Sign-In with fallback
-GameState.auth = { loggedIn: true, user: { uid: 'google_user_123', email: 'comandante@aeroocean.mil', name: 'Comandante Google' }, mode: 'cloud' };
-Accessibility.speak("Sesión iniciada con Google correctamente.");
-Game.initAfterAuth();
-},
-playOffline() {
-SFX.play('click');
-GameState.auth = { loggedIn: true, user: { uid: 'local_user', email: 'local@device', name: 'Comandante Local' }, mode: 'local' };
-Accessibility.speak("Modo local activado. Los datos se guardan en este dispositivo.");
-Game.initAfterAuth();
-},
-logout() {
-SFX.play('click');
-GameState.auth = { loggedIn: false, user: null, mode: 'local' };
-Storage.save();
-Game.showScreen('screenAuth');
-Accessibility.speak("Sesión cerrada.");
-}
-};
-​const Storage = {
-save() {
+
+// Intento seguro de inicialización inmediata
 try {
-localStorage.setItem('aeroocean_save', JSON.stringify(GameState));
-if (GameState.auth.mode === 'cloud') {
-// Simulated Firestore sync timestamp check
-GameState.updatedAt = Date.now();
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+  auth = firebase.auth();
+  db = firebase.firestore();
+  firebaseListo = true;
+} catch(err) {
+  firebaseListo = false;
 }
-} catch(e) { console.error("Error saving data:", e); }
-},
-load() {
-try {
-const data = localStorage.getItem('aeroocean_save');
-if (data) {
-const parsed = JSON.parse(data);
-if (parsed && parsed.saveVersion === CONFIG.saveVersion) {
-GameState = Object.assign(GameState, parsed);
-}
-}
-} catch(e) { console.error("Error loading data:", e); }
-}
+
+let confirmationResult = null;
+
+const Cuenta = {
+  usuarioActual: null,
+  _sinServicio(){
+    document.getElementById('auth-status').innerText = 'Modo Local activo. Tu progreso se guardará en este dispositivo.';
+    Voz.decir('Modo local activo. Iniciando juego.','normal');
+    Arranque.iniciar();
+  },
+  loginGoogle(){
+    if(!firebaseListo){ Cuenta._sinServicio(); return; }
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).then(r => Cuenta._entrar(r.user)).catch(e => {
+      console.warn("Google Auth popup bloqueado o no disponible, usando modo local:", e);
+      Cuenta._sinServicio();
+    });
+  },
+  enviarCodigoTelefono(){
+    if(!firebaseListo){ Cuenta._sinServicio(); return; }
+    const numero = document.getElementById('telefono-numero').value.trim();
+    if(!numero){ Voz.decir('Escribe tu número con código de país.','normal'); return; }
+    try{
+      if(!window.recaptchaVerifier) window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {size:'invisible'});
+      auth.signInWithPhoneNumber(numero, window.recaptchaVerifier).then(res => {
+        confirmationResult = res;
+        document.getElementById('telefono-codigo').style.display='block';
+        document.getElementById('telefono-confirmar').style.display='block';
+        Voz.decir('Código enviado.','normal');
+      }).catch(e => { Cuenta._sinServicio(); });
+    }catch(e){ Cuenta._sinServicio(); }
+  },
+  confirmarCodigoTelefono(){
+    const codigo = document.getElementById('telefono-codigo').value.trim();
+    if(!confirmationResult || !codigo){ Voz.decir('Escribe el código.','normal'); return; }
+    confirmationResult.confirm(codigo).then(r => Cuenta._entrar(r.user)).catch(e => Voz.decir('Código incorrecto.','urgente'));
+  },
+  loginCorreo(){
+    if(!firebaseListo){ Cuenta._sinServicio(); return; }
+    const email = document.getElementById('correo-email').value.trim();
+    const clave = document.getElementById('correo-clave').value;
+    auth.signInWithEmailAndPassword(email, clave).then(r => Cuenta._entrar(r.user)).catch(e => Cuenta._sinServicio());
+  },
+  registrarCorreo(){
+    if(!firebaseListo){ Cuenta._sinServicio(); return; }
+    const email = document.getElementById('correo-email').value.trim();
+    const clave = document.getElementById('correo-clave').value;
+    auth.createUserWithEmailAndPassword(email, clave).then(r => Cuenta._entrar(r.user)).catch(e => Cuenta._sinServicio());
+  },
+  _entrar(user){
+    Cuenta.usuarioActual = user;
+    document.getElementById('auth-status').innerText = `Sesión iniciada: ${user.email || user.phoneNumber || 'Google'}.`;
+    Voz.decir('Sesión iniciada correctamente.','normal');
+    Cuenta.cargarDeNube(true);
+    Arranque.iniciar();
+  },
+  cerrarSesion(){ if(firebaseListo) auth.signOut(); Cuenta.usuarioActual=null; Voz.decir('Sesión cerrada.','normal'); UI.close(); },
+  guardarEnNube(){
+    if(!firebaseListo || !Cuenta.usuarioActual){ Voz.decir('Inicia sesión para guardar en la nube.','urgente'); return; }
+    Estado.actualizado = Date.now();
+    db.collection('progreso').doc(Cuenta.usuarioActual.uid).set({ Estado, Flota, actualizado: Estado.actualizado })
+      .then(()=>Voz.decir('Progreso guardado en la nube.','normal'))
+      .catch(e=>Voz.decir('Error al guardar en la nube.','urgente'));
+  },
+  cargarDeNube(silencioso){
+    if(!firebaseListo || !Cuenta.usuarioActual) return;
+    db.collection('progreso').doc(Cuenta.usuarioActual.uid).get().then(doc=>{
+      if(doc.exists){
+        const d = doc.data();
+        if((d.actualizado||0) > (Estado.actualizado||0)){
+          if(d.Estado) Estado = Object.assign(Estado, d.Estado);
+          if(d.Flota) Flota = Object.assign(Flota, d.Flota);
+          sanear(); HUD.render(); Vehiculos.render();
+        }
+      }
+    }).catch(e=>{});
+  }
 };
-​// --- 4. GAME ENGINE CONTROLLER ---
-const Game = {
-init() {
-Storage.load();
-// Check if already authenticated or default to auth screen
-if (GameState.auth.loggedIn) {
-Game.initAfterAuth();
-} else {
-Game.showScreen('screenAuth');
+
+if(firebaseListo && auth){
+  try { auth.onAuthStateChanged(u => { if(u) Cuenta.usuarioActual = u; }); } catch(e){}
 }
-},
-initAfterAuth() {
-document.getElementById('userBadge').innerText = GameState.auth.mode === 'cloud' ? 'Cloud: Google' : 'Modo Local';
-document.getElementById('welcomeUserText').innerText = GameState.auth.user.name;
-Game.updateHUD();
-Game.showScreen('screenMenu');
-Accessibility.speak("Bienvenido a Aeróocean Modern War. Menú principal.");
-},
-showScreen(screenId) {
-SFX.play('click');
-['screenAuth', 'screenMenu', 'screenMap', 'screenFleet', 'screenWorkshop', 'screenMarket', 'screenCombat', 'screenProfile', 'screenRanking', 'screenSettings'].forEach(id => {
-document.getElementById(id).classList.add('hidden');
+
+const AUDIO_BASE='./';
+const SFX={
+seleccion:'Tenis.ogg', teclado:'Tonos.ogg', bienvenida:'mensajedebienvenida.mp3', iniciarPartida:'Iniciandopartida.mp3',
+moneda:'Moneda de Mario.mp3', tiro:'tiro.mp3', fuegoOrden:'Fuego.mp3', disparo:'Disparo.mp3', mp40:'mp40.mp3',
+recarga:'recargapistola.mp3', sinBala:'nosalelabala.mp3', municionBaja:'municionbajarecargatusarmasinmediatamente.wav',
+ganaPunto:'ganapunto.mp3', ametralladoraSel:'ametralladoraseleccionada.wav', ametralladoraFuego:'Ametralladora.mp3',
+trazadoras:'trazadoras.mp3', torreta:'Torreta.mp3', misilAireSel:'misilaire-aireseleccionado.wav', misilAireLanz:'misilaire-airelanzado.wav',
+misilCruceroListo:'misildecrucerolistoparadisparar.wav', misilCruceroLanz:'misildecrucerolanzado.wav', misilCruceroVuelo:'misildecrucero.mp3',
+misilGenerico:'misil.mp3', bombaPrecisionSel:'bombadeprecisionseleccionada.wav', bombaPrecisionLanz:'bombadeprecisionlanzada.wav',
+bombaImpacto:'bonba.mp3', bombardeado:'bombardeado.wav', bombardeoSonido:'sonidodeborbandeo.mp3', bombarderoAire:'borbanderoenelaire.mp3',
+bateriaAntiaerea:'bateriademisilesantiaereos.mp3', torpedoFalla:'sonidodetorpedo.mp3', torpedoImpacto:'sonidodetorpedoimpactandoenelobjetivo.mp3',
+seleccionaArma:'seleccionaelarmaquedeseasutilizar.wav', seleccionaArmamento:'seleccionaelarmamentodisponible.wav',
+impactoConfirmado:'impactoconfirmado.wav', impacto50:'impactoconfirmadodanoenemigo50%.wav', objetivoIdentificado:'objetivoidentificado.wav',
+objetivoDestruido:'objetivodestruido-prepárateparalasiguientemision.wav', enemigoDetectado:'enemigodetectado.wav', enemigosDestruidos:'enemigosdestruido.wav',
+contactoRadar:'contactoderadar.mp3', combateIniciado:'combateiniciado.mp3', alarmaAtaque:'Alarmadeataqueenemigo.mp3', alerta:'alerta.mp3',
+alarmaEmergencia:'alarmadeemergencia.mp3', emergencia:'emergencia.wav', llegadaCombate:'haslletadoalareadecombate.wav', nuevaMision:'nuevamisiondisponible.wav',
+nivelAumentado:'nivelaumentado.wav', misionCompletada:'misioncompletada-recompensasrecibidas.wav', recursosObtenidos:'hasobtenidorecursosdelterritorioconquistado.wav',
+preparandoFuerzas:'preparandofuerzasparalapróximamision.wav', victoria:'victoriaconfirmada-hascompletadolamision.wav', reabastecimiento:'reabastecimientoyrearmecompletados.wav',
+aterrizaje:'aterrizaje.mp3', f35Desplegado:'vehículo-f35desplegado.wav', f35Listo:'vr-a-f35.wav', f35ArmasListas:'armasdel-f35disponibles.wav',
+f35EnRuta:'avion-f35enrutahaciaelobjetivo.wav', f35BajoFuego:'atenciontu-f35estarecibiendofuegoenemigo.wav', f35Ambiente:'sonidodecasaenelaire.wav',
+avionMotor:'sonidodeavion.mp3', f35Motor:'sonido-de-f-35.mp3', b21Desplegado:'bombardero-b-21raiderdesplegado.wav', b21ArmasListas:'armamentodel-b-21raiderlisto.wav',
+b21EnRuta:'b-21raiderenrutahaciaelobjetivo.wav', b21Regresando:'b-21raiderregresandoalportaaviones.wav', b21Aterrizado:'b-21raiderhaaterrizadoenelportaaviones.wav',
+b21Recomendado:'vehiculorecomendadobombardero-b-21rayder.wav', destructorDesplegado:'destructordesplegado.wav', destructorEnRuta:'destructorenrutahaciaelobjetivo.wav',
+destructorRecomendado:'vehiculorecomendadodestructor.wav', mar:'mar.mp3', portaaviones:'Sonidoportaaviones.mp3', portaaviones1:'sonidoportaaviones1.mp3',
+batallaAeronaval:'Batalla_Aeronaval.mp3'
+};
+
+const Voz={cola:[],hablando:false,velocidad:1,activa:true,
+setVelocidad(v){this.velocidad=parseFloat(v);},
+decir(t,p){
+if(!this.activa) return;
+const a=document.getElementById('sr-announcer');if(a)a.innerText=t;
+if(p==='urgente'){if('speechSynthesis'in window)window.speechSynthesis.cancel();this.cola=[];this.hablando=false;}
+this.cola.push(t);this._p();},
+_p(){if(this.hablando||this.cola.length===0)return;if(!('speechSynthesis'in window)){this.cola.shift();return;}
+this.hablando=true;const t=this.cola.shift();const u=new SpeechSynthesisUtterance(t);u.lang='es-ES';u.rate=this.velocidad;
+u.onend=()=>{this.hablando=false;this._p();};u.onerror=()=>{this.hablando=false;this._p();};window.speechSynthesis.speak(u);}};
+
+// Actualiza mensaje de estado inicial en pantalla de bienvenida
+window.addEventListener('DOMContentLoaded', () => {
+  const st = document.getElementById('auth-status');
+  if (st) {
+    st.innerText = firebaseListo ? 'Servicios en línea listos. Inicia sesión o juega local.' : 'Modo local disponible. Puedes jugar sin cuenta.';
+  }
 });
-document.getElementById(screenId).classList.remove('hidden');
-​// Render screen specifics
-if (screenId === 'screenMap') MapModule.render();
-if (screenId === 'screenFleet') FleetModule.render();
-if (screenId === 'screenWorkshop') WorkshopModule.render();
-if (screenId === 'screenMarket') MarketModule.render();
-if (screenId === 'screenProfile') ProfileModule.render();
-if (screenId === 'screenRanking') RankingModule.render();
-},
-updateHUD() {
-document.getElementById('hudLevel').innerText = GameState.level;
-document.getElementById('hudXp').innerText = GameState.xp;
-document.getElementById('hudNextXp').innerText = GameState.nextXp;
-document.getElementById('hudMoney').innerText = GameState.money;
-document.getElementById('hudMinerals').innerText = GameState.minerals;
-document.getElementById('hudParts').innerText = GameState.parts;
-},
-addXp(amount) {
-GameState.xp += amount;
-if (GameState.xp >= GameState.nextXp) {
-GameState.level++;
-GameState.xp -= GameState.nextXp;
-GameState.nextXp = Math.floor(GameState.nextXp * 1.5);
-Accessibility.speak(¡Nivel ${GameState.level} alcanzado!, 'urgent');
-SFX.play('victory');
-Accessibility.vibrate([100, 50, 100]);
+
+const Patrones={disparo:[40],impacto:[100],explosion:[200,80,200],alerta:[80,40,80,40,80],victoria:[200,100,200,100,300],derrota:[400,150,400]};
+const Vibrar=(t)=>{if(!Config.vibracion)return;if('vibrate'in navigator){try{navigator.vibrate(Patrones[t]||[60]);-log}catch(e){}}};
+
+const Config={musica:0.3,efectos:0.6,vibracion:true};
+const Audio2={pistas:{},
+setVolumen(tipo,v){Config[tipo]=parseFloat(v);Object.values(this.pistas).forEach(a=>a.volume=Config.musica);},
+continuo(n,f,b){if(this.pistas[n])return;try{const a=new Audio(AUDIO_BASE+encodeURIComponent(f));a.loop=true;a.volume=b*Config.musica;a.play().catch(()=>{});this.pistas[n]=a;}catch(e){}},
+detener(n){if(this.pistas[n]){this.pistas[n].pause();delete this.pistas[n];}},
+efecto(f){if(!f)return;try{const a=new Audio(AUDIO_BASE+encodeURIComponent(f));a.volume=Config.efectos;a.play().catch(()=>{});}catch(e){}}};
+
+function notificar(mensaje, prioridad, sonido, patronVibracion){
+  if(sonido) Audio2.efecto(sonido);
+  if(patronVibracion) Vibrar(patronVibracion);
+  if(mensaje) Voz.decir(mensaje, (prioridad==='critico'||prioridad==='urgente') ? 'urgente' : 'normal');
 }
-Storage.save();
-Game.updateHUD();
+
+function tap(fn){ Audio2.efecto(SFX.seleccion); fn(); }
+
+const UI={
+mostrarBloque(id){ ['auth-options','auth-telefono','auth-correo'].forEach(x=>document.getElementById(x).style.display = x===id?'flex':'none'); },
+open(id){ Audio2.efecto(SFX.teclado); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); const p=document.getElementById(id); p.classList.add('active'); const f=p.querySelector('button,input'); if(f)f.focus();
+if(id==='s-cuenta') document.getElementById('cuenta-info').innerText = Cuenta.usuarioActual ? `Cuenta: ${Cuenta.usuarioActual.email||Cuenta.usuarioActual.phoneNumber||'Google'}` : 'Sin sesión iniciada.';
 },
-togglePause() {
-Combat.togglePause();
-},
-closeResultModal() {
-SFX.play('click');
-document.getElementById('modalResult').classList.add('hidden');
-Game.showScreen('screenMenu');
+close(){ UI.open('s-hud'); },
+toggleVibracion(){ tap(()=>{ Config.vibracion=!Config.vibracion; document.getElementById('vib-estado').innerText=Config.vibracion?'activada':'desactivada'; Voz.decir(Config.vibracion?'Vibración activada':'Vibración desactivada','normal'); }); },
+toggleVoz(){ Audio2.efecto(SFX.seleccion); Voz.activa=!Voz.activa; document.getElementById('voz-estado').innerText=Voz.activa?'activada':'desactivada'; if(Voz.activa) Voz.decir('Voz activada.','normal'); },
+modoUnidad(activo, nombre){
+document.getElementById('menu-general').style.display = activo?'none':'flex';
+document.getElementById('unit-header').innerText = activo? `UNIDAD ACTIVA: ${nombre} — solo sus propios controles` : 'Sin unidad seleccionada';
 }
 };
-​// --- 5. MAP & MISSIONS MODULE ---
-const MapModule = {
-currentContinent: 'América del Norte',
-render() {
-const continents = [...new Set(GameState.territories.map(t => t.continent))];
-const tabsContainer = document.getElementById('continentTabs');
-tabsContainer.innerHTML = continents.map(c => <button onclick="MapModule.selectContinent('${c}')" class="px-4 py-2 rounded text-sm font-bold transition ${MapModule.currentContinent === c ? 'bg-blue-600 text-white' : 'bg-navy-800 text-gray-300 hover:bg-navy-700'}" aria-label="Continente ${c}">${c}</button>).join('');
-​const grid = document.getElementById('territoriesGrid');
-const filtered = GameState.territories.filter(t => t.continent === MapModule.currentContinent);
-grid.innerHTML = filtered.map(t => <div class="bg-navy-800 border ${t.conquered ? 'border-green-800/80' : 'border-blue-900'} p-4 rounded-lg flex flex-col justify-between space-y-3"> <div> <div class="flex justify-between items-start"> <h3 class="font-bold text-lg text-white">${t.name}</h3> <span class="text-xs px-2 py-0.5 rounded ${t.conquered ? 'bg-green-900/60 text-green-300' : 'bg-blue-900/60 text-blue-300'}">${t.conquered ? 'Conquistado' : 'Contested'}</span> </div> <p class="text-xs text-gray-400 mt-1">Dificultad: ${t.difficulty} | Defensa: ${t.defense}</p> <p class="text-xs text-green-400 mt-1">Recompensa: $${t.rewardMoney} y ${t.rewardMin} Minerales</p> </div> <button onclick="MapModule.startMission('${t.id}')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded text-sm transition" aria-label="Iniciar misión en ${t.name}">Iniciar Misión</button> </div>).join('');
-Accessibility.speak(Mostrando territorios de ${MapModule.currentContinent});
+
+const Arranque={
+iniciar(){
+document.getElementById('gate').style.display='none';
+document.getElementById('app-shell').style.display='flex';
+Audio2.efecto(SFX.bienvenida);
+setTimeout(()=>Audio2.efecto(SFX.iniciarPartida),1200);
+Audio2.continuo('mar',SFX.mar,0.35);
+Audio2.continuo('portaaviones',SFX.portaaviones,0.28);
+Juego.cargar();
+Eventos.iniciarCiclo();
+HUD.render(); Vehiculos.render();
+setTimeout(()=>Voz.decir('Partida iniciada. AeroOcean Modern War en línea, Capitán.','normal'),2000);
+Controles.mostrarInactivo();
+}};
+
+function crearArma(def){ return Object.assign({municionActual:def.municionMax,recargando:false}, def); }
+const ARMAS_BASE={
+canon:{id:'canon',label:'Cañón',municionMax:100,danoMin:10,danoMax:22,recargaMs:1000,precisionBase:0.75,sonidoDisparo:SFX.disparo,tipos:['naval','costero','aereo']},
+ametralladora:{id:'ametralladora',label:'Ametralladoras',municionMax:800,danoMin:4,danoMax:10,recargaMs:350,precisionBase:0.65,sonidoSel:SFX.ametralladoraSel,sonidoDisparo:SFX.ametralladoraFuego,sonidoExtra:SFX.trazadoras,tipos:['aereo','naval']},
+torreta:{id:'torreta',label:'Torreta',municionMax:60,danoMin:14,danoMax:24,recargaMs:900,precisionBase:0.7,sonidoDisparo:SFX.torreta,sonidoExtra:SFX.tiro,tipos:['naval','costero','aereo']},
+torretaTrasera:{id:'torretaTrasera',label:'Torreta Trasera',municionMax:60,danoMin:14,danoMax:24,recargaMs:900,precisionBase:0.68,sonidoDisparo:SFX.mp40,tipos:['aereo']},
+torretaLateral:{id:'torretaLateral',label:'Torreta Lateral',municionMax:60,danoMin:14,danoMax:24,recargaMs:900,precisionBase:0.68,sonidoDisparo:SFX.mp40,tipos:['aereo']},
+misil:{id:'misil',label:'Misil Aire-Aire',municionMax:16,danoMin:22,danoMax:38,recargaMs:2200,precisionBase:0.8,sonidoSel:SFX.misilAireSel,sonidoDisparo:SFX.misilAireLanz,tipos:['aereo']},
+misilCrucero:{id:'misilCrucero',label:'Misil de Crucero',municionMax:8,danoMin:32,danoMax:52,recargaMs:3800,precisionBase:0.85,sonidoSel:SFX.misilCruceroListo,sonidoDisparo:SFX.misilCruceroLanz,sonidoExtra:SFX.misilCruceroVuelo,tipos:['naval','costero']},
+bomba:{id:'bomba',label:'Bomba de Precisión',municionMax:24,danoMin:28,danoMax:48,recargaMs:1700,precisionBase:0.72,sonidoSel:SFX.bombaPrecisionSel,sonidoDisparo:SFX.bombaPrecisionLanz,sonidoImpacto:SFX.bombaImpacto,tipos:['naval','costero']},
+torpedo:{id:'torpedo',label:'Torpedo',municionMax:10,danoMin:28,danoMax:44,recargaMs:2800,precisionBase:0.65,sonidoDisparo:SFX.misilGenerico,sonidoImpacto:SFX.torpedoImpacto,sonidoFallo:SFX.torpedoFalla,tipos:['naval']},
+antiaerea:{id:'antiaerea',label:'Batería Antiaérea',municionMax:36,danoMin:18,danoMax:32,recargaMs:1400,precisionBase:0.7,sonidoDisparo:SFX.bateriaAntiaerea,tipos:['aereo']}
+};
+function clonarArmas(ids){ const o={}; ids.forEach(id=>o[id]=crearArma(ARMAS_BASE[id])); return o; }
+
+function nuevaUnidad(base){ return Object.assign({casco:100,cascoMax:100,motores:100,radar:100,defensaAntiaerea:100,comunicaciones:100,combustible:100,combustibleMax:100,destruida:false,estadoVuelo:'hangar',estadoNaval:'enBase',sumergido:false,_avisoComb20:false,_avisoComb10:false,nav:{rumboActual:0,rumboObjetivo:0,velocidad:0}}, base); }
+let Flota={};
+function crearFlotaInicial(){
+Flota={
+portaaviones: nuevaUnidad({id:'portaaviones',nombre:'Portaaviones Insignia',tipo:'naval',esBase:true,armas:clonarArmas(['canon','ametralladora','torreta','misilCrucero','torpedo','bomba','antiaerea'])}),
+destructor: nuevaUnidad({id:'destructor',nombre:'Destructor 1',tipo:'naval',armas:clonarArmas(['canon','ametralladora','torreta','bomba','torpedo','antiaerea','misilCrucero'])}),
+submarino: nuevaUnidad({id:'submarino',nombre:'Submarino 1',tipo:'naval',armas:clonarArmas(['canon','ametralladora','torreta','torpedo','bomba','antiaerea','misilCrucero'])}),
+f35: nuevaUnidad({id:'f35',nombre:'F-35 Uno',tipo:'aereo',combustibleMax:60,combustible:60,armas:clonarArmas(['canon','ametralladora','misil','misilCrucero'])}),
+b21: nuevaUnidad({id:'b21',nombre:'B-21 Raider Uno',tipo:'aereo',combustibleMax:80,combustible:80,armas:clonarArmas(['bomba','ametralladora','canon','misil','torretaTrasera','torretaLateral'])})
+};
+}
+let unidadActivaId=null;
+function unidadActiva(){ return unidadActivaId ? Flota[unidadActivaId] : Flota.portaaviones; }
+
+let Estado={saveVersion:1,nivel:1,experiencia:0,dinero:1500,minerales:400,piezas:20,victorias:0,derrotas:0,misiones:0,conquistados:{},pausado:false,actualizado:0};
+function sanear(){
+if(!Estado.saveVersion) Estado.saveVersion=1;
+Estado.dinero=Math.max(0,Math.round(Estado.dinero)||0);
+Estado.minerales=Math.max(0,Math.round(Estado.minerales)||0);
+Estado.piezas=Math.max(0,Math.round(Estado.piezas)||0);
+Estado.experiencia=Math.max(0,Math.round(Estado.experiencia)||0);
+Estado.nivel=Math.max(1,Math.round(Estado.nivel)||1);
+if(typeof Estado.conquistados!=='object'||Estado.conquistados===null) Estado.conquistados={};
+Object.values(Flota).forEach(u=>{
+u.casco=Math.min(u.cascoMax,Math.max(0,isNaN(u.casco)?u.cascoMax:u.casco));
+u.motores=Math.min(100,Math.max(0,isNaN(u.motores)?100:u.motores));
+u.radar=Math.min(100,Math.max(0,isNaN(u.radar)?100:u.radar));
+u.defensaAntiaerea=Math.min(100,Math.max(0,isNaN(u.defensaAntiaerea)?100:u.defensaAntiaerea));
+u.comunicaciones=Math.min(100,Math.max(0,isNaN(u.comunicaciones)?100:(u.comunicaciones||100)));
+u.combustible=Math.min(u.combustibleMax,Math.max(0,isNaN(u.combustible)?u.combustibleMax:u.combustible));
+Object.values(u.armas).forEach(a=>a.municionActual=Math.min(a.municionMax,Math.max(0,isNaN(a.municionActual)?a.municionMax:a.municionActual)));
+});}
+
+const Juego={
+guardar(av){ try{ localStorage.setItem('AOMW_estado',JSON.stringify(Estado)); localStorage.setItem('AOMW_flota',JSON.stringify(Flota)); if(firebaseListo && Cuenta.usuarioActual) Cuenta.guardarEnNube(); if(av)Voz.decir('Progreso guardado.','normal'); }catch(e){ if(av)Voz.decir('No se pudo guardar.','urgente'); } },
+cargar(){ crearFlotaInicial(); try{ const e=localStorage.getItem('AOMW_estado'),f=localStorage.getItem('AOMW_flota'); if(e)Estado=Object.assign(Estado,JSON.parse(e)); if(f)Flota=Object.assign(Flota,JSON.parse(f)); }catch(err){} sanear(); },
+borrarProgreso(){ localStorage.removeItem('AOMW_estado'); localStorage.removeItem('AOMW_flota'); location.reload(); },
+pausar(){ tap(()=>{ Estado.pausado=!Estado.pausado; Voz.decir(Estado.pausado?'Juego en pausa.':'Juego reanudado.','urgente'); }); }
+};
+
+const HUD={
+render(){
+const r=document.getElementById('hud-resumen'); if(r) r.innerHTML=`Nivel ${Estado.nivel} | $${Estado.dinero} | Minerales ${Estado.minerales}`;
+const l=document.getElementById('hud-unidades'); if(!l) return; l.innerHTML='';
+Object.values(Flota).forEach(un=>{ const c=document.createElement('div'); c.className='card';
+c.innerHTML=`<div class="card-info"><strong>${un.nombre}</strong><span class="tag">Casco ${un.casco}% | Combustible ${un.combustible}% | ${un.destruida?'Destruida':(un.tipo==='aereo'?un.estadoVuelo:(un.sumergido?'sumergido':un.estadoNaval))}</span></div>`; l.appendChild(c); });
 },
-selectContinent(c) {
-SFX.play('click');
-MapModule.currentContinent = c;
-MapModule.render();
+anunciarCompleto(){ const u=unidadActiva(); Voz.decir(`${u.nombre}. Casco ${u.casco} por ciento. Motores ${u.motores} por ciento. Radar ${u.radar} por ciento. Comunicaciones ${u.comunicaciones} por ciento. Combustible ${u.combustible} por ciento.`,'urgente'); }
+};
+
+let Amenazas = { activa: null, _cuenta: null };
+const Eventos = {
+  iniciarCiclo(){ setInterval(Eventos.chequear, 20000); },
+  chequear(){
+    if (Estado.pausado || Amenazas.activa || misionActual) return;
+    const claves = Object.keys(Estado.conquistados);
+    if (claves.length === 0) return;
+    if (Math.random() < 0.35) {
+      const key = claves[Math.floor(Math.random()*claves.length)];
+      const nombre = key.split('|')[2];
+      Amenazas.activa = { key, nombre, segundosRestantes: 120 };
+      notificar(null,'critico',SFX.alarmaEmergencia,'alerta');
+      Radio.llamadaAuxilio(nombre);
+      clearInterval(Amenazas._cuenta);
+      Amenazas._cuenta = setInterval(Eventos.cuentaRegresiva, 1000);
+      Controles.mostrarInactivo();
+      if (document.getElementById('s-mapas').classList.contains('active') && mapSubregion) Mapa.territorios(mapSubregion);
+    }
+  },
+  cuentaRegresiva(){
+    if (!Amenazas.activa) { clearInterval(Amenazas._cuenta); return; }
+    if (Estado.pausado) return;
+    const enDefensaActiva = misionActual && misionActual.ruta==='defensa' && misionActual.key===Amenazas.activa.key;
+    if (enDefensaActiva) return;
+    Amenazas.activa.segundosRestantes--;
+    if (!misionActual) Controles.mostrarInactivo();
+    if (Amenazas.activa.segundosRestantes <= 0) {
+      const nombreCaido = Amenazas.activa.nombre;
+      delete Estado.conquistados[Amenazas.activa.key];
+      notificar(`Hemos perdido ${nombreCaido}. El territorio ha caído ante el enemigo.`,'critico',SFX.emergencia,'derrota');
+      clearInterval(Amenazas._cuenta);
+      Amenazas.activa = null;
+      Juego.guardar(false);
+      Controles.mostrarInactivo();
+      if (document.getElementById('s-mapas').classList.contains('active') && mapSubregion) Mapa.territorios(mapSubregion);
+    }
+  }
+};
+
+const Controles={
+mostrarInactivo(){
+  if (Amenazas.activa) {
+    document.getElementById('control-bar-titulo').innerText = `⚠ ${Amenazas.activa.nombre} bajo ataque — ${Amenazas.activa.segundosRestantes}s para defenderlo`;
+    document.getElementById('control-bar-botones').innerHTML = `<button onclick="tap(()=>Mision.iniciarDefensa('${Amenazas.activa.key}','${Amenazas.activa.nombre}'))">Defender ${Amenazas.activa.nombre}</button>`;
+  } else {
+    document.getElementById('control-bar-titulo').innerText='Sin misión activa. Ve a Mapa para elegir un objetivo.';
+    document.getElementById('control-bar-botones').innerHTML='';
+  }
 },
-startMission(territoryId) {
-SFX.play('click');
-const territory = GameState.territories.find(t => t.id === territoryId);
-if (!territory) return;
-GameState.currentMission = territory;
-Combat.initMission(territory);
+navegacion(u,ctx){
+document.getElementById('control-bar-titulo').innerText=`${u.nombre} — rumbo ${u.nav.rumboActual}° · vel ${u.nav.velocidad} nudos${ctx?' · '+ctx:''}`;
+let extra='';
+if(u.id==='submarino') extra = u.sumergido ? `<button onclick="tap(Sub.emerger)">Emerger</button>` : `<button onclick="tap(Sub.sumergir)">Sumergirse</button>`;
+document.getElementById('control-bar-botones').innerHTML=`
+<button onclick="tap(()=>Mision.girar(-15))">◄ Izquierda</button>
+<button onclick="tap(()=>Mision.girar(15))">Derecha ►</button>
+<button onclick="tap(Mision.mantenerRumbo)">Rumbo al objetivo</button>
+<button onclick="tap(()=>Mision.cambiarVelocidad(5))">Acelerar</button>
+<button onclick="tap(()=>Mision.cambiarVelocidad(-5))">Reducir</button>
+<button onclick="tap(()=>Mision.cambiarVelocidad(-99))">Detener</button>
+<button onclick="tap(Mision.consultarRadar)">Radar</button>
+<button onclick="tap(Mision.consultarNav)">Rumbo y distancia</button>
+<button onclick="tap(Radio.abrir)">Radio</button>
+${extra}
+`;},
+combate(u){
+if(!Combate.enemigos || Combate.enemigos.every(e=>e.casco<=0)){ Controles.mostrarInactivo(); return; }
+const objetivo = Combate.objetivo();
+document.getElementById('control-bar-titulo').innerText = `Combate — ${u.nombre} vs ${objetivo?objetivo.nombre+' ('+Math.round(objetivo.casco/objetivo.cascoMax*100)+'%)':'sin objetivo bloqueado'}`;
+const armas=Object.values(u.armas).filter(a=>!objetivo || a.tipos.includes(objetivo.tipo));
+let html = `<button onclick="tap(Combate.siguienteObjetivo)">Siguiente objetivo</button>`;
+html += armas.map(a=>`<button ${a.recargando||!objetivo?'disabled':''} aria-label="Disparar ${a.label}, munición ${a.municionActual}" onclick="tap(()=>Combate.disparar('${a.id}'))">${a.label} (${a.municionActual})</button>`).join('');
+html += `<button onclick="tap(Combate.recargarArmamento)">Recargar armamento</button>`;
+html += `<button onclick="tap(Combate.consultarAmenazas)">Amenazas</button><button onclick="tap(Radio.abrir)">Radio</button><button class="danger" onclick="tap(Mision.retirarse)">Retirarse</button>`;
+if(u.id==='submarino') html += u.sumergido ? `<button onclick="tap(Sub.emerger)">Emerger</button>` : `<button onclick="tap(Sub.sumergir)">Sumergirse</button>`;
+document.getElementById('control-bar-botones').innerHTML = html;
+},
+vehiculo(u){
+if(Combate.enemigos && Combate.enemigos.length){ Controles.combate(u); return; }
+document.getElementById('control-bar-titulo').innerText=`${u.nombre} — ${u.destruida?'destruida':(u.tipo==='aereo'?u.estadoVuelo:u.estadoNaval)}`;
+let html='';
+if(u.tipo==='aereo' && !u.destruida){
+if(u.estadoVuelo==='hangar') html+=`<button onclick="tap(()=>Vehiculos.despegar('${u.id}'))">Despegar</button>`;
+if(['envuelo','encombate'].includes(u.estadoVuelo)) html+=`<button onclick="tap(()=>Vehiculos.regresar('${u.id}'))">Regresar al portaaviones</button>`;
+if(u.estadoVuelo==='aproximacion') html+=`<button onclick="tap(()=>Vehiculos.aterrizar('${u.id}'))">Aterrizar</button>`;
+} else if((u.id==='destructor'||u.id==='submarino') && !u.destruida) {
+if(u.estadoNaval==='enBase') html+=`<button onclick="tap(()=>Vehiculos.desplegarNaval('${u.id}'))">Desplegar</button>`;
+else html+=`<button onclick="tap(()=>Vehiculos.regresarNaval('${u.id}'))">Regresar a base</button>`;
+}
+html += `<button onclick="tap(Radio.abrir)">Radio</button>`;
+document.getElementById('control-bar-botones').innerHTML = html;
 }
 };
-​// --- 6. FLEET MODULE ---
-const FleetModule = {
-render() {
-const container = document.getElementById('fleetUnitsContainer');
-container.innerHTML = GameState.fleet.map(u => <div class="bg-navy-800 border ${u.destroyed ? 'border-red-900/80' : 'border-blue-900'} p-4 rounded-lg space-y-2"> <div class="flex justify-between items-center"> <h3 class="font-bold text-white text-lg">${u.name}</h3> <span class="text-xs px-2 py-0.5 rounded ${u.destroyed ? 'bg-red-900/60 text-red-300' : 'bg-blue-900/60 text-blue-300'}">${u.destroyed ? 'Destruido' : u.state.toUpperCase()}</span> </div> <div class="grid grid-cols-2 gap-2 text-xs text-gray-300"> <div>Casco: ${u.hull}/${u.maxHull}%</div> <div>Motores: ${u.engines}%</div> <div>Combustible: ${u.fuel}/${u.maxFuel}%</div> <div>Munición: ${u.ammo}/${u.maxAmmo}</div> </div> </div>).join('');
-Accessibility.speak("Flota activa cargada.");
+
+const Radio={
+abrir(){
+const u=unidadActiva();
+if(u.comunicaciones<=0){ Voz.decir('Comunicaciones fuera de servicio.','urgente'); return; }
+const otras = Object.values(Flota).filter(x=>x.id!==u.id && !x.destruida);
+let msg = `Radio de ${u.nombre} abierta. `;
+if(u.id==='portaaviones'){
+const activas = otras.filter(x=> (x.tipo==='aereo' && ['envuelo','encombate'].includes(x.estadoVuelo)) || x.estadoNaval==='desplegado');
+msg += activas.length ? `Contacto con ${activas.map(x=>x.nombre).join(', ')}.` : 'No hay unidades desplegadas.';
+} else {
+msg += 'Canal directo con Portaaviones Insignia.';
+}
+Voz.decir(msg,'urgente');
+},
+llamadaAuxilio(nombreTerritorio){
+notificar(`Llamada de emergencia: ${nombreTerritorio} bajo ataque.`,'critico',SFX.alarmaEmergencia,'alerta');
 }
 };
-​// --- 7. WORKSHOP & MARKET MODULES ---
-const WorkshopModule = {
-render() {
-const container = document.getElementById('workshopUnitsList');
-container.innerHTML = GameState.fleet.map(u => {
-const damage = 100 - u.hull;
-const cost = damage * 5;
-return <div class="bg-navy-800 border border-blue-900 p-4 rounded-lg flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0"> <div> <h3 class="font-bold text-white">${u.name}</h3> <p class="text-xs text-gray-400">Casco al ${u.hull} por ciento. Daño: ${damage}%</p> </div> <button onclick="WorkshopModule.repairUnit('${u.id}')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded text-sm font-bold transition" aria-label="Reparar ${u.name}">Reparar (${cost} Minerales)</button> </div>;
-}).join('');
-Accessibility.speak("Taller de mantenimiento abierto.");
+
+const Sub={
+sumergir(){ const u=Flota.submarino; if(u.id!==unidadActivaId){Voz.decir('Selecciona primero el submarino.','normal');return;} u.sumergido=true; Voz.decir('Submarino sumergido.','urgente'); Controles.vehiculo(u); },
+emerger(){ const u=Flota.submarino; u.sumergido=false; Voz.decir('Submarino en superficie.','normal'); Controles.vehiculo(u); }
+};
+
+const Mercado={
+precios:{combustible:2,canon:5,ametralladora:1,torreta:6,torretaTrasera:6,torretaLateral:6,misil:55,misilCrucero:110,bomba:65,torpedo:85,antiaerea:38},
+render(){ const u=unidadActiva(); document.getElementById('market-unidad').innerText=u.nombre; const c=document.getElementById('market-list'); c.innerHTML='';
+const f=document.createElement('div'); f.className='card';
+f.innerHTML=`<div class="card-info"><strong>Combustible</strong><span class="tag">${u.combustible}/${u.combustibleMax} — $${this.precios.combustible} c/u</span></div><button onclick="tap(()=>Mercado.comprarCombustible(20))">Comprar 20</button>`;
+c.appendChild(f);
+Object.values(u.armas).forEach(a=>{ const p=this.precios[a.id]||10; const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<div class="card-info"><strong>${a.label}</strong><span class="tag">${a.municionActual}/${a.municionMax} — $${p} c/u</span></div><button ${a.municionActual>=a.municionMax?'disabled':''} onclick="tap(()=>Mercado.comprarMunicion('${a.id}'))">Comprar 10</button>`;
+c.appendChild(card); });
 },
-repairUnit(id) {
-SFX.play('click');
-const u = GameState.fleet.find(item => item.id === id);
-if (!u) return;
-const damage = 100 - u.hull;
-const cost = damage * 5;
-if (GameState.minerals < cost) {
-Accessibility.speak("Minerales insuficientes para la reparación.");
-return;
+comprarCombustible(cant){ const u=unidadActiva(); const costo=cant*this.precios.combustible; if(Estado.dinero<costo){Voz.decir('Fondos insuficientes.','normal');return;} Estado.dinero-=costo; u.combustible=Math.min(u.combustibleMax,u.combustible+cant); u._avisoComb20=false; u._avisoComb10=false; notificar('Combustible reabastecido.','normal',SFX.moneda); HUD.render(); Mercado.render(); Juego.guardar(false); },
+comprarMunicion(id){ const u=unidadActiva(); const a=u.armas[id]; if(!a)return; const cant=Math.min(10,a.municionMax-a.municionActual); if(cant<=0){Voz.decir('Munición al máximo.','normal');return;} const costo=cant*(this.precios[id]||10); if(Estado.dinero<costo){Voz.decir('Fondos insuficientes.','normal');return;} Estado.dinero-=costo; a.municionActual+=cant; notificar(`Munición de ${a.label} reabastecida.`,'normal',SFX.moneda); HUD.render(); Mercado.render(); Juego.guardar(false); }
+};
+
+const Taller={
+costo:{casco:3,motores:2,radar:2,defensaAntiaerea:2,comunicaciones:2},
+render(){ const u=unidadActiva(); document.getElementById('taller-unidad').innerText=u.nombre; const c=document.getElementById('taller-list'); c.innerHTML='';
+['casco','motores','radar','defensaAntiaerea','comunicaciones'].forEach(s=>{ if(!(s in u))return; const costo=Math.max(1,Math.round((100-u[s])*this.costo[s]/10)); const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<div class="card-info"><strong>${s}</strong><span class="tag">${Math.round(u[s])}% — ${costo} minerales</span></div><button ${u[s]>=100?'disabled':''} onclick="tap(()=>Taller.reparar('${s}'))">Reparar</button>`; c.appendChild(card); });
+},
+reparar(s){ const u=unidadActiva(); if(u[s]>=100){Voz.decir('Ya está al cien por ciento.','normal');return;} const costo=Math.max(1,Math.round((100-u[s])*this.costo[s]/10)); if(Estado.minerales<costo){Voz.decir('Minerales insuficientes.','normal');return;} Estado.minerales-=costo; u[s]=100; notificar(`${s} reparado.`,'normal',SFX.moneda); HUD.render(); Taller.render(); Juego.guardar(false); }
+};
+
+const Vehiculos={
+render(){ const c=document.getElementById('vehiculos-list'); c.innerHTML=''; Object.values(Flota).forEach(u=>{ const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<div class="card-info"><strong>${u.nombre}</strong><span class="tag">${u.destruida?'Destruida':(u.tipo==='aereo'?u.estadoVuelo:u.estadoNaval)}</span></div><button aria-label="Abrir panel de ${u.nombre}" onclick="tap(()=>Vehiculos.abrirPanel('${u.id}'))">Abrir panel</button>`; c.appendChild(card); }); },
+abrirPanel(id){
+if(Flota[id].destruida){ Voz.decir('Esa unidad está destruida.','normal'); return; }
+const previa=unidadActivaId; if(previa && Flota[previa] && Flota[previa].tipo==='aereo') Audio2.detener(previa);
+unidadActivaId=id; const u=Flota[id];
+if(id==='f35' && u.estadoVuelo!=='hangar') Audio2.continuo('f35',SFX.f35Ambiente,0.3);
+if(id==='b21' && u.estadoVuelo!=='hangar') Audio2.continuo('b21',SFX.bombardeoSonido,0.3);
+Voz.decir(`Unidad activa: ${u.nombre}.`,'normal');
+UI.modoUnidad(true, u.nombre);
+document.getElementById('unit-header').innerHTML = `<strong>${u.nombre}</strong> — Casco ${u.casco}% · Combustible ${u.combustible}%`;
+if(id==='portaaviones') Controles.mostrarInactivo();
+HUD.render();
+Controles.vehiculo(u);
+},
+volverAlMenu(){ UI.modoUnidad(false,''); unidadActivaId=null; UI.open('s-vehiculos'); Vehiculos.render(); Controles.mostrarInactivo(); },
+despegar(id){ const u=Flota[id]; if(u.destruida||u.combustible<15){Voz.decir('No se puede despegar.','urgente');return;}
+u.estadoVuelo='envuelo';
+Audio2.efecto(id==='f35'?SFX.f35Desplegado:SFX.b21Desplegado);
+Voz.decir(`${u.nombre} en vuelo.`,'normal'); Vehiculos.abrirPanel(id); HUD.render(); Juego.guardar(false);
+},
+regresar(id){ const u=Flota[id]; u.estadoVuelo='aproximacion'; Voz.decir(`${u.nombre} en aproximación.`,'normal'); Vehiculos.abrirPanel(id); },
+aterrizar(id){ const u=Flota[id]; u.estadoVuelo='hangar'; Audio2.detener(id); Audio2.efecto(SFX.aterrizaje); Voz.decir(`${u.nombre} aterrizado.`,'normal'); Vehiculos.volverAlMenu(); HUD.render(); Juego.guardar(false); },
+desplegarNaval(id){ const u=Flota[id]; if(u.destruida||u.combustible<10){Voz.decir('No se puede desplegar.','urgente');return;} u.estadoNaval='desplegado'; Audio2.efecto(SFX.destructorDesplegado); Voz.decir(`${u.nombre} desplegado.`,'normal'); Vehiculos.abrirPanel(id); HUD.render(); Juego.guardar(false); },
+regresarNaval(id){ const u=Flota[id]; u.estadoNaval='enBase'; Voz.decir(`${u.nombre} regresa a base.`,'normal'); Vehiculos.abrirPanel(id); HUD.render(); Juego.guardar(false); }
+};
+
+const worldData={
+"América":{"América del Norte":[{nombre:"Canadá",tipo:"País",dinero:800,minerales:350},{nombre:"México",tipo:"País",dinero:700,minerales:300}],
+"América Central":[{nombre:"Costa Rica",tipo:"País",dinero:550,minerales:220},{nombre:"Panamá",tipo:"País",dinero:650,minerales:280}],
+"El Caribe":[{nombre:"Cuba",tipo:"Isla",dinero:550,minerales:240}],
+"América del Sur":[{nombre:"Brasil",tipo:"País",dinero:1100,minerales:550},{nombre:"Argentina",tipo:"País",dinero:850,minerales:420}]},
+"Europa":{"Europa Occidental":[{nombre:"Alemania",tipo:"País",dinero:1050,minerales:400},{nombre:"Francia",tipo:"País",dinero:1000,minerales:380}],
+"Europa del Sur":[{nombre:"España",tipo:"País",dinero:900,minerales:350}]},
+"Asia":{"Asia Oriental":[{nombre:"China",tipo:"País",dinero:1300,minerales:650},{nombre:"Japón",tipo:"Archipiélago",dinero:1150,minerales:400}]},
+"África":{"África del Norte":[{nombre:"Egipto",tipo:"País",dinero:750,minerales:380}]},
+"Oceanía":{"Australasia":[{nombre:"Australia",tipo:"País",dinero:1100,minerales:600}]}
+};
+let mapNivel='continentes', mapContinente='', mapSubregion='';
+const Mapa={
+mostrarContinentes(){ mapNivel='continentes'; document.getElementById('mapTitle').innerText='🌍 MAPA MUNDIAL'; document.getElementById('breadcrumb').innerText='Continentes habitados'; document.getElementById('btnMapBack').style.display='none';
+const l=document.getElementById('mapList'); l.innerHTML=''; Object.keys(worldData).forEach(c=>{ const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<div class="card-info"><strong>${c}</strong></div><button onclick="tap(()=>Mapa.subregiones('${c}'))">Explorar ${c}</button>`; l.appendChild(card); }); },
+subregiones(c){ mapNivel='subregiones'; mapContinente=c; document.getElementById('mapTitle').innerText=`🌍 ${c.toUpperCase()}`; document.getElementById('breadcrumb').innerText=`${c} > Subregiones`; document.getElementById('btnMapBack').style.display='inline-block';
+const l=document.getElementById('mapList'); l.innerHTML=''; Object.keys(worldData[c]).forEach(s=>{ const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<div class="card-info"><strong>${s}</strong></div><button onclick="tap(()=>Mapa.territorios('${s}'))">Ver objetivos</button>`; l.appendChild(card); }); },
+territorios(s){ mapNivel='territorios'; mapSubregion=s; document.getElementById('mapTitle').innerText=`📍 ${s.toUpperCase()}`; document.getElementById('breadcrumb').innerText=`${mapContinente} > ${s}`;
+const l=document.getElementById('mapList'); l.innerHTML=''; worldData[mapContinente][s].forEach(t=>{ const key=`${mapContinente}|${s}|${t.nombre}`; const conquistado=!!Estado.conquistados[key];
+const bajoAtaque = Amenazas.activa && Amenazas.activa.key===key;
+const card=document.createElement('div'); card.className='card';
+let etiqueta, boton;
+if (bajoAtaque) {
+  etiqueta = `⚠ BAJO ATAQUE`;
+  boton = `<button onclick="tap(()=>Mision.iniciarDefensa('${key}','${t.nombre}'))">Defender</button>`;
+} else if (conquistado) {
+  etiqueta = 'Conquistado';
+  boton = `<button disabled>Conquistado</button>`;
+} else {
+  etiqueta = `Recompensa $${t.dinero} | 💎 ${t.minerales}`;
+  boton = `<button onclick="tap(()=>Mision.iniciar('${key}','${t.nombre}',${t.dinero},${t.minerales},'Guarnición','aliada'))">Zarpar</button>`;
 }
-GameState.minerals -= cost;
-u.hull = 100;
-u.destroyed = false;
-Storage.save();
-Game.updateHUD();
-WorkshopModule.render();
-Accessibility.speak(Reparación completada. Casco de ${u.name} al 100 por ciento.);
-Accessibility.vibrate(50);
+card.innerHTML=`<div class="card-info"><strong>${t.nombre}</strong><span class="tag">${etiqueta}</span></div>${boton}`;
+l.appendChild(card); }); },
+retroceder(){ tap(()=>{ if(mapNivel==='territorios') Mapa.subregiones(mapContinente); else Mapa.mostrarContinentes(); }); }
+};
+
+let misionActual=null, tickInterval=null, iaInterval=null;
+const Combate = {
+enemigos:null,
+objetivoId:null,
+objetivo(){ return this.objetivoId ? this.enemigos.find(e=>e.id===this.objetivoId) : null; },
+siguienteObjetivo(){
+const vivos = Combate.enemigos.filter(e=>e.casco>0);
+if(vivos.length===0) return;
+let idx = vivos.findIndex(e=>e.id===Combate.objetivoId);
+idx = (idx+1) % vivos.length;
+Combate.objetivoId = vivos[idx].id;
+Voz.decir(`Objetivo bloqueado: ${vivos[idx].nombre}.`,'urgente');
+Controles.combate(unidadActiva());
+},
+recargarArmamento(){
+const u=unidadActiva();
+if(Estado.piezas<5){ Voz.decir('Piezas insuficientes.','urgente'); return; }
+Estado.piezas-=5;
+Object.values(u.armas).forEach(a=> a.municionActual = Math.min(a.municionMax, a.municionActual + 5));
+notificar('Armamento recargado.','normal',SFX.recarga);
+Controles.combate(u);
+},
+disparar(armaId){
+const u=unidadActiva(); const a=u.armas[armaId]; const obj=Combate.objetivo();
+if(!obj){ Voz.decir('Selecciona un objetivo.','urgente'); return; }
+if(!a || a.recargando || a.municionActual<=0) return;
+a.municionActual--; a.recargando=true;
+Audio2.efecto(SFX.fuegoOrden);
+setTimeout(()=>Audio2.efecto(a.sonidoDisparo || SFX.disparo),300);
+Vibrar('disparo');
+setTimeout(()=>{
+const dano = a.danoMin + Math.floor(Math.random()*(a.danoMax-a.danoMin));
+obj.casco = Math.max(0, obj.casco - dano);
+Audio2.efecto(SFX.impactoConfirmado);
+Voz.decir(`Impacto. Enemigo al ${Math.round(obj.casco/obj.cascoMax*100)} por ciento.`,'normal');
+if(obj.casco<=0){ Voz.decir(`${obj.nombre} destruido.`,'normal'); Combate.objetivoId=null; }
+if(Combate.enemigos.every(e=>e.casco<=0)){ Mision.victoria(); return; }
+Controles.combate(unidadActiva());
+},700);
+setTimeout(()=>{ a.recargando=false; Controles.combate(unidadActiva()); }, a.recargaMs);
+},
+consultarAmenazas(){ Voz.decir('Consulta de amenazas activa.','urgente'); },
+turnoIA(){
+if(Estado.pausado || !misionActual || misionActual.fase!=='combate') return;
+const vivos = Combate.enemigos.filter(e=>e.casco>0);
+if(vivos.length===0) return;
+const atacante = vivos[Math.floor(Math.random()*vivos.length)];
+const u = unidadActiva();
+const dano = 10;
+u.casco = Math.max(0, u.casco - dano);
+Audio2.efecto(SFX.alerta);
+Voz.decir(`¡Ataque enemigo! Daño recibido. Casco al ${u.casco} por ciento.`,'urgente');
+if(u.casco<=0){ Mision.derrota(); return; }
+HUD.render();
 }
 };
-​const MarketModule = {
-render() {
-const container = document.getElementById('marketUnitsContainer');
-container.innerHTML = GameState.fleet.map(u => <div class="bg-navy-800 border border-blue-900 p-4 rounded-lg space-y-3"> <h3 class="font-bold text-white">${u.name}</h3> <p class="text-xs text-gray-400">Combustible: ${u.fuel}/${u.maxFuel}% | Munición: ${u.ammo}/${u.maxAmmo}</p> <div class="flex space-x-2"> <button onclick="MarketModule.buyFuel('${u.id}')" class="flex-1 bg-green-600 hover:bg-green-500 text-white py-2 rounded text-xs font-bold" aria-label="Comprar combustible para ${u.name}">Recargar Combustible ($150)</button> <button onclick="MarketModule.buyAmmo('${u.id}')" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded text-xs font-bold" aria-label="Comprar munición para ${u.name}">Recargar Munición ($200)</button> </div> </div>).join('');
-Accessibility.speak("Mercado de suministros abierto.");
-},
-buyFuel(id) {
-SFX.play('click');
-if (GameState.money < 150) { Accessibility.speak("Fondos insuficientes."); return; }
-const u = GameState.fleet.find(item => item.id === id);
-if (!u) return;
-GameState.money -= 150;
-u.fuel = u.maxFuel;
-Storage.save();
-Game.updateHUD();
-MarketModule.render();
-Accessibility.speak(Combustible de ${u.name} al máximo.);
-},
-buyAmmo(id) {
-SFX.play('click');
-if (GameState.money < 200) { Accessibility.speak("Fondos insuficientes."); return; }
-const u = GameState.fleet.find(item => item.id === id);
-if (!u) return;
-GameState.money -= 200;
-u.ammo = u.maxAmmo;
-Storage.save();
-Game.updateHUD();
-MarketModule.render();
-Accessibility.speak(Munición de ${u.name} al máximo.);
-}
-};
-​// --- 8. COMBAT & MISSION ENGINE ---
-const Combat = {
-activeUnit: null,
-enemies: [],
-selectedTarget: null,
-selectedWeapon: 'Cañón Principal',
-isPaused: false,
-tickTimer: null,
-initMission(territory) {
-Game.showScreen('screenCombat');
-document.getElementById('combatMissionTitle').innerText = Misión: ${territory.name};
-document.getElementById('combatTerritoryName').innerText = territory.continent;
-​// Select carrier or first available unit
-Combat.activeUnit = GameState.fleet.find(u => u.type === 'carrier' && !u.destroyed) || GameState.fleet[0];
-Combat.enemies = [
-{ id: 'en_1', name: 'Destructor Enemigo', hull: 100, heading: 180, distance: 15, threat: 'Alto' },
-{ id: 'en_2', name: 'Avión Caza Hostil', hull: 50, heading: 45, distance: 8, threat: 'Crítico' }
+
+const Mision={
+iniciar(key,nombre,dinero,minerales,defensa,ruta){
+const u=Flota.portaaviones;
+if(u.destruida || u.combustible<25){ Voz.decir('Imposible zarpar. Comprueba combustible o estado.','urgente'); return; }
+UI.modoUnidad(false,''); unidadActivaId='portaaviones';
+misionActual={key,nombre,dinero,minerales,defensa,ruta,fase:'combate'};
+Combate.enemigos=[
+{id:'e1',nombre:'Fuerzas Defensoras',tipo:'naval',casco:100,cascoMax:100,danoMin:10,danoMax:20,precision:0.6}
 ];
-Combat.selectedTarget = Combat.enemies[0];
-​Combat.populateMissionUnits();
-Combat.populateTargets();
-Combat.populateWeapons();
-Combat.updateCombatHUD();
-​if (Combat.tickTimer) clearInterval(Combat.tickTimer);
-Combat.tickTimer = setInterval(Combat.tick, 1000);
-​Accessibility.speak(Misión iniciada en ${territory.name}. Unidad activa: ${Combat.activeUnit.name}.);
-Accessibility.vibrate([50, 50, 50]);
+Combate.objetivoId='e1';
+Audio2.continuo('batalla',SFX.batallaAeronaval,0.22);
+notificar(`¡Llegada al área de combate de ${nombre}! Inicia el ataque.`,'urgente',SFX.llegadaCombate,'victoria');
+UI.open('s-mision');
+document.getElementById('misionTitle').innerText=`Sitio de ${nombre}`;
+document.getElementById('misionBody').innerHTML='<div class="status">Combate en curso. Usa tus armas.</div>';
+clearInterval(iaInterval); iaInterval=setInterval(Combate.turnoIA,3000);
+Controles.combate(u);
 },
-populateMissionUnits() {
-const select = document.getElementById('missionUnitSelector');
-select.innerHTML = GameState.fleet.filter(u => !u.destroyed).map(u => <option value="${u.id}" ${u.id === Combat.activeUnit.id ? 'selected' : ''}>${u.name} (${u.state})</option>).join('');
+iniciarDefensa(key,nombre){ Mision.iniciar(key,nombre,250,100,'Fuerzas Invasoras','defensa'); },
+retirarse(){ clearInterval(iaInterval); Audio2.detener('batalla'); Mision.abandonar(); },
+victoria(){
+clearInterval(iaInterval); Audio2.detener('batalla');
+notificar('¡Victoria confirmada! Misión completada con éxito.','urgente',SFX.victoria,'victoria');
+Estado.dinero+=misionActual.dinero; Estado.minerales+=misionActual.minerales; Estado.victorias++; Estado.misiones++;
+Estado.conquistados[misionActual.key]=true;
+if(Estado.victorias%2===0) Estado.nivel++;
+Juego.guardar(false);
+setTimeout(()=>{ UI.open('s-mapas'); Mapa.mostrarContinentes(); Controles.mostrarInactivo(); Vehiculos.volverAlMenu(); },3000);
+misionActual=null; Combate.enemigos=null;
 },
-switchActiveUnit(id) {
-SFX.play('click');
-const u = GameState.fleet.find(item => item.id === id);
-if (u) {
-Combat.activeUnit = u;
-Combat.updateCombatHUD();
-Accessibility.speak(Unidad activa: ${u.name});
-}
+derrota(){
+clearInterval(iaInterval); Audio2.detener('batalla');
+notificar('Fuerzas destruidas. Misión fallida.','urgente',SFX.emergencia,'derrota');
+unidadActiva().destruida=true;
+Juego.guardar(false);
+setTimeout(()=>{ UI.open('s-vehiculos'); Vehiculos.render(); Controles.mostrarInactivo(); Vehiculos.volverAlMenu(); },2000);
 },
-populateTargets() {
-const container = document.getElementById('targetsList');
-container.innerHTML = Combat.enemies.map(e => <div onclick="Combat.selectTarget('${e.id}')" class="p-2 rounded border ${Combat.selectedTarget && Combat.selectedTarget.id === e.id ? 'border-blue-500 bg-blue-900/40' : 'border-blue-900/50 bg-navy-900'} cursor-pointer flex justify-between items-center text-xs"> <span>${e.name} (Dist: ${e.distance}km)</span> <span class="text-red-400">Amenaza: ${e.threat}</span> </div>).join('');
-},
-selectTarget(id) {
-SFX.play('click');
-Combat.selectedTarget = Combat.enemies.find(e => e.id === id);
-Combat.populateTargets();
-Accessibility.speak(Objetivo bloqueado: ${Combat.selectedTarget.name});
-},
-populateWeapons() {
-const container = document.getElementById('weaponsList');
-const weapons = ['Cañón Principal', 'Misiles de Crucero', 'Defensa Antiaérea', 'Torpedos'];
-container.innerHTML = weapons.map(w => <button onclick="Combat.selectWeapon('${w}')" class="w-full text-left p-2 rounded text-xs border ${Combat.selectedWeapon === w ? 'border-blue-500 bg-blue-900/40' : 'border-blue-900 bg-navy-900'}">${w} - Munición: ${Combat.activeUnit.ammo}</button>).join('');
-},
-selectWeapon(w) {
-SFX.play('click');
-Combat.selectedWeapon = w;
-Accessibility.speak(Arma seleccionada: ${w});
-},
-adjustHeading(amount) {
-SFX.play('click');
-Combat.activeUnit.heading = (Combat.activeUnit.heading + amount + 360) % 360;
-Combat.updateCombatHUD();
-Accessibility.speak(Rumbo ajustado a ${Combat.activeUnit.heading} grados.);
-},
-adjustSpeed(amount) {
-SFX.play('click');
-Combat.activeUnit.speed = Math.max(0, Math.min(Combat.activeUnit.maxSpeed, Combat.activeUnit.speed + amount));
-Combat.updateCombatHUD();
-Accessibility.speak(Velocidad: ${Combat.activeUnit.speed} nudos.);
-},
-stopUnit() {
-SFX.play('click');
-Combat.activeUnit.speed = 0;
-Combat.updateCombatHUD();
-Accessibility.speak("Unidad detenida.");
-},
-consultStatus() {
-SFX.play('click');
-Accessibility.speak(Estado de ${Combat.activeUnit.name}. Rumbo ${Combat.activeUnit.heading} grados. Velocidad ${Combat.activeUnit.speed} nudos. Combustible al ${Combat.activeUnit.fuel} por ciento.);
-},
-scanRadar() {
-SFX.play('click');
-const radarDiv = document.getElementById('radarOutput');
-radarDiv.innerHTML += <br>[Radar] Escaneo completado. ${Combat.enemies.length} contactos hostiles detectados en la zona.;
-Accessibility.speak(Radar: ${Combat.enemies.length} contactos hostiles detectados.);
-},
-fireWeapon() {
-if (!Combat.selectedTarget) {
-Accessibility.speak("Primero selecciona un objetivo.");
-return;
-}
-if (Combat.activeUnit.ammo <= 0) {
-Accessibility.speak("Munición agotada.");
-return;
-}
-SFX.play('fire');
-Accessibility.vibrate(80);
-Combat.activeUnit.ammo--;
-Combat.selectedTarget.hull -= 40;
-​const radarDiv = document.getElementById('radarOutput');
-radarDiv.innerHTML += <br>¡Impacto de ${Combat.selectedWeapon} sobre ${Combat.selectedTarget.name}!;
-Accessibility.speak(Impacto directo sobre ${Combat.selectedTarget.name}.);
-​if (Combat.selectedTarget.hull <= 0) {
-SFX.play('explosion');
-Accessibility.speak(${Combat.selectedTarget.name} destruido.);
-Combat.enemies = Combat.enemies.filter(e => e.id !== Combat.selectedTarget.id);
-Combat.selectedTarget = Combat.enemies[0] || null;
-Combat.populateTargets();
-​if (Combat.enemies.length === 0) {
-Combat.victoryMission();
-}
-}
-Combat.populateWeapons();
-},
-tick() {
-if (Combat.isPaused) return;
-// Fuel consumption
-if (Combat.activeUnit.speed > 0 && Combat.activeUnit.fuel > 0) {
-Combat.activeUnit.fuel = Math.max(0, Combat.activeUnit.fuel - 0.5);
-if (Combat.activeUnit.fuel === 20) Accessibility.speak("Advertencia. Combustible al 20 por ciento.");
-if (Combat.activeUnit.fuel === 10) Accessibility.speak("Advertencia crítica. Combustible al 10 por ciento.");
-}
-Combat.updateCombatHUD();
-},
-updateCombatHUD() {
-if (!Combat.activeUnit) return;
-document.getElementById('activeUnitName').innerText = Combat.activeUnit.name;
-document.getElementById('activeUnitHull').innerText = Combat.activeUnit.hull;
-document.getElementById('activeUnitEngines').innerText = Combat.activeUnit.engines;
-document.getElementById('hudHeading').innerText = Combat.activeUnit.heading;
-document.getElementById('hudSpeed').innerText = Combat.activeUnit.speed;
-document.getElementById('hudFuel').innerText = Math.round(Combat.activeUnit.fuel);
-},
-togglePause() {
-Combat.isPaused = !Combat.isPaused;
-document.getElementById('pauseBtn').innerText = Combat.isPaused ? 'REANUDAR' : 'PAUSA';
-Accessibility.speak(Combat.isPaused ? "Juego pausado." : "Juego reanudado.");
-},
-victoryMission() {
-clearInterval(Combat.tickTimer);
-SFX.play('victory');
-Accessibility.vibrate([200, 100, 200]);
-​const territory = GameState.currentMission;
-if (territory) {
-territory.conquered = true;
-}
-GameState.victories++;
-GameState.money += territory ? territory.rewardMoney : 1000;
-GameState.minerals += territory ? territory.rewardMin : 500;
-Game.addXp(800);
-Storage.save();
-​document.getElementById('resultTitle').innerText = "VICTORIA CONFIRMADA";
-document.getElementById('resultDescription').innerText = Territorio ${territory ? territory.name : ''} conquistado con éxito.;
-document.getElementById('resultRewards').innerText = Recompensa: $${territory ? territory.rewardMoney : 1000} y ${territory ? territory.rewardMin : 500} Minerales. Experiencia: 800.;
-document.getElementById('modalResult').classList.remove('hidden');
-​Accessibility.speak("Victoria confirmada. Territorio conquistado.");
-},
-retireFromMission() {
-if (Combat.tickTimer) clearInterval(Combat.tickTimer);
-SFX.play('click');
-Game.showScreen('screenMap');
-Accessibility.speak("Retirada de la misión.");
-}
-};
-​// --- 9. PROFILE & RANKING MODULES ---
-const ProfileModule = {
-render() {
-const container = document.getElementById('profileDetails');
-container.innerHTML = <div class="space-y-2 text-sm"> <div class="flex justify-between border-b border-blue-900 pb-2"><span>Comandante:</span> <span class="text-white">${GameState.auth.user ? GameState.auth.user.name : 'Local'}</span></div> <div class="flex justify-between border-b border-blue-900 pb-2"><span>Nivel:</span> <span class="text-white">${GameState.level}</span></div> <div class="flex justify-between border-b border-blue-900 pb-2"><span>Experiencia:</span> <span class="text-white">${GameState.xp} / ${GameState.nextXp}</span></div> <div class="flex justify-between border-b border-blue-900 pb-2"><span>Victorias:</span> <span class="text-green-400">${GameState.victories}</span></div> <div class="flex justify-between border-b border-blue-900 pb-2"><span>Derrotas:</span> <span class="text-red-400">${GameState.defeats}</span></div> <div class="flex justify-between border-b border-blue-900 pb-2"><span>Territorios Conquistados:</span> <span class="text-blue-400">${GameState.territories.filter(t => t.conquered).length} / ${GameState.territories.length}</span></div> </div>;
-Accessibility.speak("Perfil del comandante cargado.");
-}
-};
-​const RankingModule = {
-render() {
-const tbody = document.getElementById('rankingTableBody');
-const mockRanking = [
-{ pos: 1, name: 'Admiral_Vance', level: 12, victories: 45, territories: 8 },
-{ pos: 2, name: 'SeaWolf_99', level: 10, victories: 38, territories: 7 },
-{ pos: 3, name: GameState.auth.user ? GameState.auth.user.name : 'Comandante Local', level: GameState.level, victories: GameState.victories, territories: GameState.territories.filter(t => t.conquered).length },
-{ pos: 4, name: 'TangoDelta', level: 7, victories: 22, territories: 5 }
-];
-mockRanking.sort((a,b) => b.level - a.level);
-tbody.innerHTML = mockRanking.map((r, index) => <tr class="border-b border-blue-900/50 hover:bg-navy-800"> <td class="p-3 font-bold text-blue-400">${index + 1}</td> <td class="p-3 text-white">${r.name}</td> <td class="p-3">${r.level}</td> <td class="p-3 text-green-400">${r.victories}</td> <td class="p-3 text-blue-300">${r.territories}</td> </tr>).join('');
-Accessibility.speak("Ranking global cargado.");
-}
-};
-​const Settings = {
-update(key, value) {
-GameState.settings[key] = value;
-Storage.save();
-SFX.play('click');
-}
-};
-​// Initialize App on Window Load
-window.onload = () => {
-Game.init();
-};
-​window.onerror = function(msg, url, line) {
-console.error("Error interno:", msg, url, line);
-Accessibility.speak("Se produjo un error interno. La partida ha sido protegida.");
-return true;
+abandonar(){ clearInterval(iaInterval); Audio2.detener('batalla'); misionActual=null; Combate.enemigos=null; UI.open('s-mapas'); Mapa.mostrarContinentes(); Controles.mostrarInactivo(); Vehiculos.volverAlMenu(); }
 };
 </script>
 </body>
-  </html>
+</html>
